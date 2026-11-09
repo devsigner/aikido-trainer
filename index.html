@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aïkido – Entraînement</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>合気道 Aïkido</h1>
+
+    <section id="home">
+      <label class="field">Grade
+        <select id="grade"></select>
+      </label>
+      <div class="filters">
+        <label><input type="checkbox" id="f-nouveau"> 🆕 Nouveautés</label>
+        <label><input type="checkbox" id="f-attention"> ⚠️ Attention</label>
+      </div>
+      <p class="hint">Choisissez un waza :</p>
+      <div id="waza-buttons" class="buttons"></div>
+      <p id="home-msg" class="hint"></p>
+    </section>
+
+    <section id="draw" hidden>
+      <p id="progress" class="hint"></p>
+      <div id="card" class="card">
+        <div id="card-waza" class="waza"></div>
+        <div id="card-attaque" class="attaque"></div>
+        <div id="card-technique" class="technique"></div>
+        <div id="card-forme" class="forme"></div>
+        <div id="card-badges" class="badges"></div>
+        <div id="card-note" class="note"></div>
+        <a id="card-video" class="video" target="_blank" rel="noopener" hidden>▶ Voir la vidéo</a>
+      </div>
+      <div id="done" hidden>Waza terminé 🎉</div>
+      <div class="buttons">
+        <button id="next">Technique suivante</button>
+        <button id="home-btn" class="secondary">Retour à l'accueil</button>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

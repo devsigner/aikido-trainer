@@ -1,0 +1,1058 @@
+{
+  "grade": "2ème Kyo",
+  "waza": {
+    "Tachi waza": [
+      {
+        "nom": "Katate dori",
+        "techniques": [
+          {
+            "nom": "Tenchi nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://youtu.be/HYz1EbR99l4?si=ak8D5_uPXlVYt9AX"
+          },
+          {
+            "nom": "Sokumen irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": "Naname",
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ude kime nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kokyu nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": "3 formes différentes",
+            "video": "https://www.youtube.com/watch?v=rPiRb-2qUDQ"
+          },
+          {
+            "nom": "Uchi kaïten nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://youtu.be/fDgG4J-UA0k?si=8huP3J0ruI05mEPC"
+          },
+          {
+            "nom": "Soto kaïten nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://youtu.be/mjQQrSPKjA0?si=qbrGhps9i8Rg-X7l"
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": "https://youtu.be/dPBZWMAqvCE?si=u812okQD3xUsq8yl"
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=bYtGQgp21gk"
+          },
+          {
+            "nom": "Sumi otoshi",
+            "formes": [],
+            "nouveau": true,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=ByXUMTLfskA"
+          },
+          {
+            "nom": "Aïki otoshi",
+            "formes": [],
+            "nouveau": true,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=XOAgW5nzAuY"
+          },
+          {
+            "nom": "Koshi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=YbCHLQt7F9c"
+          }
+        ]
+      },
+      {
+        "nom": "Aï hammi katate dori",
+        "techniques": [
+          {
+            "nom": "Sokumen irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": "Naname",
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ude kime nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo forme uchi",
+            "formes": [
+              "Omote"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Koshi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Ryote dori",
+        "techniques": [
+          {
+            "nom": "Tenchi nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kokyu nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=cf0uD0Ys3BU"
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=8bcHCMOuU-E"
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=OqZJfg7SBq0"
+          }
+        ]
+      },
+      {
+        "nom": "Katate ryote dori (ou morote dori)",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=5puINJeVO_g"
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=Ork8roqH68A"
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=hQRDGc3Oc9A"
+          },
+          {
+            "nom": "Ude kime nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kokyu hoo",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": "Naname",
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=vFNRD-_YEYo"
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo forme uchi",
+            "formes": [
+              "Omote"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=6ET3YYQOBF0"
+          }
+        ],
+        "precision": "2 mains sur 1 bras (entrée tenkan)"
+      },
+      {
+        "nom": "Kata dori",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=TNKal-1HahE"
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Yokomen uchi",
+        "techniques": [
+          {
+            "nom": "Shiho nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=8_zv1Uk4uXM"
+          },
+          {
+            "nom": "Ude kime nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=_zCVwunKwxU"
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=nRCBMNb7Go4"
+          }
+        ]
+      },
+      {
+        "nom": "Shomen uchi",
+        "techniques": [
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=Km_UCCs5nl0"
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=4ZP4PpJVjK4"
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=Jasm-kuWQ4A"
+          },
+          {
+            "nom": "Soto kaïten nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=JQhZczX-mFU"
+          },
+          {
+            "nom": "Uchi kaïten nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://www.youtube.com/watch?v=tIvmcUfdhYY"
+          }
+        ]
+      },
+      {
+        "nom": "Chudan tsuki",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Ryo kata dori",
+        "techniques": [
+          {
+            "nom": "Sokumen irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": "Naname",
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Ushiro ryote dori",
+        "techniques": [
+          {
+            "nom": "Sankyo forme uchi",
+            "formes": [
+              "Omote"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kokyu nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ude kime nage",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Juji garami",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sokumen irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": "Naname",
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Ushiro ryo kata dori",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sokumen irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": "Naname",
+            "video": null
+          },
+          {
+            "nom": "Aïki otoshi",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Ushiro ryo hiji dori",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Kata dori men uchi",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://youtu.be/bwAnDWppCXk?is=_6bzqB2JSxVCvela"
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Shiho nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://youtu.be/-8Fikgbdnxc?is=ByA7cM_ocJjJkdv7"
+          }
+        ]
+      },
+      {
+        "nom": "Diverses formes d'attaques",
+        "techniques": [
+          {
+            "nom": "Kokyu nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      }
+    ],
+    "Suwari waza": [
+      {
+        "nom": "Ryote dori",
+        "techniques": [
+          {
+            "nom": "Kokyu hoo (Kokyu dosa)",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Ikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Shomen uchi",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Katate dori",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [
+              "Omote",
+              "Ura"
+            ],
+            "nouveau": false,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Kata dori",
+        "techniques": [
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": "https://youtu.be/XlMJQMbfKo8?is=4eUSflO-K7JQnKzn"
+          }
+        ]
+      },
+      {
+        "nom": "Yokomen uchi",
+        "techniques": [
+          {
+            "nom": "Ikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Nikkyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Sankyo",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Irimi nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      }
+    ],
+    "Hanmi Handachi waza": [
+      {
+        "nom": "Shomen uchi",
+        "techniques": [
+          {
+            "nom": "Kote gaeshi",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Ryote dori",
+        "techniques": [
+          {
+            "nom": "Shiho nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          },
+          {
+            "nom": "Kokyu nage",
+            "formes": [],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      },
+      {
+        "nom": "Katate dori",
+        "techniques": [
+          {
+            "nom": "Taïken nage",
+            "formes": [
+              "Uchi",
+              "Soto"
+            ],
+            "nouveau": true,
+            "attention": false,
+            "note": null,
+            "video": null
+          }
+        ]
+      }
+    ]
+  }
+}
