@@ -20,4 +20,5 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .badges { margin-top: .6rem; font-size: 1.2rem; }
 .note { margin-top: .6rem; color: var(--muted); font-style: italic; }
 .video { display: inline-block; margin-top: 1rem; color: #5dade2; }
+.video[hidden] { display: none; }
 #done { text-align: center; font-size: 1.8rem; padding: 2rem 0; }

@@ -1,3 +1,12 @@
 [
-  { "id": "2eme-kyo", "label": "2ème Kyo", "fichier": "2eme-kyo.json" }
+  {
+    "id": "1er-kyo",
+    "label": "1er Kyo",
+    "fichier": "1er-kyo.json"
+  },
+  {
+    "id": "2eme-kyo",
+    "label": "2ème Kyo",
+    "fichier": "2eme-kyo.json"
+  }
 ]

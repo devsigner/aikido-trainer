@@ -3,6 +3,7 @@ const POIDS_ATTENTION = 1.5;
 const WAZA_ORDER = ["Tachi waza", "Hanmi Handachi waza", "Suwari waza"];
 
 const $ = (id) => document.getElementById(id);
+
 let data = null;
 let pool = [];
 let total = 0;
@@ -82,6 +83,7 @@ function next() {
   $("card-note").textContent = t.note || "";
   const v = $("card-video");
   v.hidden = !t.video;
+  v.href = null
   if (t.video) v.href = t.video;
   $("progress").textContent = `${currentWaza} : ${total - pool.length} / ${total}`;
 }
