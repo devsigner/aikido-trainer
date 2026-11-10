@@ -4,7 +4,7 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Version
 
-**Version actuelle : `20261111`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Version actuelle : `20261111.2`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
 
 À chaque nouvelle version :
 1. Remplacer le numéro dans `index.html` : `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).

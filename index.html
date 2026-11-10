@@ -4,23 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aïkido – Entraînement</title>
-  <link rel="stylesheet" href="style.css?v=20261111">
+  <link rel="stylesheet" href="style.css?v=20261111.2">
 </head>
 <body>
   <main>
     <h1>合気道 Aïkido</h1>
 
     <section id="home">
-      <label class="field">Grade
-        <select id="grade"></select>
-      </label>
-      <div class="filters">
-        <label><input type="checkbox" id="f-nouveau"> 🆕 Nouveautés</label>
-        <label><input type="checkbox" id="f-attention"> ⚠️ Attention</label>
+      <div class="group settings">
+        <label class="field">Grade
+          <select id="grade"></select>
+        </label>
+        <div class="filters">
+          <label><input type="checkbox" id="f-nouveau"> 🆕 Nouveautés</label>
+          <label><input type="checkbox" id="f-attention"> ⚠️ Attention</label>
+        </div>
       </div>
-      <p class="hint">Choisissez un waza :</p>
-      <div id="waza-buttons" class="buttons"></div>
-      <p id="home-msg" class="hint"></p>
+      <div class="group grow">
+        <p class="hint">Choisissez un waza :</p>
+        <div id="waza-buttons" class="buttons grow"></div>
+        <p id="home-msg" class="hint"></p>
+      </div>
     </section>
 
     <section id="draw" hidden>
@@ -35,12 +39,12 @@
         <a id="card-video" class="video" target="_blank" rel="noopener" hidden>▶ Voir la vidéo</a>
       </div>
       <div id="done" hidden>Waza terminé 🎉</div>
-      <div class="buttons">
+      <div class="buttons actions">
         <button id="next">Technique suivante</button>
         <button id="home-btn" class="secondary">Retour à l'accueil</button>
       </div>
     </section>
   </main>
-  <script src="app.js?v=20261111"></script>
+  <script src="app.js?v=20261111.2"></script>
 </body>
 </html>
