@@ -9,9 +9,56 @@ let pool = [];
 let total = 0;
 let currentWaza = "";
 
-async function loadGrade(fichier) {
+let grades = [];
+
+// Fusionne `over` dans `base` : les attaques et techniques sont appariées par nom,
+// les champs de `over` écrasent ceux de `base`.
+function mergeGrades(base, over) {
+  const merged = { ...base, ...over, waza: {} };
+  const wazaNames = new Set([...Object.keys(base.waza), ...Object.keys(over.waza)]);
+  for (const w of wazaNames) {
+    const attaques = (base.waza[w] || []).map((a) => ({ ...a, techniques: [...a.techniques] }));
+    for (const oa of over.waza[w] || []) {
+      // if not existing, add it
+      const ba = attaques.find((a) => a.nom === oa.nom);
+      if (!ba) {
+        attaques.push(oa);
+        continue;
+      }
+      // or merge it
+      Object.assign(ba, { ...oa, techniques: ba.techniques });
+      for (const ot of oa.techniques) {
+        const i = ba.techniques.findIndex((t) => t.nom === ot.nom);
+        if (i < 0) ba.techniques.push(ot);
+        else ba.techniques[i] = { ...ba.techniques[i], ...ot };
+      }
+    }
+    merged.waza[w] = attaques;
+  }
+  return merged;
+}
+
+async function loadFile(fichier) {
   const res = await fetch(`data/${fichier}`);
-  data = await res.json();
+  return res.json();
+}
+
+async function resolveGrade(id) {
+  const g = grades.find((x) => x.id === id);
+  let result = null;
+  for (const fichier of [...(g.inclut || []), g.fichier]) {
+    const d = await loadFile(fichier);
+    result = result ? mergeGrades(result, d) : d;
+  }
+  return result;
+}
+
+function countTechniques(d) {
+  return Object.values(d.waza).flat().reduce((n, a) => n + a.techniques.length, 0);
+}
+
+async function loadGrade(id) {
+  data = await resolveGrade(id);
   renderWazaButtons();
 }
 
@@ -96,9 +143,12 @@ function goHome() {
 }
 
 async function init() {
-  const grades = await (await fetch("data/grades.json")).json();
+  grades = await (await fetch("data/grades.json")).json();
   const sel = $("grade");
-  grades.forEach((g) => sel.add(new Option(g.label, g.fichier)));
+  for (const g of grades) {
+    const n = countTechniques(await resolveGrade(g.id));
+    sel.add(new Option(`${g.label} (${n} techniques)`, g.id));
+  }
   sel.onchange = () => loadGrade(sel.value);
   $("f-nouveau").onchange = $("f-attention").onchange = () => data && renderWazaButtons();
   $("next").onclick = next;
