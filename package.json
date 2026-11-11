@@ -1,0 +1,11 @@
+{
+  "name": "aikido-trainer",
+  "private": true,
+  "scripts": {
+    "server": "http-server . -p 8000 -c-1",
+    "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
