@@ -21,12 +21,29 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 Un serveur HTTP est nécessaire (`fetch()` des fichiers JSON ne fonctionne pas en `file://`). Depuis le dossier du projet :
 
 ```
+npm install      # une seule fois (installe http-server)
+npm run server
+```
+
+Puis ouvrir http://localhost:8000. `npm run server` lance `http-server` sur le port 8000 avec le cache désactivé (`-c-1`).
+
+Sans npm, tout serveur statique convient :
+
+```
 python3 -m http.server 8000
 # ou
 ruby -run -ehttpd . -p8000
 ```
 
-Puis ouvrir http://localhost:8000.
+## Tests
+
+Aucune dépendance : lanceur intégré à Node (≥ 20).
+
+```
+npm test
+```
+
+`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, écrans (accueil, tirage, fin de waza, retour à l'accueil) et cohérence du numéro de version (`index.html` ↔ `CLAUDE.md`). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
 
 ## Structure
 
@@ -37,6 +54,8 @@ app.js                Logique (chargement, fusion des grades, tirage)
 data/grades.json      Liste des grades disponibles
 data/2eme-kyo.json    Techniques du 2ème Kyo
 data/1er-kyo.json     Techniques propres au 1er Kyo + surcharges
+tests/app.test.js     Tests (node:test)
+package.json          Scripts `npm run server` et `npm test`
 ```
 
 ## Données (JSON)
