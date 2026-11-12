@@ -4,10 +4,10 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Version
 
-**Version actuelle : `20261111.2`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Version actuelle : `20261112`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
 
 À chaque nouvelle version :
-1. Remplacer le numéro dans `index.html` : `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
+1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
 2. Mettre à jour le numéro ci-dessus.
 3. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
 
@@ -49,6 +49,7 @@ npm test
 
 ```
 index.html            Page unique (accueil + écran de tirage)
+favicon.ico           Icône du site (caractère 道, PNG 16/32/48/64 px intégrés)
 style.css
 app.js                Logique (chargement, fusion des grades, tirage)
 data/grades.json      Liste des grades disponibles

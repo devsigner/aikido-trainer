@@ -432,9 +432,11 @@ describe("version", () => {
   test("CSS et JS portent le même numéro de version que CLAUDE.md", () => {
     const css = html.match(/style\.css\?v=([\w.]+)/)?.[1];
     const js = html.match(/app\.js\?v=([\w.]+)/)?.[1];
+    const ico = html.match(/favicon\.ico\?v=([\w.]+)/)?.[1];
     const documented = doc.match(/Version actuelle : `([\w.]+)`/)?.[1];
     assert.ok(css && js && documented, "version manquante");
     assert.equal(css, js);
+    assert.equal(css, ico);
     assert.equal(css, documented);
     assert.match(css, /^\d{8}(\.\d+)?$/);
   });
