@@ -1,20 +1,21 @@
 :root { --bg: #14171c; --fg: #eceff4; --accent: #c0392b; --card: #1f242c; --muted: #8b95a5; }
-* { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
-main { max-width: 640px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+body { margin: 0; overscroll-behavior: none; touch-action: manipulation; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+main { max-width: 640px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: max(1.5rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 1.5rem; }
 main > section { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 main > section[hidden] { display: none; }
 .group { display: flex; flex-direction: column; gap: .8rem; }
 .grow { flex: 1; }
 h1 { text-align: center; margin: 0; }
 .field { display: block; }
-select { width: 100%; padding: .7rem; font-size: 1rem; border-radius: 8px; background: var(--card); color: var(--fg); border: 1px solid #333; margin-top: .3rem; }
+select { width: 100%; padding: .7rem; font-size: 16px; border-radius: 8px; background: var(--card); color: var(--fg); border: 1px solid #333; margin-top: .3rem; }
 .filters { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-.filters label { cursor: pointer; }
+.filters label { cursor: pointer; padding: .5rem 0; }
 .hint { color: var(--muted); margin: 0; }
 .buttons { display: flex; flex-direction: column; gap: .8rem; }
 .buttons.grow button { flex: 1; }
-button { padding: 1.5rem; font-size: 1.1rem; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
+button { -webkit-appearance: none; appearance: none; user-select: none; -webkit-user-select: none; padding: 1.5rem; font-size: 1.1rem; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
 button.secondary { background: #3a4150; }
 button:disabled { opacity: .4; cursor: not-allowed; }
 .card { background: var(--card); border-radius: 14px; padding: 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
