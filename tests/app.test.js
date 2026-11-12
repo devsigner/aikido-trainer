@@ -437,7 +437,51 @@ describe("version", () => {
     assert.ok(css && js && documented, "version manquante");
     assert.equal(css, js);
     assert.equal(css, ico);
+    const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8").match(/const VERSION = "([\w.]+)"/)?.[1];
+    assert.equal(sw, css, "sw.js : VERSION différente");
     assert.equal(css, documented);
     assert.match(css, /^\d{8}(\.\d+)?$/);
+  });
+});
+
+// ---------- Application mobile (PWA) ----------
+describe("application mobile", () => {
+  const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  const manifest = readJson("manifest.webmanifest");
+  const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
+
+  test("index.html contient les balises mobile", () => {
+    assert.match(html, /<meta name="viewport"[^>]*viewport-fit=cover/);
+    assert.match(html, /<meta name="theme-color"/);
+    assert.match(html, /<meta name="apple-mobile-web-app-capable" content="yes"/);
+    assert.match(html, /<meta name="mobile-web-app-capable" content="yes"/);
+    assert.match(html, /<link rel="manifest" href="manifest\.webmanifest"/);
+    assert.match(html, /<link rel="apple-touch-icon" href="icons\/apple-touch-icon\.png"/);
+    assert.match(html, /serviceWorker\.register\("sw\.js"\)/);
+  });
+
+  test("manifest installable : standalone, URLs relatives, icônes 192 et 512 existantes", () => {
+    assert.equal(manifest.display, "standalone");
+    assert.ok(manifest.name && manifest.short_name);
+    for (const u of [manifest.start_url, manifest.scope]) assert.match(u, /^\./, "URL relative requise (sous-dossier GitHub Pages)");
+    const sizes = manifest.icons.map((i) => i.sizes);
+    assert.ok(sizes.includes("192x192") && sizes.includes("512x512"));
+    for (const i of manifest.icons) assert.ok(fs.existsSync(path.join(ROOT, i.src)), `${i.src} introuvable`);
+    assert.ok(fs.existsSync(path.join(ROOT, "icons/apple-touch-icon.png")));
+  });
+
+  test("le service worker précache des fichiers existants, dont tous les JSON de données", () => {
+    const list = sw.match(/const PRECACHE = \[([\s\S]*?)\];/)[1];
+    const files = [...list.matchAll(/["`]([^"`]+)["`]/g)].map((m) => m[1].replace("${VERSION}", "").split("?")[0]);
+    for (const f of files) {
+      assert.ok(f === "./" || fs.existsSync(path.join(ROOT, f)), `${f} introuvable`);
+    }
+    for (const f of fs.readdirSync(path.join(ROOT, "data"))) {
+      assert.ok(files.includes(`data/${f}`), `data/${f} absent du précache (hors ligne)`);
+    }
+  });
+
+  test("sw.js est un script valide", () => {
+    assert.doesNotThrow(() => new vm.Script(sw));
   });
 });

@@ -4,12 +4,22 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Version
 
-**Version actuelle : `20261112`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Version actuelle : `20261112.2`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
 
 À chaque nouvelle version :
 1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
-2. Mettre à jour le numéro ci-dessus.
-3. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
+2. Mettre la même valeur dans `const VERSION` de `sw.js` (renouvelle le cache hors ligne).
+3. Mettre à jour le numéro ci-dessus.
+4. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
+
+## Application mobile (PWA)
+
+Installable sur l'écran d'accueil (iOS : Partager → « Sur l'écran d'accueil » ; Android : « Installer l'application ») et utilisable hors ligne.
+
+- `manifest.webmanifest` : mode `standalone`, portrait, couleurs `#14171c`, icônes `icons/icon-192.png` et `icons/icon-512.png` (maskable). Toutes les URLs sont relatives (le site est servi sous `/aikido-trainer/` en production).
+- `icons/apple-touch-icon.png` (180 px) pour iOS. Balises `apple-mobile-web-app-*` et `theme-color` dans `index.html`, `viewport-fit=cover` avec marges `env(safe-area-inset-*)` dans `style.css`.
+- `sw.js` : précache tous les fichiers (dont les JSON de `data/`), stratégie réseau d'abord puis cache. Tout nouveau fichier de données ou d'icône doit être ajouté à `PRECACHE` (un test le vérifie pour `data/`).
+- Le service worker exige HTTPS (ou `localhost`) : il fonctionne en production (GitHub Pages) et en local, mais pas sur l'IP du réseau local en HTTP.
 
 ## URLs
 
@@ -44,7 +54,7 @@ Aucune dépendance de test : lanceur intégré à Node (≥ 20).
 yarn test
 ```
 
-`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, écrans (accueil, tirage, fin de waza, retour à l'accueil) et cohérence du numéro de version (`index.html` ↔ `CLAUDE.md`). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
+`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, écrans (accueil, tirage, fin de waza, retour à l'accueil), cohérence du numéro de version (`index.html` ↔ `sw.js` ↔ `CLAUDE.md`) et configuration mobile (balises, manifeste, icônes, précache du service worker). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
 
 ## Structure
 
@@ -52,6 +62,9 @@ yarn test
 index.html            Page unique (accueil + écran de tirage)
 favicon.ico           Icône du site (caractère 道, PNG 16/32/48/64 px intégrés)
 style.css
+manifest.webmanifest   Manifeste PWA
+sw.js                 Service worker (hors ligne)
+icons/                Icônes de l'application (192, 512, apple-touch-icon)
 app.js                Logique (chargement, fusion des grades, tirage)
 data/grades.json      Liste des grades disponibles
 data/2eme-kyo.json    Techniques du 2ème Kyo
