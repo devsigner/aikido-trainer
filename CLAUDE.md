@@ -12,9 +12,29 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 3. Mettre à jour le numéro ci-dessus.
 4. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
 
-## Programme
+## Ordre des techniques (`order`)
 
-Chaque technique des JSON a une clé `order` : le nombre japonais du nom (Ikkyo 1, Nikkyo 2, Sankyo 3, Yonkyo 4, Gokyo 5, plus Shiho nage 6, Irimi nage 7, Kote gaeshi 8, Tenchi nage 5, Sokumen irimi nage 9, Ude kime nage 10), sinon `42`. Toute nouvelle technique doit en avoir une (un test le vérifie).
+Chaque technique des JSON (`data/*.json`, y compris les surcharges de `1er-kyo.json`) a une clé `order` (entier). Elle sert à trier les techniques d'une attaque dans le programme : `order` croissant, puis ordre alphabétique (français) à égalité.
+
+| order | Techniques |
+|---|---|
+| 1 | Ikkyo |
+| 2 | Nikkyo |
+| 3 | Sankyo |
+| 4 | Yonkyo |
+| 5 | Gokyo, Tenchi nage |
+| 6 | Shiho nage |
+| 7 | Irimi nage |
+| 8 | Kote gaeshi |
+| 9 | Sokumen irimi nage |
+| 10 | Ude kime nage |
+| 42 | toutes les autres (valeur par défaut) |
+
+Règles :
+- Une nouvelle technique reçoit l'`order` de son nom s'il est dans le tableau, sinon `42`.
+- Pour changer l'`order` d'un nom, le modifier partout (2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/app.test.js` : un test vérifie la cohérence.
+
+## Programme
 
 Le bouton « Voir le programme » (écran de tirage, sous « Retour à l'accueil ») ouvre le listing complet du waza et du grade sélectionnés, sans toucher à la session (techniques déjà tirées conservées). Les filtres 🆕/⚠️ ne s'y appliquent pas.
 
@@ -98,7 +118,15 @@ Un fichier par grade :
       {
         "nom": "Aï hammi katate dori",
         "techniques": [
-          { "nom": "Nikkyo", "formes": ["Omote", "Ura"], "nouveau": false, "attention": true, "note": null, "video": null }
+          {
+            "nom": "Nikkyo",
+            "formes": ["Omote", "Ura"],
+            "nouveau": false,
+            "attention": true,
+            "note": null,
+            "video": null,
+            "order": 2
+          }
         ]
       }
     ]
@@ -111,7 +139,6 @@ Un fichier par grade :
 - `nouveau` (🆕) et `attention` (⚠️) : marqueurs portés par la technique entière.
 - `note` : texte libre affiché sous la technique (ex. « Naname », « 3 formes différentes »). `video` : URL, le lien n'est affiché que s'il existe.
 - Orthographe harmonisée : Nikkyo, Sankyo, première lettre en majuscule puis minuscules (ex. « Kote gaeshi »).
-- Les lignes `*` de Yokomen uchi du tableau d'origine sont traitées comme `attention`.
 - Ajouter un grade : créer `data/<id>.json`, puis ajouter une entrée dans `data/grades.json` (`id`, `label`, `fichier`, et éventuellement `inclut`).
 
 ### Héritage entre grades
