@@ -61,10 +61,11 @@ const sameProgram = (from, to) => from?.level === to?.level && from?.attack === 
 const sameView = (before, after) => before.screen === after.screen && before.current === after.current && sameProgram(before.program, after.program);
 
 // Direction of the card animation: a history pop follows the history (back or forward),
-// otherwise going up a program level is "back" and everything else is "forward".
+// a message may force it (`direction`), otherwise going up a program level is "back" and everything else is "forward".
 const slideDirection = (before, after, msg) => {
+  if (msg.direction) return msg.direction;
   if (msg.type === "Popped" && msg.position !== before.position) return msg.position < before.position ? "back" : "forward";
-  return before.program && after.program && after.program.level < before.program.level ? "back" : "forward";
+  return before.program && (!after.program || after.program.level < before.program.level) ? "back" : "forward";
 };
 
 const withSlide = (before, after, msg) => {
@@ -128,8 +129,10 @@ function step(model, msg) {
       const next = { ...model, screen: "program", program };
       return [next, [url(next, "push")]];
     }
-    case "Back":
-      return [model, [{ type: "HistoryBack" }]];
+    case "CloseProgram": {
+      const next = { ...model, screen: "draw", program: null };
+      return [next, [url(next, "push")]];
+    }
     case "Popped":
       // Browser navigation: the URL is the source of truth.
       return model.status === "ready" ? goTo(model, parseHash(msg.hash)) : [model, []];

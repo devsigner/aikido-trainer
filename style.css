@@ -19,7 +19,6 @@ select { width: 100%; padding: .7rem; font-size: 16px; border-radius: 8px; backg
 .buttons { display: flex; flex-direction: column; gap: .8rem; }
 .buttons.grow button { flex: 1; }
 button { -webkit-appearance: none; appearance: none; user-select: none; -webkit-user-select: none; padding: 1.5rem; font-size: 1.1rem; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
-button.small { padding: .8rem 1rem; font-size: 1rem; }
 button.secondary { background: #3a4150; }
 button:disabled { opacity: .4; cursor: not-allowed; }
 .card { background: var(--card); border-radius: 14px; padding: 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -50,3 +49,5 @@ button.item::after { content: "›"; color: var(--muted); }
 .slide-back { animation: slide-from-left .25s ease-out; }
 /* @media (prefers-reduced-motion: reduce) { .slide-forward, .slide-back { animation: none; } } */
 body { overflow-x: hidden; }
+.pager { display: flex; gap: .8rem; }
+.pager button { flex: 1; }

@@ -80,7 +80,7 @@ export async function createApp({ random = Math.random, hash = "" } = {}) {
   await settle();
   const app = {
     dispatch,
-    history: { states, forward: () => history.forward(), get index() { return index; }, get url() { return states[index]; } },
+    history: { states, back: () => history.back(), forward: () => history.forward(), get index() { return index; }, get url() { return states[index]; } },
     get tree() {
       return tree;
     },

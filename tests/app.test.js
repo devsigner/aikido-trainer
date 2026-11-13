@@ -207,12 +207,13 @@ describe("program", () => {
     assert.equal(app.text("prog-attack"), "Ryote dori");
     app.click("prog-back");
     app.click("prog-back");
+    app.click("Katate dori");
     app.click("Kote gaeshi");
     assert.deepEqual(app.list(), []);
     assert.match(app.text("prog-sub"), /Aucune autre attaque/);
   });
 
-  test("next button: next technique of the same attack, disabled on the last one", async () => {
+  test("next button: next technique of the same attack, wrapping to the first one", async () => {
     const { app } = await open();
     app.click("Katate dori");
     app.click("Nikkyo");
@@ -220,10 +221,27 @@ describe("program", () => {
     app.click("prog-next");
     assert.equal(app.text("prog-technique"), "Kote gaeshi");
     assert.equal(app.text("prog-attack"), "Katate dori");
-    assert.equal(app.byId("prog-next").props.disabled, true);
-    app.click("prog-techniques");
+    app.click("prog-next");
+    assert.equal(app.text("prog-technique"), "Nikkyo");
+    app.click("prog-prev");
+    assert.equal(app.text("prog-technique"), "Kote gaeshi");
+    assert.equal(app.model.slide.direction, "back");
+    app.click("prog-prev");
+    assert.equal(app.text("prog-technique"), "Nikkyo");
+    app.click("prog-back");
     assert.equal(app.model.program.level, 2);
     assert.equal(app.model.program.attack, "Katate dori");
+  });
+
+  test("level 2 back button always lists the attacks, even after other navigation", async () => {
+    const { app } = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    app.click("prog-back");
+    assert.equal(app.model.program.level, 2);
+    app.click("prog-back");
+    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.slide.direction, "back");
   });
 
   test("back button: goes up one level then returns to the draw", async () => {
@@ -239,16 +257,20 @@ describe("program", () => {
     assert.ok(byId(app.tree, "card"));
   });
 
-  test("slide direction: back slides back at the same level, browser forward slides forward", async () => {
+  test("slide direction: in-app back slides back, browser back and forward follow the history", async () => {
     const { app } = await open();
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click(app.list()[0]);
     assert.equal(app.model.slide.direction, "forward");
     app.click("prog-back");
+    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.slide.direction, "back");
+    app.history.back();
     assert.equal(app.model.program.level, 3);
     assert.equal(app.model.slide.direction, "back");
     app.history.forward();
+    assert.equal(app.model.program.level, 2);
     assert.equal(app.model.slide.direction, "forward");
   });
 });

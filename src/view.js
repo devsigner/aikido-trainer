@@ -62,6 +62,7 @@ const levels = {
     const attacks = listAttacks(model.data, model.waza);
     return {
       back: "← Tirage",
+      backMessage: { type: "CloseProgram" },
       fields: { waza: model.waza },
       title: "Attaques",
       sub: `${attacks.length} attaques`,
@@ -72,6 +73,7 @@ const levels = {
     const techniques = listTechniques(model.data, model.waza, attack);
     return {
       back: "← Programme",
+      backMessage: { type: "Navigate", to: { level: 1 } },
       fields: { waza: model.waza, attack },
       title: "Techniques",
       sub: `${techniques.length} techniques`,
@@ -82,15 +84,20 @@ const levels = {
     const siblings = listTechniques(model.data, model.waza, attack);
     const position = siblings.findIndex((candidate) => candidate.name === technique);
     const current = siblings[position];
-    const following = siblings[position + 1];
+    // Neighbours wrap around the list; none when the attack has a single technique.
+    const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
+    const pagerButton = (id, label, target, direction) =>
+      h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
     const others = findSameTechnique(model.data, model.waza, attack, current.name);
     return {
       back: `← ${attack}`,
+      backMessage: { type: "Navigate", to: { level: 2, attack } },
       fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" },
       actions: [
         h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
-        h("button", { id: "prog-next", disabled: !following, onClick: following ? { type: "Navigate", to: { level: 3, attack, technique: following.name } } : null }, "Technique suivante"),
-        h("button", { id: "prog-techniques", className: "secondary small", onClick: { type: "Navigate", to: { level: 2, attack } } }, `${attack}`)
+        h("div", { className: "pager" },
+          pagerButton("prog-prev", "Précédente", neighbour(-1), "back"),
+          pagerButton("prog-next", "Suivante", neighbour(1), "forward")),
       ],
       title: "Même technique, autres attaques",
       sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
@@ -100,10 +107,10 @@ const levels = {
 };
 
 const program = (model) => {
-  const { back, fields, actions, title, sub, items } = levels[model.program.level](model, model.program);
+  const { back, backMessage, fields, actions, title, sub, items } = levels[model.program.level](model, model.program);
   return h("section", { id: "program" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
-    h("button", { id: "prog-back", className: "secondary back", onClick: { type: "Back" } }, back),
+    h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
     card("prog", fields, "prog-card", slideProps(model.slide)),
     actions,
     h("div", { className: "group" },
