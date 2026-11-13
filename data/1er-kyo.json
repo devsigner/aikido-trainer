@@ -8,23 +8,28 @@
         "techniques": [
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sumi otoshi",
+            "order": 9,
             "nouveau": false
           },
           {
             "nom": "Aïki otoshi",
+            "order": 9,
             "nouveau": false
           },
           {
             "nom": "Koshi nage",
+            "order": 9,
             "nouveau": false
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -33,6 +38,7 @@
           },
           {
             "nom": "Ushiro kiri otoshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -46,11 +52,13 @@
         "techniques": [
           {
             "nom": "Koshi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -59,6 +67,7 @@
           },
           {
             "nom": "Ushiro kiri otoshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -72,16 +81,19 @@
         "techniques": [
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Ushiro kiri otoshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -96,11 +108,13 @@
         "techniques": [
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Juji garami",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -109,6 +123,7 @@
           },
           {
             "nom": "Ushiro kiri otoshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -122,11 +137,13 @@
         "techniques": [
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -140,6 +157,7 @@
         "techniques": [
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -148,6 +166,7 @@
           },
           {
             "nom": "Gokyo",
+            "order": 5,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -161,21 +180,25 @@
         "techniques": [
           {
             "nom": "Shiho nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Soto kaïten nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Uchi kaïten nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -184,6 +207,7 @@
           },
           {
             "nom": "Gokyo",
+            "order": 5,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -197,21 +221,25 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Shiho nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -220,6 +248,7 @@
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -228,6 +257,7 @@
           },
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -236,6 +266,7 @@
           },
           {
             "nom": "Kaïten nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -244,6 +275,7 @@
           },
           {
             "nom": "Ushiro kiri otoshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -257,6 +289,7 @@
         "techniques": [
           {
             "nom": "Sokumen irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -267,11 +300,13 @@
         "techniques": [
           {
             "nom": "Juji garami",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sokumen irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -282,26 +317,31 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sokumen irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Aïki otoshi",
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -312,6 +352,7 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "nouveau": false,
             "attention": true
           }
@@ -322,31 +363,37 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Shiho nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -357,6 +404,7 @@
         "techniques": [
           {
             "nom": "Kokyu nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -367,6 +415,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -380,6 +429,7 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -388,6 +438,7 @@
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -396,6 +447,7 @@
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -404,6 +456,7 @@
           },
           {
             "nom": "Shiho nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -412,6 +465,7 @@
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -420,6 +474,7 @@
           },
           {
             "nom": "Kaïten nage",
+            "order": 9,
             "formes": [
               "Uchi",
               "Soto"
@@ -431,6 +486,7 @@
           },
           {
             "nom": "Hiji kime osae",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -444,6 +500,7 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -452,6 +509,7 @@
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -460,6 +518,7 @@
           },
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -468,6 +527,7 @@
           },
           {
             "nom": "Shiho nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -481,6 +541,7 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -489,6 +550,7 @@
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -497,6 +559,7 @@
           },
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -505,6 +568,7 @@
           },
           {
             "nom": "Shiho nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -518,6 +582,7 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -526,6 +591,7 @@
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -534,6 +600,7 @@
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -542,6 +609,7 @@
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -550,6 +618,7 @@
           },
           {
             "nom": "Kaïten nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -558,6 +627,7 @@
           },
           {
             "nom": "Sumi otoshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -566,6 +636,7 @@
           },
           {
             "nom": "Ude kime nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -574,6 +645,7 @@
           },
           {
             "nom": "Hiji kime osae",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -582,6 +654,7 @@
           },
           {
             "nom": "Ude garami",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -595,6 +668,7 @@
         "techniques": [
           {
             "nom": "Koshi nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -603,6 +677,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -618,11 +693,13 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "nouveau": false,
             "attention": true
           }
@@ -633,6 +710,7 @@
         "techniques": [
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -641,6 +719,7 @@
           },
           {
             "nom": "Gokyo",
+            "order": 5,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -654,11 +733,13 @@
         "techniques": [
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -672,26 +753,31 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Yonkyo",
+            "order": 4,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -700,6 +786,7 @@
           },
           {
             "nom": "Gokyo",
+            "order": 5,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -708,6 +795,7 @@
           },
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -723,11 +811,13 @@
         "techniques": [
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Ikkyo",
+            "order": 1,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -736,6 +826,7 @@
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -744,6 +835,7 @@
           },
           {
             "nom": "Gokyo",
+            "order": 5,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -757,11 +849,13 @@
         "techniques": [
           {
             "nom": "Shiho nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Kokyu nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -772,11 +866,13 @@
         "techniques": [
           {
             "nom": "Taïken nage",
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -790,6 +886,7 @@
         "techniques": [
           {
             "nom": "Ikkyo",
+            "order": 1,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -798,6 +895,7 @@
           },
           {
             "nom": "Nikkyo",
+            "order": 2,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -806,6 +904,7 @@
           },
           {
             "nom": "Sankyo",
+            "order": 3,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -814,6 +913,7 @@
           },
           {
             "nom": "Kokyu nage",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -822,6 +922,7 @@
           },
           {
             "nom": "Kote gaeshi",
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
