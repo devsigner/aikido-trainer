@@ -19,7 +19,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
-            "order": 42,
+            "order": 9,
             "formes": [],
             "nouveau": false,
             "attention": false,
@@ -168,7 +168,7 @@
         "techniques": [
           {
             "nom": "Sokumen irimi nage",
-            "order": 42,
+            "order": 9,
             "formes": [],
             "nouveau": false,
             "attention": false,
@@ -667,7 +667,7 @@
         "techniques": [
           {
             "nom": "Sokumen irimi nage",
-            "order": 42,
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -767,7 +767,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
-            "order": 42,
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -808,7 +808,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
-            "order": 42,
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
