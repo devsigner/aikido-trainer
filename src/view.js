@@ -2,6 +2,9 @@
 import { h } from "./vdom.js";
 import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
 
+// Key and class of the animated card: a new key replaces the element and restarts the animation.
+const slideProps = ({ direction, count }) => ({ key: count, className: direction ? `card slide-${direction}` : "card" });
+
 const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "" }, id = prefix, extra = {}) =>
   h("div", { id, className: "card", ...extra },
     h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
@@ -44,7 +47,7 @@ const draw = (model) => {
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
-    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", { key: model.slide.count, className: "card slide-forward" }),
+    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(model.slide)),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
       h("button", { id: "prog-btn", className: "secondary", onClick: { type: "OpenProgram" } }, "Voir le programme")));
@@ -55,32 +58,32 @@ const item = (label, to) => h("button", { className: "item", onClick: { type: "N
 const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim();
 
 const levels = {
-  1(model, _program, slide) {
+  1(model) {
     const attacks = listAttacks(model.data, model.waza);
     return {
       back: "← Tirage",
-      head: card("prog", { waza: model.waza }, "prog-card", slide),
+      fields: { waza: model.waza },
       title: "Attaques",
       sub: `${attacks.length} attaques`,
       items: attacks.map((attack) => item(attack.name, { level: 2, attack: attack.name })),
     };
   },
-  2(model, { attack }, slide) {
+  2(model, { attack }) {
     const techniques = listTechniques(model.data, model.waza, attack);
     return {
       back: "← Programme",
-      head: card("prog", { waza: model.waza, attack }, "prog-card", slide),
+      fields: { waza: model.waza, attack },
       title: "Techniques",
       sub: `${techniques.length} techniques`,
       items: techniques.map((technique) => item(withBadges(technique.name, technique), { level: 3, attack, technique: technique.name })),
     };
   },
-  3(model, { attack, technique }, slide) {
+  3(model, { attack, technique }) {
     const current = listTechniques(model.data, model.waza, attack).find((candidate) => candidate.name === technique);
     const others = findSameTechnique(model.data, model.waza, attack, current.name);
     return {
       back: `← ${attack}`,
-      head: card("prog", { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" }, "prog-card", slide),
+      fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" },
       title: "Même technique, autres attaques",
       sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
       items: others.map((other) => item(withBadges(other.attack, other.technique), { level: 3, attack: other.attack, technique: other.technique.name })),
@@ -89,13 +92,11 @@ const levels = {
 };
 
 const program = (model) => {
-  const { direction, count } = model.slide;
-  const slide = { key: count, className: direction ? `card slide-${direction}` : "card" };
-  const { back, head, title, sub, items } = levels[model.program.level](model, model.program, slide);
+  const { back, fields, title, sub, items } = levels[model.program.level](model, model.program);
   return h("section", { id: "program" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("button", { id: "prog-back", className: "secondary back", onClick: { type: "Back" } }, back),
-    head,
+    card("prog", fields, "prog-card", slideProps(model.slide)),
     h("div", { className: "group" },
       h("h2", { id: "prog-title" }, title),
       h("p", { id: "prog-sub", className: "hint" }, sub),

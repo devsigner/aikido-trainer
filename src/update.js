@@ -15,12 +15,13 @@ export const initialModel = () => ({
   filters: { isNew: false, isWarning: false },
   ...noSession(),
   slide: { direction: "", count: 0 }, // transition between program levels
+  position: 0, // index of the current history entry (tells back from forward)
   pending: null, // route from the URL, applied once the data is loaded
 });
 
-export const init = ({ hash = "" } = {}) => {
+export const init = ({ hash = "", position = 0 } = {}) => {
   const pending = parseHash(hash);
-  return [{ ...initialModel(), pending }, [{ type: "LoadGrades", gradeId: pending.grade }]];
+  return [{ ...initialModel(), pending, position }, [{ type: "LoadGrades", gradeId: pending.grade }]];
 };
 
 const session = (model, waza) => {
@@ -55,21 +56,32 @@ const goTo = (model, route) => {
   return applyRoute(model, route);
 };
 
-// Records the direction of a program level change or a new draw so the view can animate the card.
-const withSlide = (before, after) => {
-  if (before.screen === "draw" && after.screen === "draw") {
-    return before.current === after.current ? after : { ...after, slide: { direction: "forward", count: after.slide.count + 1 } };
-  }
-  if (before.screen !== "program" || after.screen !== "program") return after;
-  const { program: from } = before;
-  const { program: to } = after;
-  if (from.level === to.level && from.attack === to.attack && from.technique === to.technique) return after;
-  return { ...after, slide: { direction: to.level < from.level ? "back" : "forward", count: after.slide.count + 1 } };
+const sameProgram = (from, to) => from?.level === to?.level && from?.attack === to?.attack && from?.technique === to?.technique;
+
+const sameView = (before, after) => before.screen === after.screen && before.current === after.current && sameProgram(before.program, after.program);
+
+// Direction of the card animation: a history pop follows the history (back or forward),
+// otherwise going up a program level is "back" and everything else is "forward".
+const slideDirection = (before, after, msg) => {
+  if (msg.type === "Popped" && msg.position !== before.position) return msg.position < before.position ? "back" : "forward";
+  return before.program && after.program && after.program.level < before.program.level ? "back" : "forward";
+};
+
+const withSlide = (before, after, msg) => {
+  if (before.status !== "ready" || sameView(before, after)) return after;
+  return { ...after, slide: { direction: slideDirection(before, after, msg), count: after.slide.count + 1 } };
+};
+
+// Position in the history: +1 on each push, the popped entry's position on a pop. Stamped on Url commands.
+const withPosition = (before, [after, commands], msg) => {
+  const pushes = commands.some((command) => command.type === "Url" && command.mode === "push");
+  const position = msg.type === "Popped" ? msg.position : before.position + (pushes ? 1 : 0);
+  return [{ ...after, position }, commands.map((command) => (command.type === "Url" ? { ...command, position } : command))];
 };
 
 export function update(model, msg) {
-  const [next, commands] = step(model, msg);
-  return [withSlide(model, next), commands];
+  const [next, commands] = withPosition(model, step(model, msg), msg);
+  return [withSlide(model, next, msg), commands];
 }
 
 function step(model, msg) {

@@ -36,7 +36,7 @@ export function createEffects({ fetchJson = defaultFetchJson, random = Math.rand
     }),
     LoadGrade: loading(async ({ grade }) => ({ type: "GradeLoaded", id: grade.id, data: await resolveGrade(grade, fetchJson) })),
     Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
-    Url: ({ mode, hash }) => (mode === "push" ? history.pushState(null, "", hash) : history.replaceState(null, "", hash)),
+    Url: ({ mode, hash, position }) => (mode === "push" ? history.pushState({ position }, "", hash) : history.replaceState({ position }, "", hash)),
     HistoryBack: () => history.back(),
   };
 }

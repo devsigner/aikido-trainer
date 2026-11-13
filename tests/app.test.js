@@ -224,6 +224,19 @@ describe("program", () => {
     assert.equal(app.model.screen, "draw");
     assert.ok(byId(app.tree, "card"));
   });
+
+  test("slide direction: back slides back at the same level, browser forward slides forward", async () => {
+    const { app } = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    app.click(app.list()[0]);
+    assert.equal(app.model.slide.direction, "forward");
+    app.click("prog-back");
+    assert.equal(app.model.program.level, 3);
+    assert.equal(app.model.slide.direction, "back");
+    app.history.forward();
+    assert.equal(app.model.slide.direction, "forward");
+  });
 });
 
 describe("URL and history", () => {

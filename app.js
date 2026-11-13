@@ -20,10 +20,10 @@ const render = (vnode, dispatch) => {
 
 run({
   init,
-  flags: { hash: location.hash },
+  flags: { hash: location.hash, position: history.state?.position ?? 0 },
   update,
   view,
   render,
   effects: createEffects(),
-  subscribe: (dispatch) => window.addEventListener("popstate", () => dispatch({ type: "Popped", hash: location.hash })),
+  subscribe: (dispatch) => window.addEventListener("popstate", () => dispatch({ type: "Popped", hash: location.hash, position: history.state?.position ?? 0 })),
 });

@@ -57,7 +57,11 @@ export async function createApp({ random = Math.random, hash = "" } = {}) {
     },
     back() {
       index = Math.max(0, index - 1);
-      popstate({ type: "Popped", hash: states[index] });
+      popstate({ type: "Popped", hash: states[index], position: index });
+    },
+    forward() {
+      index = Math.min(states.length - 1, index + 1);
+      popstate({ type: "Popped", hash: states[index], position: index });
     },
   };
   const dispatch = run({
@@ -76,7 +80,7 @@ export async function createApp({ random = Math.random, hash = "" } = {}) {
   await settle();
   const app = {
     dispatch,
-    history: { states, get index() { return index; }, get url() { return states[index]; } },
+    history: { states, forward: () => history.forward(), get index() { return index; }, get url() { return states[index]; } },
     get tree() {
       return tree;
     },
