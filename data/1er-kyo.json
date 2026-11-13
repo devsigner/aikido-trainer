@@ -10,23 +10,7 @@
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
-          },
-          {
-            "nom": "Sumi otoshi",
-            "order": 42,
-            "nouveau": false
-          },
-          {
-            "nom": "Aïki otoshi",
-            "order": 42,
-            "nouveau": false
-          },
-          {
-            "nom": "Koshi nage",
-            "order": 42,
-            "nouveau": false
           },
           {
             "nom": "Yonkyo",
@@ -55,7 +39,6 @@
           {
             "nom": "Koshi nage",
             "order": 42,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -85,13 +68,11 @@
           {
             "nom": "Kote gaeshi",
             "order": 10,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
             "order": 9,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -113,7 +94,6 @@
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -143,7 +123,6 @@
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -188,19 +167,16 @@
           {
             "nom": "Shiho nage",
             "order": 7,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Soto kaïten nage",
             "order": 42,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Uchi kaïten nage",
             "order": 42,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -230,19 +206,16 @@
           {
             "nom": "Ikkyo",
             "order": 1,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
             "order": 9,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Shiho nage",
             "order": 7,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -299,7 +272,6 @@
           {
             "nom": "Sokumen irimi nage",
             "order": 6,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -311,13 +283,11 @@
           {
             "nom": "Juji garami",
             "order": 42,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sokumen irimi nage",
             "order": 6,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -329,31 +299,26 @@
           {
             "nom": "Ikkyo",
             "order": 1,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
             "order": 2,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sokumen irimi nage",
             "order": 6,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Aïki otoshi",
             "order": 42,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -365,7 +330,6 @@
           {
             "nom": "Ikkyo",
             "order": 1,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -377,37 +341,31 @@
           {
             "nom": "Ikkyo",
             "order": 1,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
             "order": 2,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Kote gaeshi",
             "order": 10,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Shiho nage",
             "order": 7,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
             "order": 9,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -419,7 +377,6 @@
           {
             "nom": "Kokyu nage",
             "order": 42,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -715,13 +672,11 @@
           {
             "nom": "Ikkyo",
             "order": 1,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
             "order": 2,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -757,7 +712,6 @@
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -778,25 +732,21 @@
           {
             "nom": "Ikkyo",
             "order": 1,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Nikkyo",
             "order": 2,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Sankyo",
             "order": 3,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
             "order": 9,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -837,7 +787,6 @@
           {
             "nom": "Kote gaeshi",
             "order": 10,
-            "nouveau": false,
             "attention": true
           },
           {
@@ -876,13 +825,11 @@
           {
             "nom": "Shiho nage",
             "order": 7,
-            "nouveau": false,
             "attention": true
           },
           {
             "nom": "Kokyu nage",
             "order": 42,
-            "nouveau": false,
             "attention": true
           }
         ]
@@ -894,7 +841,6 @@
           {
             "nom": "Taïken nage",
             "order": 42,
-            "nouveau": false,
             "attention": true
           },
           {

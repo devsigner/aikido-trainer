@@ -411,7 +411,7 @@
               "Omote",
               "Ura"
             ],
-            "nouveau": false,
+            "nouveau": true,
             "attention": false,
             "note": null,
             "video": null
@@ -423,7 +423,7 @@
               "Omote",
               "Ura"
             ],
-            "nouveau": false,
+            "nouveau": true,
             "attention": false,
             "note": null,
             "video": null
