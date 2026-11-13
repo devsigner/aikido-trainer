@@ -145,6 +145,10 @@ describe("mobile app", () => {
   const manifest = readJson("manifest.webmanifest");
   const sw = read("sw.js");
 
+  test("index.html shows a splash spinner inside #app until the app starts", () => {
+    assert.match(html, /<div id="app">.*class="spinner".*<\/div>/);
+  });
+
   test("index.html contains the mobile tags", () => {
     assert.match(html, /<meta name="viewport"[^>]*viewport-fit=cover/);
     assert.match(html, /<meta name="theme-color"/);

@@ -4,7 +4,8 @@ import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byI
 import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/logic.js";
 import { h } from "../src/vdom.js";
 import { parseHash, toHash } from "../src/route.js";
-import { update, init } from "../src/update.js";
+import { update, init, initialModel } from "../src/update.js";
+import { view } from "../src/view.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
 const DATA = {
@@ -346,5 +347,145 @@ describe("URL and history", () => {
     assert.equal(app.model.gradeId, "3eme-kyo");
     assert.equal(countTechniques(app.model.data), 65);
     assert.equal(app.model.screen, "program");
+  });
+});
+
+describe("title and loading", () => {
+  test("the title goes home, and does nothing when already home", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    const entries = app.history.states.length;
+    app.fire(app.byId("title"));
+    assert.equal(app.history.states.length, entries);
+    app.click("Tachi waza");
+    app.fire(app.byId("title"));
+    assert.equal(app.model.screen, "home");
+    assert.equal(app.history.url, "#/t");
+  });
+
+  test("a spinner is displayed while loading", () => {
+    const tree = view(initialModel());
+    assert.ok(byId(tree, "loading"));
+    assert.equal(find(tree, (node) => node.props.className === "spinner").length, 1);
+  });
+});
+
+describe("card transitions", () => {
+  async function open() {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    return app;
+  }
+
+  test("no slide while loading, a new draw slides forward with a new key", async () => {
+    const app = await open();
+    assert.equal(app.model.slide.count, 0);
+    app.click("Tachi waza");
+    const first = app.byId("card").props;
+    assert.equal(first.className, "card slide-forward");
+    app.click("next");
+    assert.notEqual(app.byId("card").props.key, first.key);
+  });
+
+  test("program card: key changes with each navigation, class follows the direction", async () => {
+    const app = await open();
+    app.click("Tachi waza");
+    app.click("prog-btn");
+    app.click("Katate dori");
+    const forward = app.byId("prog-card").props;
+    assert.equal(forward.className, "card slide-forward");
+    app.click("prog-back");
+    const back = app.byId("prog-card").props;
+    assert.equal(back.className, "card slide-back");
+    assert.notEqual(back.key, forward.key);
+  });
+
+  test("an unchanged view does not restart the animation", async () => {
+    const app = await open();
+    app.click("Tachi waza");
+    const { count } = app.model.slide;
+    app.dispatch({ type: "SetFilter", name: "isNew", checked: true });
+    assert.equal(app.model.slide.count, count);
+  });
+
+  test("a message can force the direction", () => {
+    const [model] = init();
+    const ready = { ...model, status: "ready", data: DATA, screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Katate dori", technique: "Nikkyo" } };
+    const [next] = update(ready, { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" });
+    assert.equal(next.slide.direction, "back");
+  });
+});
+
+describe("history position", () => {
+  test("push increments the position, replace keeps it, a pop restores it", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    assert.equal(app.model.position, 0);
+    app.click("Tachi waza");
+    app.click("prog-btn");
+    assert.equal(app.model.position, 2);
+    app.history.back();
+    assert.equal(app.model.position, 1);
+    app.history.forward();
+    assert.equal(app.model.position, 2);
+  });
+
+  test("Url commands carry the position; init restores it after a reload", () => {
+    const [model] = init({ position: 3 });
+    assert.equal(model.position, 3);
+    const ready = { ...model, status: "ready", data: DATA, grades: [], gradeId: "t" };
+    const [pushed, [push]] = update(ready, { type: "StartSession", waza: "Tachi waza" });
+    assert.equal(pushed.position, 4);
+    assert.deepEqual([push.type, push.mode, push.position], ["Url", "push", 4]);
+    const [selected, commands] = update({ ...ready, grades: [{ id: "t" }] }, { type: "SelectGrade", id: "t" });
+    const replace = commands.find((command) => command.type === "Url");
+    assert.deepEqual([replace.mode, replace.position, selected.position], ["replace", 3, 3]);
+  });
+});
+
+describe("program buttons", () => {
+  async function open() {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    app.click("Tachi waza");
+    app.click("prog-btn");
+    return app;
+  }
+
+  test("each back button goes up exactly one level and slides back", async () => {
+    const app = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    app.click("prog-next");
+    app.click("prog-back");
+    assert.deepEqual([app.model.program.level, app.model.program.attack], [2, "Katate dori"]);
+    assert.equal(app.model.slide.direction, "back");
+    app.click("prog-back");
+    assert.equal(app.model.program.level, 1);
+    app.click("prog-back");
+    assert.equal(app.model.screen, "draw");
+    assert.equal(app.model.slide.direction, "back");
+    assert.equal(app.history.url, "#/t/Tachi%20waza");
+  });
+
+  test("pager: counter, previous and next wrap around, both slide in their direction", async () => {
+    const app = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    assert.ok(find(app.tree, (node) => node.tag === "p" && text(node) === "1 / 2").length === 1);
+    app.click("prog-prev");
+    assert.equal(app.text("prog-technique"), "Kote gaeshi");
+    assert.equal(app.model.slide.direction, "back");
+    app.click("prog-next");
+    assert.equal(app.text("prog-technique"), "Nikkyo");
+    assert.equal(app.model.slide.direction, "forward");
+  });
+
+  test("pager: disabled when the attack has a single technique", async () => {
+    const app = await open();
+    app.click("Aï hammi katate dori");
+    app.click("Sankyo");
+    assert.equal(app.byId("prog-prev").props.disabled, true);
+    assert.equal(app.byId("prog-next").props.disabled, true);
   });
 });
