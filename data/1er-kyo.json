@@ -87,7 +87,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },
@@ -227,7 +227,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },
@@ -393,7 +393,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "nouveau": false,
             "attention": true
           }
@@ -465,7 +465,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -509,7 +509,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -550,7 +550,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -771,7 +771,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 9,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },

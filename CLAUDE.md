@@ -14,7 +14,7 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Programme
 
-Chaque technique des JSON a une clé `order` : le nombre japonais du nom (Ikkyo 1, Nikkyo 2, Sankyo 3, Yonkyo 4, Gokyo 5, plus Shiho nage 6), sinon `9`. Toute nouvelle technique doit en avoir une (un test le vérifie).
+Chaque technique des JSON a une clé `order` : le nombre japonais du nom (Ikkyo 1, Nikkyo 2, Sankyo 3, Yonkyo 4, Gokyo 5, plus Shiho nage 6, Irimi nage 7), sinon `9`. Toute nouvelle technique doit en avoir une (un test le vérifie).
 
 Le bouton « Voir le programme » (écran de tirage, sous « Retour à l'accueil ») ouvre le listing complet du waza et du grade sélectionnés, sans toucher à la session (techniques déjà tirées conservées). Les filtres 🆕/⚠️ ne s'y appliquent pas.
 
