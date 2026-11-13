@@ -426,7 +426,7 @@ describe("session de tirage", () => {
 
 // ---------- Cache-busting et version ----------
 describe("clé order", () => {
-  const ATTAQUES = ["Katate dori", "Aï hammi katate dori", "Ryote dori", "Katate ryote dori (ou morote dori)", "Kata dori", "Yokomen uchi", "Shomen uchi", "Chudan tsuki", "Ryo kata dori", "Ushiro ryote dori", "Ushiro ryo kata dori", "Ushiro ryo hiji dori", "Kata dori men uchi", "Diverses formes d'attaques", "Muna dori", "Jodan tsuki", "Ushiro eri dori", "Ushiro katate dori kubi shime", "Diverses applications", "Divers saisies et frappes"];
+  const ATTAQUES = ["Aï hammi katate dori", "Katate dori", "Ryote dori", "Katate ryote dori (ou morote dori)", "Kata dori", "Kata dori men uchi", "Ryo kata dori", "Muna dori", "Ushiro ryote dori", "Ushiro ryo hiji dori", "Ushiro ryo kata dori", "Ushiro eri dori", "Ushiro katate dori kubi shime", "Shomen uchi", "Yokomen uchi", "Chudan tsuki", "Jodan tsuki"];
   for (const f of ["2eme-kyo", "1er-kyo"]) {
     test(`${f}.json : order des attaques = position dans la table de CLAUDE.md, sinon 42`, () => {
       for (const l of Object.values(readJson(`data/${f}.json`).waza))
