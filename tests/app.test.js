@@ -425,6 +425,88 @@ describe("session de tirage", () => {
 });
 
 // ---------- Cache-busting et version ----------
+describe("programme", () => {
+  const DATA = `data = { waza: { "Tachi waza": [
+    { nom: "Katate dori", techniques: [
+      { nom: "Nikkyo", formes: ["Omote", "Ura"], nouveau: true, attention: false, note: "N", video: "https://v" },
+      { nom: "Kote gaeshi", formes: [] } ] },
+    { nom: "Ryote dori", techniques: [{ nom: "nikkyo", formes: [], attention: true }, { nom: "Sankyo", formes: [] }] },
+    { nom: "Shomen uchi", techniques: [{ nom: "Sankyo", formes: [] }] }
+  ] } }`;
+  const labels = (env) => env.el("prog-list").children.map((b) => b.textContent);
+  const click = (env, label) => env.el("prog-list").children.find((b) => b.textContent.startsWith(label)).onclick();
+
+  async function open() {
+    const env = await createEnv();
+    env.run(DATA);
+    env.start("Tachi waza");
+    env.el("prog-btn").onclick();
+    return env;
+  }
+
+  test("affiche toutes les attaques du waza sans toucher à la session", async () => {
+    const env = await open();
+    assert.equal(env.el("program").hidden, false);
+    assert.equal(env.el("draw").hidden, true);
+    assert.deepEqual(labels(env), ["Katate dori", "Ryote dori", "Shomen uchi"]);
+    assert.equal(env.el("prog-title").textContent, "Tachi waza");
+    assert.equal(env.run("pool.length"), 5);
+  });
+
+  test("une attaque liste ses techniques avec leurs badges", async () => {
+    const env = await open();
+    click(env, "Ryote dori");
+    assert.equal(env.el("prog-card").hidden, false);
+    assert.equal(env.el("prog-attaque").textContent, "Ryote dori");
+    assert.deepEqual(labels(env), ["nikkyo ⚠️", "Sankyo"]);
+  });
+
+  test("une technique affiche sa carte et les autres attaques avec le même nom", async () => {
+    const env = await open();
+    click(env, "Katate dori");
+    click(env, "Nikkyo");
+    assert.equal(env.el("prog-technique").textContent, "Nikkyo");
+    assert.equal(env.el("prog-forme").textContent, "Omote · Ura");
+    assert.equal(env.el("prog-badges").textContent, "🆕");
+    assert.equal(env.el("prog-note").textContent, "N");
+    assert.equal(env.el("prog-video").href, "https://v");
+    assert.deepEqual(labels(env), ["Ryote dori ⚠️"]);
+  });
+
+  test("technique unique : message et liste vide", async () => {
+    const env = await open();
+    click(env, "Katate dori");
+    click(env, "Kote gaeshi");
+    assert.deepEqual(labels(env), []);
+    assert.match(env.el("prog-sub").textContent, /Aucune autre attaque/);
+  });
+
+  test("un clic sur une autre attaque ouvre sa carte technique", async () => {
+    const env = await open();
+    click(env, "Ryote dori");
+    click(env, "Sankyo");
+    assert.deepEqual(labels(env), ["Shomen uchi"]);
+    click(env, "Shomen uchi");
+    assert.equal(env.el("prog-attaque").textContent, "Shomen uchi");
+    assert.deepEqual(labels(env), ["Ryote dori"]);
+  });
+
+  test("le bouton retour remonte d'un niveau puis revient au tirage", async () => {
+    const env = await open();
+    click(env, "Katate dori");
+    click(env, "Nikkyo");
+    env.el("prog-back").onclick();
+    assert.equal(env.el("prog-attaque").textContent, "Katate dori");
+    assert.equal(env.el("prog-card").hidden, false);
+    env.el("prog-back").onclick();
+    assert.equal(env.el("prog-card").hidden, true);
+    env.el("prog-back").onclick();
+    assert.equal(env.el("program").hidden, true);
+    assert.equal(env.el("draw").hidden, false);
+    assert.equal(env.run("pool.length"), 5);
+  });
+});
+
 describe("version", () => {
   const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const doc = fs.readFileSync(path.join(ROOT, "CLAUDE.md"), "utf8");
