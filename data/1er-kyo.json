@@ -180,7 +180,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           },
@@ -233,7 +233,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           },
@@ -387,7 +387,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           },
@@ -415,7 +415,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -456,7 +456,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -527,7 +527,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -568,7 +568,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -849,7 +849,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           },
