@@ -188,7 +188,7 @@ function renderProgram(v) {
     $("prog-back").textContent = "← Tirage";
     $("prog-card").hidden = true;
     $("prog-title").textContent = currentWaza;
-    const attaques = listAttaques(currentWaza);
+    const attaques = listAttaques(currentWaza).sort((a, b) => a.order - b.order || a.nom.localeCompare(b.nom, "fr"));
     $("prog-sub").textContent = `${attaques.length} attaques`;
     for (const a of attaques) list.appendChild(listButton(a.nom, () => open({ niveau: 2, attaque: a.nom })));
 
@@ -196,7 +196,7 @@ function renderProgram(v) {
     $("prog-back").textContent = "← Programme";
     $("prog-card").hidden = false;
     fillCard("prog", { waza: currentWaza, attaque: v.attaque });
-    const techniques = [...listTechniques(currentWaza, v.attaque)].sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+    const techniques = listTechniques(currentWaza, v.attaque).sort((a, b) => a.order - b.order || a.nom.localeCompare(b.nom, "fr"));
     $("prog-title").textContent = "Techniques";
     $("prog-sub").textContent = `${techniques.length} techniques`;
     for (const t of techniques) {

@@ -425,6 +425,17 @@ describe("session de tirage", () => {
 });
 
 // ---------- Cache-busting et version ----------
+describe("clé order", () => {
+  const NOMBRES = { Ikkyo: 1, Nikkyo: 2, Sankyo: 3, Yonkyo: 4, Gokyo: 5 };
+  for (const f of ["2eme-kyo", "1er-kyo"]) {
+    test(`${f}.json : order = nombre japonais du nom, sinon 9`, () => {
+      for (const l of Object.values(readJson(`data/${f}.json`).waza))
+        for (const a of l)
+          for (const t of a.techniques) assert.equal(t.order, NOMBRES[t.nom] ?? 9, `${a.nom} / ${t.nom}`);
+    });
+  }
+});
+
 describe("programme", () => {
   const DATA = `data = { waza: { "Tachi waza": [
     { nom: "Katate dori", techniques: [
@@ -461,11 +472,13 @@ describe("programme", () => {
     assert.deepEqual(labels(env), ["nikkyo ⚠️", "Sankyo"]);
   });
 
-  test("les techniques d'une attaque sont triées par ordre alphabétique", async () => {
+  test("les techniques d'une attaque sont triées par `order`, puis par ordre alphabétique", async () => {
     const env = await open();
-    env.run(`data.waza["Tachi waza"][0].techniques.push({ nom: "Ikkyo", formes: [] })`);
+    env.run(`data.waza["Tachi waza"][0].techniques.push(
+      { nom: "Ikkyo", order: 1, formes: [] }, { nom: "Aïki otoshi", order: 9, formes: [] })`);
+    env.run(`data.waza["Tachi waza"][0].techniques.forEach((t) => (t.order ??= t.nom === "Nikkyo" ? 2 : 9))`);
     click(env, "Katate dori");
-    assert.deepEqual(labels(env), ["Ikkyo", "Kote gaeshi", "Nikkyo 🆕"]);
+    assert.deepEqual(labels(env), ["Ikkyo", "Nikkyo 🆕", "Aïki otoshi", "Kote gaeshi"]);
   });
 
   test("une technique affiche sa carte et les autres attaques avec le même nom", async () => {
