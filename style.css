@@ -41,3 +41,10 @@ button.item::after { content: "›"; color: var(--muted); }
 .loading { display: flex; justify-content: center; align-items: center; flex: 1; }
 .spinner { width: 3rem; height: 3rem; border: 4px solid var(--card); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes slide-from-right { from { transform: translateX(40%); opacity: 0; } }
+@keyframes slide-from-left { from { transform: translateX(-40%); opacity: 0; } }
+.slide-forward { animation: slide-from-right .25s ease-out; }
+.slide-back { animation: slide-from-left .25s ease-out; }
+/* @media (prefers-reduced-motion: reduce) { .slide-forward, .slide-back { animation: none; } } */
+body { overflow-x: hidden; }

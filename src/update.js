@@ -14,6 +14,7 @@ export const initialModel = () => ({
   data: null,
   filters: { isNew: false, isWarning: false },
   ...noSession(),
+  slide: { direction: "", count: 0 }, // transition between program levels
   pending: null, // route from the URL, applied once the data is loaded
 });
 
@@ -54,7 +55,21 @@ const goTo = (model, route) => {
   return applyRoute(model, route);
 };
 
+// Records the direction of a program level change so the view can animate it.
+const withSlide = (before, after) => {
+  if (before.screen !== "program" || after.screen !== "program") return after;
+  const { program: from } = before;
+  const { program: to } = after;
+  if (from.level === to.level && from.attack === to.attack && from.technique === to.technique) return after;
+  return { ...after, slide: { direction: to.level < from.level ? "back" : "forward", count: after.slide.count + 1 } };
+};
+
 export function update(model, msg) {
+  const [next, commands] = step(model, msg);
+  return [withSlide(model, next), commands];
+}
+
+function step(model, msg) {
   switch (msg.type) {
     case "GradesLoaded": {
       const ready = { ...model, status: "ready", grades: msg.grades, gradeId: msg.gradeId, data: msg.data, pending: null };

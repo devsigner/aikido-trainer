@@ -2,8 +2,8 @@
 import { h } from "./vdom.js";
 import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
 
-const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "" }, id = prefix) =>
-  h("div", { id, className: "card" },
+const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "" }, id = prefix, extra = {}) =>
+  h("div", { id, className: "card", ...extra },
     h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
     h("div", { id: `${prefix}-attack`, className: "attack" }, attack),
     h("div", { id: `${prefix}-technique`, className: "technique" }, technique),
@@ -55,32 +55,32 @@ const item = (label, to) => h("button", { className: "item", onClick: { type: "N
 const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim();
 
 const levels = {
-  1(model) {
+  1(model, _program, slide) {
     const attacks = listAttacks(model.data, model.waza);
     return {
       back: "← Tirage",
-      head: card("prog", { waza: model.waza }, "prog-card"),
+      head: card("prog", { waza: model.waza }, "prog-card", slide),
       title: "Attaques",
       sub: `${attacks.length} attaques`,
       items: attacks.map((attack) => item(attack.name, { level: 2, attack: attack.name })),
     };
   },
-  2(model, { attack }) {
+  2(model, { attack }, slide) {
     const techniques = listTechniques(model.data, model.waza, attack);
     return {
       back: "← Programme",
-      head: card("prog", { waza: model.waza, attack }, "prog-card"),
+      head: card("prog", { waza: model.waza, attack }, "prog-card", slide),
       title: "Techniques",
       sub: `${techniques.length} techniques`,
       items: techniques.map((technique) => item(withBadges(technique.name, technique), { level: 3, attack, technique: technique.name })),
     };
   },
-  3(model, { attack, technique }) {
+  3(model, { attack, technique }, slide) {
     const current = listTechniques(model.data, model.waza, attack).find((candidate) => candidate.name === technique);
     const others = findSameTechnique(model.data, model.waza, attack, current.name);
     return {
       back: `← ${attack}`,
-      head: card("prog", { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" }, "prog-card"),
+      head: card("prog", { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" }, "prog-card", slide),
       title: "Même technique, autres attaques",
       sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
       items: others.map((other) => item(withBadges(other.attack, other.technique), { level: 3, attack: other.attack, technique: other.technique.name })),
@@ -89,7 +89,9 @@ const levels = {
 };
 
 const program = (model) => {
-  const { back, head, title, sub, items } = levels[model.program.level](model, model.program);
+  const { direction, count } = model.slide;
+  const slide = { key: count, className: direction ? `card slide-${direction}` : "card" };
+  const { back, head, title, sub, items } = levels[model.program.level](model, model.program, slide);
   return h("section", { id: "program" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("button", { id: "prog-back", className: "secondary back", onClick: { type: "Back" } }, back),

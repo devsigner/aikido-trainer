@@ -57,6 +57,8 @@ function patchNode(node, old, next, context) {
     }
     return create(next, context);
   }
+  // A different key means a different element: replace it (restarts CSS animations).
+  if (old.props.key !== next.props.key) return create(next, context);
   patchChildren(node, old.children, next.children, context);
   setProps(node, old.props, next.props, context);
   return node;
