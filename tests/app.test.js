@@ -426,6 +426,17 @@ describe("session de tirage", () => {
 
 // ---------- Cache-busting et version ----------
 describe("clé order", () => {
+  const ATTAQUES = ["Katate dori", "Aï hammi katate dori", "Ryote dori", "Katate ryote dori (ou morote dori)", "Kata dori", "Yokomen uchi", "Shomen uchi", "Chudan tsuki", "Ryo kata dori", "Ushiro ryote dori", "Ushiro ryo kata dori", "Ushiro ryo hiji dori", "Kata dori men uchi", "Diverses formes d'attaques", "Muna dori", "Jodan tsuki", "Ushiro eri dori", "Ushiro katate dori kubi shime", "Diverses applications", "Divers saisies et frappes"];
+  for (const f of ["2eme-kyo", "1er-kyo"]) {
+    test(`${f}.json : order des attaques = position dans la table de CLAUDE.md, sinon 42`, () => {
+      for (const l of Object.values(readJson(`data/${f}.json`).waza))
+        for (const a of l) {
+          const i = ATTAQUES.indexOf(a.nom);
+          assert.equal(a.order, i < 0 ? 42 : i + 1, a.nom);
+        }
+    });
+  }
+
   const NOMBRES = { Ikkyo: 1, Nikkyo: 2, Sankyo: 3, Yonkyo: 4, Gokyo: 5, "Tenchi nage": 5, "Sokumen irimi nage": 6, "Shiho nage": 7, "Ude kime nage": 8, "Irimi nage": 9, "Kote gaeshi": 10, "Kaïten nage": 11 };
   for (const f of ["2eme-kyo", "1er-kyo"]) {
     test(`${f}.json : order = nombre japonais du nom, sinon 42`, () => {
@@ -462,6 +473,13 @@ describe("programme", () => {
     assert.deepEqual(labels(env), ["Katate dori", "Ryote dori", "Shomen uchi"]);
     assert.equal(env.el("prog-title").textContent, "Tachi waza");
     assert.equal(env.run("pool.length"), 5);
+  });
+
+  test("les attaques sont triées par `order`, puis par ordre alphabétique", async () => {
+    const env = await open();
+    env.run(`data.waza["Tachi waza"].forEach((a, i) => (a.order = [3, 1, 3][i]))`);
+    env.el("prog-btn").onclick();
+    assert.deepEqual(labels(env), ["Ryote dori", "Katate dori", "Shomen uchi"]);
   });
 
   test("une attaque liste ses techniques avec leurs badges", async () => {

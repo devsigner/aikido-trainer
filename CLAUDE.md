@@ -36,11 +36,41 @@ Règles :
 - Une nouvelle technique reçoit l'`order` de son nom s'il est dans le tableau, sinon `42`.
 - Pour changer l'`order` d'un nom, le modifier partout (2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/app.test.js` : un test vérifie la cohérence.
 
+## Ordre des attaques (`order`)
+
+Chaque attaque des JSON a aussi une clé `order` (entier), qui trie la liste des attaques du programme : `order` croissant, puis ordre alphabétique (français) à égalité. Ce tableau fait référence (une valeur par nom d'attaque, identique dans tous les waza et grades) :
+
+| order | Attaque |
+|-------|---------|
+| 1     | Katate dori |
+| 2     | Aï hammi katate dori |
+| 3     | Ryote dori |
+| 4     | Katate ryote dori (ou morote dori) |
+| 5     | Kata dori |
+| 6     | Yokomen uchi |
+| 7     | Shomen uchi |
+| 8     | Chudan tsuki |
+| 9     | Ryo kata dori |
+| 10     | Ushiro ryote dori |
+| 11     | Ushiro ryo kata dori |
+| 12     | Ushiro ryo hiji dori |
+| 13     | Kata dori men uchi |
+| 14     | Diverses formes d'attaques |
+| 15     | Muna dori |
+| 16     | Jodan tsuki |
+| 17     | Ushiro eri dori |
+| 18     | Ushiro katate dori kubi shime |
+| 19     | Diverses applications |
+| 20     | Divers saisies et frappes |
+| 42    | toutes les autres (valeur par défaut) |
+
+Mêmes règles que pour les techniques : une nouvelle attaque reçoit la valeur de son nom si elle est dans le tableau, sinon `42` ; pour changer une valeur, la modifier partout et mettre à jour ce tableau et `ATTAQUES` dans `tests/app.test.js`.
+
 ## Programme
 
 Le bouton « Voir le programme » (écran de tirage, sous « Retour à l'accueil ») ouvre le listing complet du waza et du grade sélectionnés, sans toucher à la session (techniques déjà tirées conservées). Les filtres 🆕/⚠️ ne s'y appliquent pas.
 
-1. Liste de toutes les attaques.
+1. Liste de toutes les attaques (triées par `order`, puis alphabétique).
 2. Clic sur une attaque : sa carte et la liste de ses techniques (triées par `order`, puis alphabétique).
 3. Clic sur une technique : sa carte (formes, badges, note, vidéo) et, dessous, les autres attaques du même waza qui ont la même technique (nom comparé sans casse ni accents). Un clic sur l'une d'elles ouvre sa carte.
 
