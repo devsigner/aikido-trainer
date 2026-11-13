@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14171c">
+  <title>Aïkido – Manuel d'utilisation</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #14171c; color: #eceff4; line-height: 1.5; }
+    main { max-width: 640px; margin: 0 auto; padding: max(1.5rem, env(safe-area-inset-top)) 1rem max(1.5rem, env(safe-area-inset-bottom)); }
+    h1 { text-align: center; margin: 0 0 1rem; }
+    h2 { margin: 2rem 0 .5rem; color: #fff; }
+    a { color: #e8a39b; }
+    .back { display: block; padding: .8rem; border-radius: 10px; background: #3b4252; color: #eceff4; text-align: center; text-decoration: none; }
+    .shots { display: flex; gap: .5rem; margin: 1rem 0; }
+    .shots img { flex: 1; min-width: 0; width: 100%; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .4rem .5rem; text-align: left; border-bottom: 1px solid #2b313b; }
+    th { color: #8b95a5; font-weight: normal; }
+    li { margin: .3rem 0; }
+    code { background: #1f242c; padding: .1rem .3rem; border-radius: 4px; word-break: break-all; }
+    footer { margin-top: 2rem; text-align: center; color: #8b95a5; font-size: .8rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>合気道 Aïkido</h1>
+  <a class="back" href="./">← Retour à l'application</a>
+
+  <h2>Manuel d'utilisation</h2>
+  <p>Aïkido Trainer sert à <strong>s'entraîner et réviser les techniques d'aïkido</strong> : l'app tire au hasard une technique, te laisse réfléchir, puis te donne la suivante.</p>
+  <div class="shots">
+    <img src="docs/screenshots/1-home.png" alt="Accueil">
+    <img src="docs/screenshots/2-draw.png" alt="Tirage">
+    <img src="docs/screenshots/5-technique.png" alt="Fiche technique">
+  </div>
+
+  <h2>1. Accueil</h2>
+  <ul>
+    <li><strong>Grade</strong> : choisis le grade à réviser (1er, 2ème ou 3ème Kyo). Les grades se cumulent : le 2ème Kyo inclut le 3ème, et le 1er Kyo inclut le 2ème et le 3ème.</li>
+    <li><strong>Filtres</strong> : 🆕 <em>Nouveautés</em> et ⚠️ <em>Attention</em>. Les deux cochés : l'un <strong>ou</strong> l'autre ; aucun coché : tout le programme.</li>
+    <li><strong>Waza</strong> : touche <em>Tachi waza</em>, <em>Hanmi Handachi waza</em> ou <em>Suwari waza</em> pour lancer une session.</li>
+  </ul>
+
+  <h2>2. Tirage</h2>
+  <table>
+    <tr><th>Élément</th><th>Exemple</th></tr>
+    <tr><td>Waza</td><td>TACHI WAZA</td></tr>
+    <tr><td>Attaque</td><td>Aï hammi katate dori</td></tr>
+    <tr><td>Technique</td><td>Nikkyo</td></tr>
+    <tr><td>Forme (si elle existe)</td><td>Ura</td></tr>
+    <tr><td>Marqueurs</td><td>🆕 ⚠️</td></tr>
+    <tr><td>Note, vidéo (si elles existent)</td><td>« Naname », ▶ Voir la vidéo</td></tr>
+  </table>
+  <ul>
+    <li><strong>Technique suivante</strong> : tire la suivante.</li>
+    <li><strong>Voir le programme</strong> : ouvre le programme sans interrompre la session.</li>
+    <li><strong>Retour à l'accueil</strong> : termine la session (tu peux aussi toucher le titre « 合気道 Aïkido »).</li>
+  </ul>
+  <p>Le tirage est <strong>uniforme</strong> sur toutes les combinaisons attaque × technique × forme. Les techniques 🆕 et ⚠️ sortent <strong>un peu plus souvent</strong> (×1,5 chacune, cumulables). <strong>Aucune répétition</strong> pendant une session : quand tout est passé, l'app affiche « Waza terminé 🎉 ».</p>
+
+  <h2>3. Programme</h2>
+  <div class="shots">
+    <img src="docs/screenshots/3-attacks.png" alt="Liste des attaques">
+    <img src="docs/screenshots/4-techniques.png" alt="Techniques d'une attaque">
+    <img src="docs/screenshots/5-technique.png" alt="Fiche technique">
+  </div>
+  <ol>
+    <li><strong>Attaques</strong> : liste du waza.</li>
+    <li><strong>Techniques</strong> : celles de l'attaque choisie.</li>
+    <li><strong>Fiche technique</strong> : la carte complète et, en bas, <strong>Précédente / Suivante</strong>. En défilant, la liste « Même technique, autres attaques » permet de comparer la même technique sur d'autres attaques.</li>
+  </ol>
+  <p>Les boutons « ← … » en haut remontent d'un niveau. Les filtres 🆕/⚠️ ne s'appliquent pas au programme.</p>
+
+  <h2>4. Navigation</h2>
+  <ul>
+    <li><strong>Glisser vers la droite / la gauche</strong> : revenir en arrière / avancer dans l'historique.</li>
+    <li><strong>Chaque écran a sa propre URL</strong> (<code>#/2eme-kyo/Tachi%20waza/program/Katate%20dori/Sankyo</code>) : tu peux recharger la page ou partager un lien.</li>
+  </ul>
+
+  <h2>5. Installation et hors ligne</h2>
+  <ul>
+    <li><strong>iPhone / iPad</strong> (Safari) : Partager → <em>Sur l'écran d'accueil</em>.</li>
+    <li><strong>Android</strong> (Chrome) : menu → <em>Installer l'application</em>.</li>
+  </ul>
+  <p>Une fois ouverte une première fois avec du réseau, l'app fonctionne ensuite sans connexion.</p>
+
+  <a class="back" href="./">← Retour à l'application</a>
+  <footer>
+    <p>© 2026 Aïkido Trainer. Tous droits réservés.</p>
+    <p>Développé par amour de l'Aïkido 🙏</p>
+  </footer>
+</main>
+</body>
+</html>

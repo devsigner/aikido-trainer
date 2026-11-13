@@ -126,7 +126,8 @@ const program = (model, header) => {
 
 const footer = () => h("footer", {},
   h("p", {}, "© 2026 Aïkido Trainer. Tous droits réservés."),
-  h("p", {}, "Développé par amour de l'Aïkido 🙏"));
+  h("p", {}, "Développé par amour de l'Aïkido 🙏"),
+  h("p", {}, h("a", { href: "manual.html" }, "Manuel d'utilisation")));
 
 export function view(model) {
   const header = h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido");
