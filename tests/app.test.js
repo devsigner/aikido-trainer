@@ -267,7 +267,7 @@ describe("mergeGrades", () => {
     assert.equal(merged.size, 167);
     // la vidéo du 2ème Kyo survit à la surcharge des marqueurs
     const sankyo = m.waza["Tachi waza"][0].techniques.find((t) => t.nom === "Sankyo");
-    assert.equal(sankyo.nouveau, false);
+    assert.equal(sankyo.nouveau, true);
     assert.equal(sankyo.attention, true);
     assert.match(sankyo.video, /youtube/);
   });
