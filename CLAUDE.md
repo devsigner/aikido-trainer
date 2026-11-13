@@ -40,28 +40,25 @@ Règles :
 
 Chaque attaque des JSON a aussi une clé `order` (entier), qui trie la liste des attaques du programme : `order` croissant, puis ordre alphabétique (français) à égalité. Ce tableau fait référence (une valeur par nom d'attaque, identique dans tous les waza et grades) :
 
-| order | Attaque |
-|-------|---------|
-| 1     | Katate dori |
-| 2     | Aï hammi katate dori |
-| 3     | Ryote dori |
-| 4     | Katate ryote dori (ou morote dori) |
-| 5     | Kata dori |
-| 6     | Yokomen uchi |
-| 7     | Shomen uchi |
-| 8     | Chudan tsuki |
-| 9     | Ryo kata dori |
-| 10     | Ushiro ryote dori |
-| 11     | Ushiro ryo kata dori |
-| 12     | Ushiro ryo hiji dori |
-| 13     | Kata dori men uchi |
-| 14     | Diverses formes d'attaques |
-| 15     | Muna dori |
-| 16     | Jodan tsuki |
-| 17     | Ushiro eri dori |
-| 18     | Ushiro katate dori kubi shime |
-| 19     | Diverses applications |
-| 20     | Divers saisies et frappes |
+| order | Attaque                               |
+|-------|---------------------------------------|
+| 1     | Aï hammi katate dori                  |
+| 2     | Katate dori                           |
+| 3     | Ryote dori                            |
+| 4     | Katate ryote dori (ou morote dori)    |
+| 5     | Kata dori                             |
+| 6     | Kata dori men uchi                    |
+| 7     | Ryo kata dori                         |
+| 8     | Muna dori                             |
+| 9     | Ushiro ryote dori                     |
+| 10    | Ushiro ryo hiji dori                  |
+| 11    | Ushiro ryo kata dori                  |
+| 12    | Ushiro eri dori                       |
+| 13    | Ushiro katate dori kubi shime         |
+| 14    | Shomen uchi                           |
+| 15    | Yokomen uchi                          |
+| 16    | Chudan tsuki                          |
+| 17    | Jodan tsuki                           |
 | 42    | toutes les autres (valeur par défaut) |
 
 Mêmes règles que pour les techniques : une nouvelle attaque reçoit la valeur de son nom si elle est dans le tableau, sinon `42` ; pour changer une valeur, la modifier partout et mettre à jour ce tableau et `ATTAQUES` dans `tests/app.test.js`.
