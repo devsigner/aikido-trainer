@@ -11,5 +11,10 @@
     "id": "2eme-kyo",
     "label": "2ème Kyo",
     "fichier": "2eme-kyo.json"
+  },
+  {
+    "id": "3eme-kyo",
+    "label": "3ème Kyo",
+    "fichier": "3eme-kyo.json"
   }
 ]
