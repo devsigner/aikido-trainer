@@ -4,7 +4,7 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Version
 
-**Version actuelle : `20261113`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Version actuelle : `20261113.2`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
 
 À chaque nouvelle version :
 1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
@@ -34,7 +34,7 @@ Chaque technique des JSON (`data/*.json`, y compris les surcharges de `1er-kyo.j
 
 Règles :
 - Une nouvelle technique reçoit l'`order` de son nom s'il est dans le tableau, sinon `42`.
-- Pour changer l'`order` d'un nom, le modifier partout (2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/app.test.js` : un test vérifie la cohérence.
+- Pour changer l'`order` d'un nom, le modifier partout (3ème, 2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/app.test.js` : un test vérifie la cohérence.
 
 ## Ordre des attaques (`order`)
 
@@ -128,6 +128,7 @@ sw.js                 Service worker (hors ligne)
 icons/                Icônes de l'application (192, 512, apple-touch-icon)
 app.js                Logique (chargement, fusion des grades, tirage)
 data/grades.json      Liste des grades disponibles
+data/3eme-kyo.json    Techniques du 3ème Kyo (fichier autonome, sans `inclut`)
 data/2eme-kyo.json    Techniques du 2ème Kyo
 data/1er-kyo.json     Techniques propres au 1er Kyo + surcharges
 tests/app.test.js     Tests (node:test)
@@ -172,7 +173,7 @@ Un fichier par grade :
 
 ### Héritage entre grades
 
-`grades.json` accepte `inclut` : liste de fichiers chargés avant le fichier du grade. Le 1er Kyo inclut le 2ème Kyo (`"inclut": ["2eme-kyo.json"]`), le 2ème Kyo charge uniquement son fichier.
+`grades.json` accepte `inclut` : liste de fichiers chargés avant le fichier du grade. Le 1er Kyo inclut le 2ème Kyo (`"inclut": ["2eme-kyo.json"]`), le 2ème et le 3ème Kyo chargent uniquement leur fichier (`3eme-kyo.json` est autonome : programme de l'examen, repris du 2ème Kyo pour les techniques communes, `nouveau` à `false`).
 
 `mergeGrades` (dans `app.js`) fusionne par nom (waza, attaque, technique) : le fichier du grade prime. `1er-kyo.json` ne contient donc que les techniques nouvelles et des surcharges minimales (nom + marqueurs) pour les techniques communes dont les marqueurs diffèrent (🆕 du 2ème Kyo devient ⚠️ au 1er Kyo). Ne pas recopier les données du 2ème Kyo.
 

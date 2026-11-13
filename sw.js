@@ -1,5 +1,5 @@
 // Même numéro que les ?v= de index.html (voir CLAUDE.md) : change le cache à chaque version.
-const VERSION = "20261113";
+const VERSION = "20261113.2";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -15,6 +15,7 @@ const PRECACHE = [
   "data/grades.json",
   "data/1er-kyo.json",
   "data/2eme-kyo.json",
+  "data/3eme-kyo.json",
 ];
 
 self.addEventListener("install", (event) => {

@@ -249,7 +249,7 @@ describe("accueil", () => {
     const env = await createEnv();
     assert.deepEqual(
       env.el("grade").options.map((o) => o.text),
-      ["1er Kyo (160 techniques)", "2ème Kyo (101 techniques)"],
+      ["1er Kyo (160 techniques)", "2ème Kyo (101 techniques)", "3ème Kyo (65 techniques)"],
     );
   });
 
@@ -427,7 +427,7 @@ describe("session de tirage", () => {
 // ---------- Cache-busting et version ----------
 describe("clé order", () => {
   const ATTAQUES = ["Aï hammi katate dori", "Katate dori", "Ryote dori", "Katate ryote dori (ou morote dori)", "Kata dori", "Kata dori men uchi", "Ryo kata dori", "Muna dori", "Ushiro ryote dori", "Ushiro ryo hiji dori", "Ushiro ryo kata dori", "Ushiro eri dori", "Ushiro katate dori kubi shime", "Shomen uchi", "Yokomen uchi", "Chudan tsuki", "Jodan tsuki"];
-  for (const f of ["2eme-kyo", "1er-kyo"]) {
+  for (const f of ["3eme-kyo", "2eme-kyo", "1er-kyo"]) {
     test(`${f}.json : order des attaques = position dans la table de CLAUDE.md, sinon 42`, () => {
       for (const l of Object.values(readJson(`data/${f}.json`).waza))
         for (const a of l) {
@@ -438,7 +438,7 @@ describe("clé order", () => {
   }
 
   const NOMBRES = { Ikkyo: 1, Nikkyo: 2, Sankyo: 3, Yonkyo: 4, Gokyo: 5, "Tenchi nage": 5, "Sokumen irimi nage": 6, "Shiho nage": 7, "Ude kime nage": 8, "Irimi nage": 9, "Kote gaeshi": 10, "Kaïten nage": 11 };
-  for (const f of ["2eme-kyo", "1er-kyo"]) {
+  for (const f of ["3eme-kyo", "2eme-kyo", "1er-kyo"]) {
     test(`${f}.json : order = nombre japonais du nom, sinon 42`, () => {
       for (const l of Object.values(readJson(`data/${f}.json`).waza))
         for (const a of l)
