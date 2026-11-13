@@ -79,11 +79,19 @@ const levels = {
     };
   },
   3(model, { attack, technique }) {
-    const current = listTechniques(model.data, model.waza, attack).find((candidate) => candidate.name === technique);
+    const siblings = listTechniques(model.data, model.waza, attack);
+    const position = siblings.findIndex((candidate) => candidate.name === technique);
+    const current = siblings[position];
+    const following = siblings[position + 1];
     const others = findSameTechnique(model.data, model.waza, attack, current.name);
     return {
       back: `← ${attack}`,
       fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" },
+      actions: [
+        h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
+        h("button", { id: "prog-next", disabled: !following, onClick: following ? { type: "Navigate", to: { level: 3, attack, technique: following.name } } : null }, "Technique suivante"),
+        h("button", { id: "prog-techniques", className: "secondary small", onClick: { type: "Navigate", to: { level: 2, attack } } }, `${attack}`)
+      ],
       title: "Même technique, autres attaques",
       sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
       items: others.map((other) => item(withBadges(other.attack, other.technique), { level: 3, attack: other.attack, technique: other.technique.name })),
@@ -92,11 +100,12 @@ const levels = {
 };
 
 const program = (model) => {
-  const { back, fields, title, sub, items } = levels[model.program.level](model, model.program);
+  const { back, fields, actions, title, sub, items } = levels[model.program.level](model, model.program);
   return h("section", { id: "program" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("button", { id: "prog-back", className: "secondary back", onClick: { type: "Back" } }, back),
     card("prog", fields, "prog-card", slideProps(model.slide)),
+    actions,
     h("div", { className: "group" },
       h("h2", { id: "prog-title" }, title),
       h("p", { id: "prog-sub", className: "hint" }, sub),

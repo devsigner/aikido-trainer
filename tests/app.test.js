@@ -212,6 +212,20 @@ describe("program", () => {
     assert.match(app.text("prog-sub"), /Aucune autre attaque/);
   });
 
+  test("next button: next technique of the same attack, disabled on the last one", async () => {
+    const { app } = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    assert.equal(app.byId("prog-next").props.disabled, false);
+    app.click("prog-next");
+    assert.equal(app.text("prog-technique"), "Kote gaeshi");
+    assert.equal(app.text("prog-attack"), "Katate dori");
+    assert.equal(app.byId("prog-next").props.disabled, true);
+    app.click("prog-techniques");
+    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.attack, "Katate dori");
+  });
+
   test("back button: goes up one level then returns to the draw", async () => {
     const { app } = await open();
     app.click("Katate dori");
