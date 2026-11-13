@@ -37,3 +37,7 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 button.back { padding: .8rem 1rem; font-size: 1rem; text-align: left; }
 button.item { display: flex; justify-content: space-between; text-align: left; padding: 1rem 1.2rem; background: var(--card); }
 button.item::after { content: "›"; color: var(--muted); }
+
+.loading { display: flex; justify-content: center; align-items: center; flex: 1; }
+.spinner { width: 3rem; height: 3rem; border: 4px solid var(--card); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

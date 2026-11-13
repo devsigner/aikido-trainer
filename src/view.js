@@ -102,7 +102,7 @@ const program = (model) => {
 
 export function view(model) {
   let body;
-  if (model.status === "loading") body = h("p", { className: "hint" }, "Chargement…");
+  if (model.status === "loading") body = h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
   else if (model.status === "error") body = h("p", { className: "hint" }, model.error);
   else body = { home, draw, program }[model.screen](model);
   return h("main", {},

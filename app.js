@@ -6,7 +6,9 @@ import { init, update } from "./src/update.js";
 import { view } from "./src/view.js";
 
 // Render, and scroll back to the top when the displayed tree actually changed.
-const renderer = createRenderer(document.getElementById("app"));
+const root = document.getElementById("app");
+root.replaceChildren(); // remove the static splash from index.html
+const renderer = createRenderer(root);
 
 let last = "";
 const render = (vnode, dispatch) => {
