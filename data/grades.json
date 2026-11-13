@@ -4,13 +4,17 @@
     "label": "1er Kyo",
     "fichier": "1er-kyo.json",
     "inclut": [
+      "3eme-kyo.json",
       "2eme-kyo.json"
     ]
   },
   {
     "id": "2eme-kyo",
     "label": "2ème Kyo",
-    "fichier": "2eme-kyo.json"
+    "fichier": "2eme-kyo.json",
+    "inclut": [
+      "3eme-kyo.json"
+    ]
   },
   {
     "id": "3eme-kyo",
