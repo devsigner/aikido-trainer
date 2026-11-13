@@ -234,7 +234,7 @@ describe("mergeGrades", () => {
     const m = merge(e2, e1);
     const merged = new Set(keysOf(m));
     for (const k of [...keysOf(e2), ...keysOf(e1)]) assert.ok(merged.has(k), `perdu : ${k}`);
-    assert.equal(merged.size, 161);
+    assert.equal(merged.size, 160);
     // la vidéo du 2ème Kyo survit à la surcharge des marqueurs
     const sankyo = m.waza["Tachi waza"][0].techniques.find((t) => t.nom === "Sankyo");
     assert.equal(sankyo.nouveau, false);
@@ -249,7 +249,7 @@ describe("accueil", () => {
     const env = await createEnv();
     assert.deepEqual(
       env.el("grade").options.map((o) => o.text),
-      ["1er Kyo (161 techniques)", "2ème Kyo (102 techniques)"],
+      ["1er Kyo (160 techniques)", "2ème Kyo (101 techniques)"],
     );
   });
 

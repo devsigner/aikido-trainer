@@ -220,9 +220,9 @@
             "video": "https://www.youtube.com/watch?v=hmhUozNZoYo"
           },
           {
-            "nom": "Sankyo forme uchi",
+            "nom": "Sankyo",
             "formes": [
-              "Omote"
+              "Omote (forme uchi)"
             ],
             "nouveau": false,
             "attention": false,
@@ -373,18 +373,10 @@
             "video": "https://www.youtube.com/watch?v=pR8oaFCPXXI"
           },
           {
-            "nom": "Sankyo forme uchi",
-            "formes": [
-              "Omote"
-            ],
-            "nouveau": false,
-            "attention": false,
-            "note": null,
-            "video": null
-          },
-          {
             "nom": "Sankyo",
-            "formes": [],
+            "formes": [
+              "Omote (forme uchi)"
+            ],
             "nouveau": true,
             "attention": false,
             "note": null,
@@ -628,9 +620,9 @@
         "nom": "Ushiro ryote dori",
         "techniques": [
           {
-            "nom": "Sankyo forme uchi",
+            "nom": "Sankyo",
             "formes": [
-              "Omote"
+              "Omote (forme uchi)"
             ],
             "nouveau": false,
             "attention": false,
