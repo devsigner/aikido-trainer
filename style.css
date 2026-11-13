@@ -2,12 +2,14 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { background: var(--bg); -webkit-text-size-adjust: 100%; }
 body { margin: 0; overscroll-behavior: none; touch-action: manipulation; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+#app { display: contents; }
 main { max-width: 640px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: max(1.5rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 1.5rem; }
 main > section { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 main > section[hidden] { display: none; }
 .group { display: flex; flex-direction: column; gap: .8rem; }
 .grow { flex: 1; }
-h1 { text-align: center; margin: 0; }
+h1, a { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+h1 { text-align: center; margin: 0; cursor: pointer; }
 .field { display: block; }
 select { width: 100%; padding: .7rem; font-size: 16px; border-radius: 8px; background: var(--card); color: var(--fg); border: 1px solid #333; margin-top: .3rem; }
 .filters { display: flex; gap: 1.5rem; flex-wrap: wrap; }
@@ -21,9 +23,9 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .card { background: var(--card); border-radius: 14px; padding: 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .card[hidden] { display: none; }
 .waza { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: .85rem; }
-.attaque { font-size: 1.3rem; margin-top: .8rem; }
+.attack { font-size: 1.3rem; margin-top: .8rem; }
 .technique { font-size: 2.2rem; font-weight: bold; color: var(--accent); margin: .3rem 0; }
-.forme { font-size: 1.6rem; }
+.form { font-size: 1.6rem; }
 .badges { margin-top: .6rem; font-size: 1.2rem; }
 .note { margin-top: .6rem; color: var(--muted); font-style: italic; }
 .video { display: inline-block; margin-top: 1rem; color: #5dade2; }

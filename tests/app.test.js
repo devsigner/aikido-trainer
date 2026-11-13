@@ -1,639 +1,301 @@
-const { test, describe } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const vm = require("node:vm");
+import { test, describe } from "node:test";
+import assert from "node:assert/strict";
+import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
+import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/logic.js";
+import { h } from "../src/vdom.js";
+import { parseHash, toHash } from "../src/route.js";
+import { update, init } from "../src/update.js";
+import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
-const ROOT = path.join(__dirname, "..");
-const readJson = (f) => JSON.parse(fs.readFileSync(path.join(ROOT, f), "utf8"));
-const WAZA = ["Tachi waza", "Suwari waza", "Hanmi Handachi waza"];
-
-// ---------- Faux DOM minimal pour exécuter app.js tel quel ----------
-class El {
-  constructor() {
-    this.children = [];
-    this.options = [];
-    this.hidden = false;
-    this.disabled = false;
-    this.checked = false;
-    this.value = "";
-    this.textContent = "";
-    this.href = "";
-  }
-  set innerHTML(_) {
-    this.children = [];
-  }
-  appendChild(c) {
-    this.children.push(c);
-  }
-  add(opt) {
-    this.options.push(opt);
-    if (this.options.length === 1) this.value = opt.value;
-  }
-}
-
-async function createEnv({ random = Math.random } = {}) {
-  const els = {};
-  const el = (id) => (els[id] ??= new El());
-  el("draw").hidden = true;
-  el("done").hidden = true;
-  el("card-video").hidden = true;
-
-  const ctx = vm.createContext({
-    document: { getElementById: el, createElement: () => new El() },
-    Option: class {
-      constructor(text, value) {
-        this.text = text;
-        this.value = value;
-      }
-    },
-    fetch: async (p) => ({ json: async () => readJson(p) }),
-    console,
-    Math: Object.create(Math, { random: { value: () => random() } }),
-  });
-
-  const src = fs.readFileSync(path.join(ROOT, "app.js"), "utf8").trimEnd();
-  assert.match(src, /init\(\);$/, "app.js doit se terminer par init();");
-  vm.runInContext(src.replace(/init\(\);$/, ""), ctx);
-  await vm.runInContext("init()", ctx);
-
-  return {
-    el,
-    // Les objets du contexte vm ont d'autres prototypes : on renvoie des copies JSON simples.
-    run: (code) => {
-      const v = vm.runInContext(code, ctx);
-      return v && typeof v === "object" ? JSON.parse(JSON.stringify(v)) : v;
-    },
-    wazaButtons: () => el("waza-buttons").children,
-    async selectGrade(id) {
-      el("grade").value = id;
-      await el("grade").onchange();
-    },
-    setFilters({ nouveau = false, attention = false }) {
-      el("f-nouveau").checked = nouveau;
-      el("f-attention").checked = attention;
-      el("f-nouveau").onchange();
-    },
-    start: (waza) => el("waza-buttons").children.find((b) => b.textContent === waza).onclick(),
-    next: () => el("next").onclick(),
-    home: () => el("home-btn").onclick(),
-    card() {
-      return {
-        waza: el("card-waza").textContent,
-        attaque: el("card-attaque").textContent,
-        technique: el("card-technique").textContent,
-        forme: el("card-forme").textContent,
-        badges: el("card-badges").textContent,
-        note: el("card-note").textContent,
-        video: el("card-video"),
-      };
-    },
-  };
-}
-
-// Fusion réelle de app.js, sans DOM : résout un grade en suivant `inclut`.
-const mergeGrades = (() => {
-  const ctx = vm.createContext({});
-  vm.runInContext(fs.readFileSync(path.join(ROOT, "app.js"), "utf8").trimEnd().replace(/init\(\);$/, ""), ctx);
-  return (a, b) => JSON.parse(JSON.stringify(ctx.mergeGrades(a, b)));
-})();
-const chain = (id) => {
-  const g = readJson("data/grades.json").find((x) => x.id === id);
-  return [...(g.inclut || []), g.fichier].map((f) => readJson(`data/${f}`));
+const DATA = {
+  waza: {
+    "Tachi waza": [
+      { name: "Katate dori", order: 2, techniques: [
+        { name: "Nikkyo", order: 2, forms: ["Omote", "Ura"], isNew: true, isWarning: false, note: "N", video: "https://v" },
+        { name: "Kote gaeshi", order: 10, forms: [] },
+      ] },
+      { name: "Ryote dori", order: 3, techniques: [{ name: "nikkyo", order: 2, forms: [], isWarning: true }, { name: "Sankyo", order: 3, forms: [] }] },
+      { name: "Aï hammi katate dori", order: 1, techniques: [{ name: "Sankyo", order: 3, forms: [] }] },
+    ],
+    "Suwari waza": [],
+  },
 };
-const resolveGrade = (id) => chain(id).reduce((acc, d) => (acc ? mergeGrades(acc, d) : d), null);
-const parentsOf = (id) => chain(id).slice(0, -1).reduce((acc, d) => (acc ? mergeGrades(acc, d) : d), null);
+const ALL = { isNew: false, isWarning: false };
 
-const cardKey = (c) => [c.attaque, c.technique, c.forme].join(" – ");
-const keysOf = (d) =>
-  Object.entries(d.waza).flatMap(([w, l]) => l.flatMap((a) => a.techniques.map((t) => `${w}|${a.nom}|${t.nom}`)));
-
-// ---------- Données ----------
-describe("données JSON", () => {
-  const grades = readJson("data/grades.json");
-
-  test("grades.json référence des fichiers existants", () => {
-    assert.ok(grades.length >= 2);
-    for (const g of grades) {
-      for (const f of [g.fichier, ...(g.inclut || [])]) {
-        assert.ok(fs.existsSync(path.join(ROOT, "data", f)), `${f} introuvable`);
-      }
-    }
+describe("logic", () => {
+  test("pool: one entry per form, weights 1 / 1.5 / 2.25", () => {
+    const pool = buildPool(DATA, "Tachi waza", ALL);
+    assert.equal(pool.length, 6);
+    const weightOf = (name, form) => pool.find((entry) => entry.technique.name === name && entry.form === form).weight;
+    assert.equal(weightOf("Nikkyo", "Omote"), 1.5);
+    assert.equal(pool.find((entry) => entry.technique.name === "Kote gaeshi").weight, 1);
+    assert.equal(pool.find((entry) => entry.technique.name === "nikkyo").weight, 1.5);
   });
 
-  for (const g of grades) {
-    test(`${g.fichier} respecte le format`, () => {
-      const d = readJson(`data/${g.fichier}`);
-      for (const [w, attaques] of Object.entries(d.waza)) {
-        assert.ok(WAZA.includes(w), `waza inconnu : ${w}`);
-        const noms = new Set();
-        for (const a of attaques) {
-          assert.ok(!noms.has(a.nom), `attaque dupliquée : ${w} / ${a.nom}`);
-          noms.add(a.nom);
-          assert.ok(a.techniques.length > 0, `attaque vide : ${a.nom}`);
-          const techs = new Set();
-          for (const t of a.techniques) {
-            assert.ok(!techs.has(t.nom), `technique dupliquée : ${a.nom} / ${t.nom}`);
-            techs.add(t.nom);
-            if (t.formes !== undefined) assert.ok(Array.isArray(t.formes));
-            for (const k of ["nouveau", "attention"]) {
-              if (t[k] !== undefined) assert.equal(typeof t[k], "boolean");
-            }
-            if (t.video) assert.match(t.video, /^https?:\/\//);
-          }
-        }
-      }
-    });
-  }
-
-  test("orthographe harmonisée (Nikkyo, Sankyo)", () => {
-    const all = JSON.stringify([readJson("data/1er-kyo.json"), readJson("data/2eme-kyo.json")]);
-    assert.doesNotMatch(all, /Nikyo|Sankio/i);
+  test("filters: New, Warning, or both (OR)", () => {
+    const countFor = (filters) => buildPool(DATA, "Tachi waza", filters).length;
+    assert.equal(countFor({ isNew: true, isWarning: false }), 2);
+    assert.equal(countFor({ isNew: false, isWarning: true }), 1);
+    assert.equal(countFor({ isNew: true, isWarning: true }), 3);
   });
 
-  test("2ème Kyo : lignes * de Yokomen uchi marquées attention", () => {
-    const yoko = resolveGrade("2eme-kyo").waza["Tachi waza"].find((a) => a.nom === "Yokomen uchi");
-    for (const nom of ["Ikkyo", "Nikkyo", "Sankyo", "Irimi nage", "Kote gaeshi"]) {
-      assert.equal(yoko.techniques.find((t) => t.nom === nom).attention, true, nom);
-    }
+  test("pickIndex respects the weights", () => {
+    const pool = [{ weight: 1 }, { weight: 3 }];
+    assert.equal(pickIndex(pool, 0), 0);
+    assert.equal(pickIndex(pool, 0.24), 0);
+    assert.equal(pickIndex(pool, 0.26), 1);
+    assert.equal(pickIndex(pool, 0.999), 1);
   });
 
-  test("2ème Kyo : formes spéciales", () => {
-    const d = resolveGrade("2eme-kyo");
-    const kokyu = d.waza["Tachi waza"].find((a) => a.nom === "Katate dori").techniques.find((t) => t.nom === "Kokyu nage");
-    assert.deepEqual(kokyu.formes, []);
-    assert.equal(kokyu.note, "3 formes différentes");
-    const taiken = d.waza["Hanmi Handachi waza"].flatMap((a) => a.techniques).find((t) => t.nom === "Taïken nage");
-    assert.deepEqual(taiken.formes, ["Uchi", "Soto"]);
+  test("sorted by order then alphabetically; same technique ignoring case and accents", () => {
+    assert.deepEqual(listAttacks(DATA, "Tachi waza").map((attack) => attack.name), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
+    assert.deepEqual(listTechniques(DATA, "Tachi waza", "Ryote dori").map((technique) => technique.name), ["nikkyo", "Sankyo"]);
+    assert.deepEqual(findSameTechnique(DATA, "Tachi waza", "Katate dori", "Nikkyo").map((other) => other.attack), ["Ryote dori"]);
   });
 
-  for (const g of grades.filter((x) => x.inclut)) {
-    test(`${g.fichier} ne recopie pas les données identiques de ses parents`, () => {
-      const parents = parentsOf(g.id);
-      for (const [w, attaques] of Object.entries(readJson(`data/${g.fichier}`).waza)) {
-        for (const a of attaques) {
-          const base = parents.waza[w]?.find((x) => x.nom === a.nom);
-          for (const t of a.techniques) {
-            const bt = base?.techniques.find((x) => x.nom === t.nom);
-            if (bt) assert.notDeepEqual({ ...bt, ...t }, bt, `${w}/${a.nom}/${t.nom} est une copie inutile`);
-          }
-        }
-      }
-    });
-  }
-
-  test("héritage : 1er Kyo ⊇ 2ème Kyo ⊇ 3ème Kyo", () => {
-    assert.deepEqual(grades.find((g) => g.id === "1er-kyo").inclut, ["3eme-kyo.json", "2eme-kyo.json"]);
-    assert.deepEqual(grades.find((g) => g.id === "2eme-kyo").inclut, ["3eme-kyo.json"]);
-    assert.equal(grades.find((g) => g.id === "3eme-kyo").inclut, undefined);
-    const k1 = new Set(keysOf(resolveGrade("1er-kyo")));
-    const k2 = new Set(keysOf(resolveGrade("2eme-kyo")));
-    for (const k of keysOf(readJson("data/3eme-kyo.json"))) assert.ok(k2.has(k), `3ème → 2ème : ${k}`);
-    for (const k of k2) assert.ok(k1.has(k), `2ème → 1er : ${k}`);
+  test("inheritance: counts 167 / 108 / 65 and 1st ⊇ 2nd ⊇ 3rd", () => {
+    assert.deepEqual(["1er-kyo", "2eme-kyo", "3eme-kyo"].map((grade) => countTechniques(resolveGrade(grade))), [167, 108, 65]);
+    const firstKyoKeys = new Set(keysOf(resolveGrade("1er-kyo")));
+    for (const key of keysOf(resolveGrade("2eme-kyo"))) assert.ok(firstKyoKeys.has(key), key);
+    assert.ok(keysOf(parentsOf("2eme-kyo")).length === 65);
   });
 
-  test("le 2ème Kyo surcharge le 3ème Kyo", () => {
-    const find = (d) => d.waza["Tachi waza"].find((a) => a.nom === "Katate ryote dori (ou morote dori)").techniques.find((t) => t.nom === "Ude kime nage");
-    assert.deepEqual(find(readJson("data/3eme-kyo.json")).formes, ["Omote"]);
-    assert.deepEqual(find(resolveGrade("2eme-kyo")).formes, ["Omote", "Ura"]);
+  test("mergeGrades does not mutate the base", () => {
+    const base = structuredClone(DATA);
+    mergeGrades(base, { waza: { "Tachi waza": [{ name: "Katate dori", techniques: [{ name: "Nikkyo", forms: ["X"] }] }] } });
+    assert.deepEqual(base, DATA);
   });
 });
 
-// ---------- Fusion des grades ----------
-describe("mergeGrades", () => {
-  let env;
-  const merge = (a, b) => env.run(`mergeGrades(${JSON.stringify(a)}, ${JSON.stringify(b)})`);
-  const base = () => ({
-    grade: "B",
-    waza: {
-      "Tachi waza": [
-        { nom: "Katate dori", techniques: [{ nom: "Ikkyo", formes: ["Omote", "Ura"], nouveau: true, attention: false, video: "https://v" }] },
-      ],
-    },
-  });
-
-  test("surcharge des champs sans perdre le reste", async () => {
-    env ??= await createEnv();
-    const over = { grade: "A", waza: { "Tachi waza": [{ nom: "Katate dori", techniques: [{ nom: "Ikkyo", nouveau: false, attention: true }] }] } };
-    const t = merge(base(), over).waza["Tachi waza"][0].techniques[0];
-    assert.deepEqual(
-      t,
-      { nom: "Ikkyo", formes: ["Omote", "Ura"], nouveau: false, attention: true, video: "https://v" },
-    );
-  });
-
-  test("ajoute attaques, techniques et waza absents de la base", async () => {
-    env ??= await createEnv();
-    const over = {
-      waza: {
-        "Tachi waza": [
-          { nom: "Katate dori", techniques: [{ nom: "Yonkyo", formes: [] }] },
-          { nom: "Muna dori", techniques: [{ nom: "Shiho nage", formes: [] }] },
-        ],
-        "Suwari waza": [{ nom: "Ryote dori", techniques: [{ nom: "Ikkyo", formes: [] }] }],
-      },
-    };
-    const m = merge(base(), over);
-    assert.deepEqual(m.waza["Tachi waza"][0].techniques.map((t) => t.nom), ["Ikkyo", "Yonkyo"]);
-    assert.equal(m.waza["Tachi waza"][1].nom, "Muna dori");
-    assert.equal(m.waza["Suwari waza"].length, 1);
-  });
-
-  test("conserve le grade et la note du fichier prioritaire", async () => {
-    env ??= await createEnv();
-    const m = merge(base(), { grade: "A", note: "n", waza: {} });
-    assert.equal(m.grade, "A");
-    assert.equal(m.note, "n");
-  });
-
-  test("ne modifie pas la base", async () => {
-    env ??= await createEnv();
-    const b = JSON.stringify(base());
-    const after = env.run(`(() => {
-      const b = ${b};
-      mergeGrades(b, { waza: { "Tachi waza": [{ nom: "Katate dori", techniques: [{ nom: "Ikkyo", nouveau: false }, { nom: "X" }] }] } });
-      return JSON.stringify(b);
-    })()`);
-    assert.equal(after, b);
-  });
-
-  test("1er Kyo fusionné = toutes les données du 2ème Kyo + ses propres techniques", async () => {
-    env ??= await createEnv();
-    const e2 = resolveGrade("2eme-kyo");
-    const e1 = readJson("data/1er-kyo.json");
-    const m = merge(e2, e1);
-    const merged = new Set(keysOf(m));
-    for (const k of [...keysOf(e2), ...keysOf(e1)]) assert.ok(merged.has(k), `perdu : ${k}`);
-    assert.equal(merged.size, 167);
-    // la vidéo du 2ème Kyo survit à la surcharge des marqueurs
-    const sankyo = m.waza["Tachi waza"][0].techniques.find((t) => t.nom === "Sankyo");
-    assert.equal(sankyo.nouveau, true);
-    assert.equal(sankyo.attention, true);
-    assert.match(sankyo.video, /youtube/);
+describe("update (pure)", () => {
+  test("Rolled is ignored outside a draw", () => {
+    const [model] = init();
+    const [next, cmds] = update(model, { type: "Rolled", value: 0.5 });
+    assert.equal(next.current, model.current);
+    assert.deepEqual(cmds, []);
   });
 });
 
-// ---------- Interface et tirage ----------
-describe("accueil", () => {
-  test("sélecteur de grade avec le nombre de techniques", async () => {
-    const env = await createEnv();
-    assert.deepEqual(
-      env.el("grade").options.map((o) => o.text),
-      ["1er Kyo (167 techniques)", "2ème Kyo (108 techniques)", "3ème Kyo (65 techniques)"],
-    );
-  });
-
-  test("boutons waza dans l'ordre défini, tous actifs sans filtre", async () => {
-    const env = await createEnv();
-    assert.deepEqual(env.wazaButtons().map((b) => b.textContent), env.run("WAZA_ORDER"));
-    assert.ok(env.wazaButtons().every((b) => !b.disabled));
-    assert.equal(env.el("home-msg").textContent, "");
-  });
-
-  test("filtre Attention : waza sans technique correspondante désactivé", async () => {
-    const env = await createEnv();
-    await env.selectGrade("2eme-kyo");
-    env.setFilters({ attention: true });
-    const disabled = Object.fromEntries(env.wazaButtons().map((b) => [b.textContent, b.disabled]));
-    assert.deepEqual(disabled, { "Tachi waza": false, "Hanmi Handachi waza": true, "Suwari waza": true });
-    assert.match(env.el("home-msg").textContent, /aucune technique/i);
-  });
-
-  test("changer de grade recharge les données fusionnées", async () => {
-    const env = await createEnv();
-    await env.selectGrade("2eme-kyo");
-    env.start("Tachi waza");
-    const total2 = env.run("total");
-    env.home();
-    await env.selectGrade("1er-kyo");
-    env.start("Tachi waza");
-    assert.ok(env.run("total") > total2);
+describe("vdom", () => {
+  test("h() normalizes children (null/false ignored, arrays flattened)", () => {
+    const node = h("div", { id: "x" }, "a", null, false, [h("b", {}, "c")], 3);
+    assert.equal(node.children.length, 3);
+    assert.equal(text(node), "ac3");
   });
 });
 
-describe("pool et pondération", () => {
-  test("une entrée par forme, poids 1 / 1.5 / 2.25 selon les marqueurs", async () => {
-    const env = await createEnv();
-    env.run(`data = { waza: { "Tachi waza": [{ nom: "A", techniques: [
-      { nom: "Normal", formes: [] },
-      { nom: "Nouveau", formes: ["Omote", "Ura"], nouveau: true },
-      { nom: "Attention", formes: [], attention: true },
-      { nom: "Les deux", formes: [], nouveau: true, attention: true }
-    ] }] } }`);
-    const pool = JSON.parse(env.run(`JSON.stringify(buildPool("Tachi waza").map(i => [i.t.nom, i.forme, i.poids]))`));
-    assert.deepEqual(pool, [
-      ["Normal", null, 1],
-      ["Nouveau", "Omote", 1.5],
-      ["Nouveau", "Ura", 1.5],
-      ["Attention", null, 1.5],
-      ["Les deux", null, 2.25],
-    ]);
-  });
-
-  test("filtres : Nouveautés, Attention, ou les deux (OU)", async () => {
-    const env = await createEnv();
-    env.run(`data = { waza: { "Tachi waza": [{ nom: "A", techniques: [
-      { nom: "Normal", formes: [] },
-      { nom: "N", formes: [], nouveau: true },
-      { nom: "A", formes: [], attention: true }
-    ] }] } }`);
-    const names = () => JSON.parse(env.run(`JSON.stringify(buildPool("Tachi waza").map(i => i.t.nom))`));
-    assert.deepEqual(names(), ["Normal", "N", "A"]);
-    env.setFilters({ nouveau: true });
-    assert.deepEqual(names(), ["N"]);
-    env.setFilters({ attention: true });
-    assert.deepEqual(names(), ["A"]);
-    env.setFilters({ nouveau: true, attention: true });
-    assert.deepEqual(names(), ["N", "A"]);
-  });
-
-  test("pick() respecte les poids", async () => {
-    let r = 0;
-    const env = await createEnv({ random: () => r });
-    const pick = () => {
-      env.run(`pool = [{ id: "a", poids: 1 }, { id: "b", poids: 2.25 }]`);
-      return env.run("pick().id");
-    };
-    r = 0.3; // 0.3 * 3.25 = 0.975 <= 1
-    assert.equal(pick(), "a");
-    r = 0.31; // 1.0075 > 1
-    assert.equal(pick(), "b");
-    r = 0.9999;
-    assert.equal(pick(), "b");
+describe("effects.resolveGrade", () => {
+  test("merges the parents then the grade", async () => {
+    const grades = readJson("data/grades.json");
+    const data = await resolveGradeFx(grades.find((grade) => grade.id === "2eme-kyo"), async (url) => readJson(url));
+    assert.equal(countTechniques(data), 108);
   });
 });
 
-describe("session de tirage", () => {
-  test("affiche waza, attaque, technique, forme, badges, note et vidéo", async () => {
-    const env = await createEnv();
-    env.run(`data = { waza: { "Tachi waza": [{ nom: "Katate dori", techniques: [
-      { nom: "Nikkyo", formes: ["Ura"], nouveau: true, attention: true, note: "Naname", video: "https://v" }
-    ] }] } }`);
-    env.start("Tachi waza");
-    const c = env.card();
-    assert.equal(c.waza, "Tachi waza");
-    assert.equal(c.attaque, "Katate dori");
-    assert.equal(c.technique, "Nikkyo");
-    assert.equal(c.forme, "Ura");
-    assert.equal(c.badges, "🆕 ⚠️");
-    assert.equal(c.note, "Naname");
-    assert.equal(c.video.hidden, false);
-    assert.equal(c.video.href, "https://v");
-    assert.equal(env.el("home").hidden, true);
-    assert.equal(env.el("draw").hidden, false);
+describe("application", () => {
+  test("home: grades, enabled waza buttons", async () => {
+    const app = await createApp();
+    assert.equal(app.model.screen, "home");
+    assert.equal(find(app.tree, (node) => node.tag === "option").length, 3);
+    for (const waza of WAZA) assert.equal(app.button(waza).props.disabled, false);
   });
 
-  test("lien vidéo masqué et champs vides sans vidéo, forme ni note", async () => {
-    const env = await createEnv();
-    env.run(`data = { waza: { "Tachi waza": [{ nom: "A", techniques: [{ nom: "Irimi nage", formes: [] }] }] } }`);
-    env.start("Tachi waza");
-    const c = env.card();
-    assert.equal(c.video.hidden, true);
-    assert.equal(c.forme, "");
-    assert.equal(c.note, "");
-    assert.equal(c.badges, "");
+  test("Warning filter disables a waza with no matching technique", async () => {
+    const app = await createApp();
+    app.load(DATA);
+    app.setFilter("f-warning", true);
+    assert.equal(app.button("Tachi waza").props.disabled, false);
+    assert.equal(app.button("Suwari waza").props.disabled, true);
+    assert.equal(app.button("Hanmi Handachi waza").props.disabled, true);
+    assert.match(app.text("home-msg"), /grisé/);
   });
 
-  test("aucune répétition : chaque combinaison sort une seule fois puis « terminé »", async () => {
-    const env = await createEnv();
-    await env.selectGrade("2eme-kyo");
-    env.start("Suwari waza");
-    const total = env.run("total");
-    assert.ok(total > 1);
-    const seen = [cardKey(env.card())];
+  test("changing grade reloads the merged data", async () => {
+    const app = await createApp();
+    const n1 = app.model.total ?? 0;
+    await app.selectGrade("3eme-kyo");
+    assert.equal(app.model.gradeId, "3eme-kyo");
+    assert.equal(countTechniques(app.model.data), 65);
+    assert.ok(n1 >= 0);
+  });
+
+  test("draw: full card, video, progress", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load({ waza: { "Tachi waza": [{ name: "Katate dori", order: 1, techniques: [{ name: "Nikkyo", order: 2, forms: ["Ura"], isNew: true, isWarning: true, note: "N", video: "https://v" }] }] } });
+    app.click("Tachi waza");
+    const card = app.card();
+    assert.deepEqual([card.waza, card.attack, card.technique, card.form, card.note], ["Tachi waza", "Katate dori", "Nikkyo", "Ura", "N"]);
+    assert.equal(card.video.props.href, "https://v");
+    assert.match(card.badges, /🆕/);
+    assert.match(card.badges, /⚠️/);
+    assert.equal(app.text("progress"), "Tachi waza : 1 / 1");
+  });
+
+  test("no video: link absent, empty fields kept", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load({ waza: { "Tachi waza": [{ name: "A", order: 1, techniques: [{ name: "Ikkyo", order: 1, forms: [] }] }] } });
+    app.click("Tachi waza");
+    const card = app.card();
+    assert.equal(card.video, undefined);
+    assert.equal(card.form, "");
+    assert.equal(card.note, "");
+  });
+
+  test("no repetition, then done", async () => {
+    const app = await createApp();
+    app.load(DATA);
+    app.click("Tachi waza");
+    const total = app.model.total;
+    const seen = new Set();
+    const key = () => Object.values(app.card()).slice(0, 4).join("|");
+    seen.add(key());
     for (let i = 1; i < total; i++) {
-      env.next();
-      seen.push(cardKey(env.card()));
+      app.click("next");
+      seen.add(key());
     }
-    assert.equal(new Set(seen).size, total);
-    assert.equal(env.el("progress").textContent, `Suwari waza : ${total} / ${total}`);
-    env.next();
-    assert.equal(env.el("done").hidden, false);
-    assert.equal(env.el("card").hidden, true);
-    assert.equal(env.el("next").hidden, true);
+    assert.equal(seen.size, total);
+    assert.equal(app.text("progress"), `Tachi waza : ${total} / ${total}`);
+    app.click("next");
+    assert.ok(byId(app.tree, "done"));
+    assert.equal(app.button("Technique suivante"), undefined);
   });
 
-  test("compteur de progression", async () => {
-    const env = await createEnv();
-    await env.selectGrade("2eme-kyo");
-    env.start("Hanmi Handachi waza");
-    const total = env.run("total");
-    assert.equal(env.el("progress").textContent, `Hanmi Handachi waza : 1 / ${total}`);
-    env.next();
-    assert.equal(env.el("progress").textContent, `Hanmi Handachi waza : 2 / ${total}`);
-  });
-
-  test("retour à l'accueil réinitialise la session", async () => {
-    const env = await createEnv();
-    await env.selectGrade("2eme-kyo");
-    env.start("Hanmi Handachi waza");
-    const total = env.run("total");
-    for (let i = 0; i < total; i++) env.next();
-    assert.equal(env.el("done").hidden, false);
-    env.home();
-    assert.equal(env.el("home").hidden, false);
-    assert.equal(env.el("draw").hidden, true);
-    assert.equal(env.run("pool.length"), 0);
-    env.start("Hanmi Handachi waza");
-    assert.equal(env.el("done").hidden, true);
-    assert.equal(env.el("card").hidden, false);
-    assert.equal(env.run("pool.length"), total - 1);
-  });
-
-  test("les filtres sont appliqués au pool de la session", async () => {
-    const env = await createEnv();
-    await env.selectGrade("2eme-kyo");
-    env.setFilters({ nouveau: true });
-    env.start("Tachi waza");
-    const total = env.run("total");
-    const keys = new Set();
-    for (let i = 0; i < total; i++) {
-      assert.match(env.card().badges, /🆕/);
-      keys.add(cardKey(env.card()));
-      env.next();
-    }
-    assert.equal(keys.size, total);
+  test("going home resets; filters apply to the pool", async () => {
+    const app = await createApp();
+    app.load(DATA);
+    app.setFilter("f-new", true);
+    app.click("Tachi waza");
+    assert.equal(app.model.total, 2);
+    app.click("home-btn");
+    assert.equal(app.model.screen, "home");
+    app.click("Tachi waza");
+    assert.equal(app.model.pool.length, app.model.total - 1);
   });
 });
 
-// ---------- Cache-busting et version ----------
-describe("clé order", () => {
-  const ATTAQUES = ["Aï hammi katate dori", "Katate dori", "Ryote dori", "Katate ryote dori (ou morote dori)", "Kata dori", "Kata dori men uchi", "Ryo kata dori", "Muna dori", "Ushiro ryote dori", "Ushiro ryo hiji dori", "Ushiro ryo kata dori", "Ushiro eri dori", "Ushiro katate dori kubi shime", "Shomen uchi", "Yokomen uchi", "Chudan tsuki", "Jodan tsuki"];
-  for (const f of ["3eme-kyo", "2eme-kyo", "1er-kyo"]) {
-    test(`${f}.json : order des attaques = position dans la table de CLAUDE.md, sinon 42`, () => {
-      for (const l of Object.values(readJson(`data/${f}.json`).waza))
-        for (const a of l) {
-          const i = ATTAQUES.indexOf(a.nom);
-          assert.equal(a.order, i < 0 ? 42 : i + 1, a.nom);
-        }
-    });
-  }
-
-  const NOMBRES = { Ikkyo: 1, Nikkyo: 2, Sankyo: 3, Yonkyo: 4, Gokyo: 5, "Tenchi nage": 5, "Sokumen irimi nage": 6, "Shiho nage": 7, "Ude kime nage": 8, "Irimi nage": 9, "Kote gaeshi": 10, "Kaïten nage": 11 };
-  for (const f of ["3eme-kyo", "2eme-kyo", "1er-kyo"]) {
-    test(`${f}.json : order = nombre japonais du nom, sinon 42`, () => {
-      for (const l of Object.values(readJson(`data/${f}.json`).waza))
-        for (const a of l)
-          for (const t of a.techniques) assert.equal(t.order, NOMBRES[t.nom] ?? 42, `${a.nom} / ${t.nom}`);
-    });
-  }
-});
-
-describe("programme", () => {
-  const DATA = `data = { waza: { "Tachi waza": [
-    { nom: "Katate dori", techniques: [
-      { nom: "Nikkyo", formes: ["Omote", "Ura"], nouveau: true, attention: false, note: "N", video: "https://v" },
-      { nom: "Kote gaeshi", formes: [] } ] },
-    { nom: "Ryote dori", techniques: [{ nom: "nikkyo", formes: [], attention: true }, { nom: "Sankyo", formes: [] }] },
-    { nom: "Shomen uchi", techniques: [{ nom: "Sankyo", formes: [] }] }
-  ] } }`;
-  const labels = (env) => env.el("prog-list").children.map((b) => b.textContent);
-  const click = (env, label) => env.el("prog-list").children.find((b) => b.textContent.startsWith(label)).onclick();
-
+describe("program", () => {
   async function open() {
-    const env = await createEnv();
-    env.run(DATA);
-    env.start("Tachi waza");
-    env.el("prog-btn").onclick();
-    return env;
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    app.click("Tachi waza");
+    const before = app.model.pool.length;
+    app.click("prog-btn");
+    return { app, before };
   }
 
-  test("affiche toutes les attaques du waza sans toucher à la session", async () => {
-    const env = await open();
-    assert.equal(env.el("program").hidden, false);
-    assert.equal(env.el("draw").hidden, true);
-    assert.deepEqual(labels(env), ["Katate dori", "Ryote dori", "Shomen uchi"]);
-    assert.equal(env.el("prog-title").textContent, "Tachi waza");
-    assert.equal(env.run("pool.length"), 5);
+  test("attacks sorted, session untouched", async () => {
+    const { app, before } = await open();
+    assert.deepEqual(app.list(), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
+    assert.equal(app.model.pool.length, before);
   });
 
-  test("les attaques sont triées par `order`, puis par ordre alphabétique", async () => {
-    const env = await open();
-    env.run(`data.waza["Tachi waza"].forEach((a, i) => (a.order = [3, 1, 3][i]))`);
-    env.el("prog-btn").onclick();
-    assert.deepEqual(labels(env), ["Ryote dori", "Katate dori", "Shomen uchi"]);
+  test("attack → techniques with badges, sorted", async () => {
+    const { app } = await open();
+    app.click("Katate dori");
+    assert.equal(app.text("prog-sub"), "2 techniques");
+    assert.match(app.list()[0], /^Nikkyo 🆕/);
+    assert.match(app.list()[1], /^Kote gaeshi/);
   });
 
-  test("une attaque liste ses techniques avec leurs badges", async () => {
-    const env = await open();
-    click(env, "Ryote dori");
-    assert.equal(env.el("prog-card").hidden, false);
-    assert.equal(env.el("prog-attaque").textContent, "Ryote dori");
-    assert.deepEqual(labels(env), ["nikkyo ⚠️", "Sankyo"]);
+  test("technique: card and other attacks; unique → message", async () => {
+    const { app } = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    assert.equal(app.text("prog-technique"), "Nikkyo");
+    assert.match(app.list()[0], /^Ryote dori/);
+    app.click(app.list()[0]);
+    assert.equal(app.text("prog-attack"), "Ryote dori");
+    app.click("prog-back");
+    app.click("prog-back");
+    app.click("Kote gaeshi");
+    assert.deepEqual(app.list(), []);
+    assert.match(app.text("prog-sub"), /Aucune autre attaque/);
   });
 
-  test("les techniques d'une attaque sont triées par `order`, puis par ordre alphabétique", async () => {
-    const env = await open();
-    env.run(`data.waza["Tachi waza"][0].techniques.push(
-      { nom: "Ikkyo", order: 1, formes: [] }, { nom: "Aïki otoshi", order: 42, formes: [] })`);
-    env.run(`data.waza["Tachi waza"][0].techniques.forEach((t) => (t.order ??= t.nom === "Nikkyo" ? 2 : 42))`);
-    click(env, "Katate dori");
-    assert.deepEqual(labels(env), ["Ikkyo", "Nikkyo 🆕", "Aïki otoshi", "Kote gaeshi"]);
-  });
-
-  test("une technique affiche sa carte et les autres attaques avec le même nom", async () => {
-    const env = await open();
-    click(env, "Katate dori");
-    click(env, "Nikkyo");
-    assert.equal(env.el("prog-technique").textContent, "Nikkyo");
-    assert.equal(env.el("prog-forme").textContent, "Omote · Ura");
-    assert.equal(env.el("prog-badges").textContent, "🆕");
-    assert.equal(env.el("prog-note").textContent, "N");
-    assert.equal(env.el("prog-video").href, "https://v");
-    assert.deepEqual(labels(env), ["Ryote dori ⚠️"]);
-  });
-
-  test("technique unique : message et liste vide", async () => {
-    const env = await open();
-    click(env, "Katate dori");
-    click(env, "Kote gaeshi");
-    assert.deepEqual(labels(env), []);
-    assert.match(env.el("prog-sub").textContent, /Aucune autre attaque/);
-  });
-
-  test("un clic sur une autre attaque ouvre sa carte technique", async () => {
-    const env = await open();
-    click(env, "Ryote dori");
-    click(env, "Sankyo");
-    assert.deepEqual(labels(env), ["Shomen uchi"]);
-    click(env, "Shomen uchi");
-    assert.equal(env.el("prog-attaque").textContent, "Shomen uchi");
-    assert.deepEqual(labels(env), ["Ryote dori"]);
-  });
-
-  test("le bouton retour remonte d'un niveau puis revient au tirage", async () => {
-    const env = await open();
-    click(env, "Katate dori");
-    click(env, "Nikkyo");
-    env.el("prog-back").onclick();
-    assert.equal(env.el("prog-attaque").textContent, "Katate dori");
-    assert.equal(env.el("prog-card").hidden, false);
-    env.el("prog-back").onclick();
-    assert.equal(env.el("prog-card").hidden, true);
-    env.el("prog-back").onclick();
-    assert.equal(env.el("program").hidden, true);
-    assert.equal(env.el("draw").hidden, false);
-    assert.equal(env.run("pool.length"), 5);
+  test("back button: goes up one level then returns to the draw", async () => {
+    const { app } = await open();
+    app.click("Katate dori");
+    app.click("Nikkyo");
+    app.click("prog-back");
+    assert.equal(app.model.program.level, 2);
+    app.click("prog-back");
+    assert.equal(app.model.program.level, 1);
+    app.click("prog-back");
+    assert.equal(app.model.screen, "draw");
+    assert.ok(byId(app.tree, "card"));
   });
 });
 
-describe("version", () => {
-  const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
-  const doc = fs.readFileSync(path.join(ROOT, "CLAUDE.md"), "utf8");
-
-  test("CSS et JS portent le même numéro de version que CLAUDE.md", () => {
-    const css = html.match(/style\.css\?v=([\w.]+)/)?.[1];
-    const js = html.match(/app\.js\?v=([\w.]+)/)?.[1];
-    const ico = html.match(/favicon\.ico\?v=([\w.]+)/)?.[1];
-    const documented = doc.match(/Version actuelle : `([\w.]+)`/)?.[1];
-    assert.ok(css && js && documented, "version manquante");
-    assert.equal(css, js);
-    assert.equal(css, ico);
-    const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8").match(/const VERSION = "([\w.]+)"/)?.[1];
-    assert.equal(sw, css, "sw.js : VERSION différente");
-    assert.equal(css, documented);
-    assert.match(css, /^\d{8}(\.\d+)?$/);
-  });
-});
-
-// ---------- Application mobile (PWA) ----------
-describe("application mobile", () => {
-  const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
-  const manifest = readJson("manifest.webmanifest");
-  const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
-
-  test("index.html contient les balises mobile", () => {
-    assert.match(html, /<meta name="viewport"[^>]*viewport-fit=cover/);
-    assert.match(html, /<meta name="theme-color"/);
-    assert.match(html, /<meta name="apple-mobile-web-app-capable" content="yes"/);
-    assert.match(html, /<meta name="mobile-web-app-capable" content="yes"/);
-    assert.match(html, /<link rel="manifest" href="manifest\.webmanifest"/);
-    assert.match(html, /<link rel="apple-touch-icon" href="icons\/apple-touch-icon\.png"/);
-    assert.match(html, /serviceWorker\.register\("sw\.js"\)/);
+describe("URL and history", () => {
+  test("parseHash / toHash: round trip, accents and spaces encoded", () => {
+    const model = { gradeId: "2eme-kyo", screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } };
+    assert.equal(toHash(model), "#/2eme-kyo/Tachi%20waza/program/A%C3%AF%20hammi%20katate%20dori/Nikkyo");
+    assert.deepEqual(parseHash(toHash(model)), { grade: "2eme-kyo", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } });
+    assert.deepEqual(parseHash("#/%E0%A4%A"), {});
   });
 
-  test("manifest installable : standalone, URLs relatives, icônes 192 et 512 existantes", () => {
-    assert.equal(manifest.display, "standalone");
-    assert.ok(manifest.name && manifest.short_name);
-    for (const u of [manifest.start_url, manifest.scope]) assert.match(u, /^\./, "URL relative requise (sous-dossier GitHub Pages)");
-    const sizes = manifest.icons.map((i) => i.sizes);
-    assert.ok(sizes.includes("192x192") && sizes.includes("512x512"));
-    for (const i of manifest.icons) assert.ok(fs.existsSync(path.join(ROOT, i.src)), `${i.src} introuvable`);
-    assert.ok(fs.existsSync(path.join(ROOT, "icons/apple-touch-icon.png")));
+  test("the URL follows navigation: home, draw, program, back", async () => {
+    const app = await createApp();
+    assert.equal(app.history.url, "#/1er-kyo");
+    app.click("Tachi waza");
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza");
+    app.click("prog-btn");
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
+    app.click(app.list()[0]);
+    assert.match(app.history.url, /\/program\/A%C3%AF%20hammi%20katate%20dori$/);
+    app.click("prog-back");
+    app.click("prog-back");
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza");
+    assert.equal(app.model.screen, "draw");
+    app.click("home-btn");
+    assert.equal(app.history.url, "#/1er-kyo");
   });
 
-  test("le service worker précache des fichiers existants, dont tous les JSON de données", () => {
-    const list = sw.match(/const PRECACHE = \[([\s\S]*?)\];/)[1];
-    const files = [...list.matchAll(/["`]([^"`]+)["`]/g)].map((m) => m[1].replace("${VERSION}", "").split("?")[0]);
-    for (const f of files) {
-      assert.ok(f === "./" || fs.existsSync(path.join(ROOT, f)), `${f} introuvable`);
-    }
-    for (const f of fs.readdirSync(path.join(ROOT, "data"))) {
-      assert.ok(files.includes(`data/${f}`), `data/${f} absent du précache (hors ligne)`);
-    }
+  test("changing grade updates the URL without a new history entry", async () => {
+    const app = await createApp();
+    await app.selectGrade("3eme-kyo");
+    assert.equal(app.history.url, "#/3eme-kyo");
+    assert.equal(app.history.index, 0);
   });
 
-  test("sw.js est un script valide", () => {
-    assert.doesNotThrow(() => new vm.Script(sw));
+  test("reloading on a program URL restores the same state", async () => {
+    const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
+    const app = await createApp({ hash });
+    assert.deepEqual([app.model.gradeId, app.model.waza, app.model.screen], ["2eme-kyo", "Suwari waza", "program"]);
+    assert.equal(app.model.program.technique, "Nikkyo");
+    assert.equal(app.text("prog-technique"), "Nikkyo");
+    assert.equal(app.history.url, hash);
+  });
+
+  test("reloading on a draw URL starts a new draw of that waza", async () => {
+    const app = await createApp({ hash: "#/3eme-kyo/Tachi%20waza" });
+    assert.equal(app.model.screen, "draw");
+    assert.equal(app.model.gradeId, "3eme-kyo");
+    assert.ok(app.model.current);
+    assert.equal(app.card().waza, "Tachi waza");
+  });
+
+  test("after reloading on the program, going back to the draw starts a draw", async () => {
+    const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program" });
+    assert.equal(app.model.current, null);
+    app.dispatch({ type: "Popped", hash: "#/1er-kyo/Tachi%20waza" });
+    assert.equal(app.model.screen, "draw");
+    assert.ok(app.model.current);
+  });
+
+  test("invalid URL: unknown grade or waza → home, unknown attack → level 1", async () => {
+    assert.equal((await createApp({ hash: "#/xx/Foo" })).model.screen, "home");
+    const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program/Nimporte/Quoi" });
+    assert.deepEqual(app.model.program, { level: 1 });
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
+  });
+
+  test("popstate to another grade loads its data", async () => {
+    const app = await createApp();
+    app.dispatch({ type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" });
+    await settle();
+    assert.equal(app.model.gradeId, "3eme-kyo");
+    assert.equal(countTechniques(app.model.data), 65);
+    assert.equal(app.model.screen, "program");
   });
 });

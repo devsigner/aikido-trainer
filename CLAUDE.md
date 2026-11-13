@@ -1,20 +1,20 @@
 # Aikido Trainer
 
-Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire au hasard une technique d'aïkido pour l'entraînement et les révisions.
+Small static web app (HTML/CSS/JS, no dependencies and no build step) that randomly picks an aikido technique for training and review.
 
 ## Version
 
-**Version actuelle : `20261113.3`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Current version: `20261113.5`** (format `YYYYMMDD`, the date of the update).
 
-À chaque nouvelle version :
-1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
-2. Mettre la même valeur dans `const VERSION` de `sw.js` (renouvelle le cache hors ligne).
-3. Mettre à jour le numéro ci-dessus.
-4. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
+For each new version:
+1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
+2. Set the same value in `const VERSION` in `sw.js` (renews the offline cache).
+3. Update the number above.
+4. If two versions are published on the same day, add a suffix: `20261111.2`.
 
-## Ordre des techniques (`order`)
+## Technique order (`order`)
 
-Chaque technique des JSON (`data/*.json`, y compris les surcharges de `1er-kyo.json`) a une clé `order` (entier). Elle sert à trier les techniques d'une attaque dans le programme : `order` croissant, puis ordre alphabétique (français) à égalité.
+Each technique in the JSON files (`data/*.json`, including the overrides in `1er-kyo.json`) has an `order` key (integer). It is used to sort the techniques of an attack in the program: ascending `order`, then alphabetical order (French) on ties.
 
 | order | Techniques                            |
 |-------|---------------------------------------|
@@ -30,17 +30,17 @@ Chaque technique des JSON (`data/*.json`, y compris les surcharges de `1er-kyo.j
 | 9     | Irimi nage                            |
 | 10    | Kote gaeshi                           |
 | 11    | Kaiten nage                           |
-| 42    | toutes les autres (valeur par défaut) |
+| 42    | all others (default value)            |
 
-Règles :
-- Une nouvelle technique reçoit l'`order` de son nom s'il est dans le tableau, sinon `42`.
-- Pour changer l'`order` d'un nom, le modifier partout (3ème, 2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/app.test.js` : un test vérifie la cohérence.
+Rules:
+- A new technique gets the `order` of its name if it is in the table, otherwise `42`.
+- To change the `order` of a name, change it everywhere (3rd, 2nd and 1st Kyo) and update this table and `TECHNIQUE_ORDER` in `tests/data.test.js`: a test checks consistency.
 
-## Ordre des attaques (`order`)
+## Attack order (`order`)
 
-Chaque attaque des JSON a aussi une clé `order` (entier), qui trie la liste des attaques du programme : `order` croissant, puis ordre alphabétique (français) à égalité. Ce tableau fait référence (une valeur par nom d'attaque, identique dans tous les waza et grades) :
+Each attack in the JSON files also has an `order` key (integer), which sorts the program's attack list: ascending `order`, then alphabetical order (French) on ties. This table is the reference (one value per attack name, identical across all waza and grades):
 
-| order | Attaque                               |
+| order | Attack                                |
 |-------|---------------------------------------|
 | 1     | Aï hammi katate dori                  |
 | 2     | Katate dori                           |
@@ -59,86 +59,108 @@ Chaque attaque des JSON a aussi une clé `order` (entier), qui trie la liste des
 | 15    | Yokomen uchi                          |
 | 16    | Chudan tsuki                          |
 | 17    | Jodan tsuki                           |
-| 42    | toutes les autres (valeur par défaut) |
+| 42    | all others (default value)            |
 
-Mêmes règles que pour les techniques : une nouvelle attaque reçoit la valeur de son nom si elle est dans le tableau, sinon `42` ; pour changer une valeur, la modifier partout et mettre à jour ce tableau et `ATTAQUES` dans `tests/app.test.js`.
+Same rules as for techniques: a new attack gets the value of its name if it is in the table, otherwise `42`; to change a value, change it everywhere and update this table and `ATTACKS` in `tests/data.test.js`.
 
-## Programme
+## Program
 
-Le bouton « Voir le programme » (écran de tirage, sous « Retour à l'accueil ») ouvre le listing complet du waza et du grade sélectionnés, sans toucher à la session (techniques déjà tirées conservées). Les filtres 🆕/⚠️ ne s'y appliquent pas.
+The "Voir le programme" (View the program) button (draw screen, under "Retour à l'accueil" (Back to home)) opens the full listing of the selected waza and grade, without touching the session (already-drawn techniques are kept). The 🆕/⚠️ filters do not apply there.
 
-1. Liste de toutes les attaques (triées par `order`, puis alphabétique).
-2. Clic sur une attaque : sa carte et la liste de ses techniques (triées par `order`, puis alphabétique).
-3. Clic sur une technique : sa carte (formes, badges, note, vidéo) et, dessous, les autres attaques du même waza qui ont la même technique (nom comparé sans casse ni accents). Un clic sur l'une d'elles ouvre sa carte.
+1. List of all attacks (sorted by `order`, then alphabetically).
+2. Click on an attack: its card and the list of its techniques (sorted by `order`, then alphabetically).
+3. Click on a technique: its card (forms, badges, note, video) and, below it, the other attacks of the same waza that have the same technique (name compared ignoring case and accents). Clicking one of them opens its card.
 
-Le bouton ← et le retour du navigateur (`history`) remontent d'un niveau, puis reviennent au tirage.
+The ← button and the browser back action (`history`) go up one level, then return to the draw.
 
-## Application mobile (PWA)
+## Mobile app (PWA)
 
-Installable sur l'écran d'accueil (iOS : Partager → « Sur l'écran d'accueil » ; Android : « Installer l'application ») et utilisable hors ligne.
+Installable on the home screen (iOS: Share → "Sur l'écran d'accueil" (Add to Home Screen); Android: "Installer l'application" (Install app)) and usable offline.
 
-- `manifest.webmanifest` : mode `standalone`, portrait, couleurs `#14171c`, icônes `icons/icon-192.png` et `icons/icon-512.png` (maskable). Toutes les URLs sont relatives (le site est servi sous `/aikido-trainer/` en production).
-- `icons/apple-touch-icon.png` (180 px) pour iOS. Balises `apple-mobile-web-app-*` et `theme-color` dans `index.html`, `viewport-fit=cover` avec marges `env(safe-area-inset-*)` dans `style.css`.
-- `sw.js` : précache tous les fichiers (dont les JSON de `data/`), stratégie réseau d'abord puis cache. Tout nouveau fichier de données ou d'icône doit être ajouté à `PRECACHE` (un test le vérifie pour `data/`).
-- Le service worker exige HTTPS (ou `localhost`) : il fonctionne en production (GitHub Pages) et en local, mais pas sur l'IP du réseau local en HTTP.
+- `manifest.webmanifest`: `standalone` mode, portrait, colors `#14171c`, icons `icons/icon-192.png` and `icons/icon-512.png` (maskable). All URLs are relative (the site is served under `/aikido-trainer/` in production).
+- `icons/apple-touch-icon.png` (180 px) for iOS. `apple-mobile-web-app-*` and `theme-color` tags in `index.html`, `viewport-fit=cover` with `env(safe-area-inset-*)` margins in `style.css`.
+- `sw.js`: precaches all files (including the JSON files in `data/`), network-first then cache strategy. Any new data or icon file must be added to `PRECACHE` (a test checks this for `data/`).
+- The service worker requires HTTPS (or `localhost`): it works in production (GitHub Pages) and locally, but not on the local network IP over HTTP.
 
 ## URLs
 
-- Production (GitHub Pages) : https://devsigner.github.io/aikido-trainer
-- Dépôt : https://github.com/devsigner/aikido-trainer (branche `main`, publication automatique au push)
+- Production (GitHub Pages): https://devsigner.github.io/aikido-trainer
+- Repository: https://github.com/devsigner/aikido-trainer (`main` branch, automatic publication on push)
 
-## Développement local
+## Local development
 
-Un serveur HTTP est nécessaire (`fetch()` des fichiers JSON ne fonctionne pas en `file://`). Depuis le dossier du projet :
+An HTTP server is required (`fetch()` of the JSON files does not work over `file://`). From the project folder:
 
 ```
-corepack enable  # active le gestionnaire de paquets (Node ≥ 20)
-yarn install     # une seule fois (installe http-server)
+corepack enable  # enables the package manager (Node ≥ 20)
+yarn install     # once only (installs http-server)
 yarn server
 ```
 
-Puis ouvrir http://localhost:8000. `yarn server` lance `http-server` sur le port 8000 avec le cache désactivé (`-c-1`).
+Then open http://localhost:8000. `yarn server` runs `http-server` on port 8000 with caching disabled (`-c-1`).
 
-Sans yarn, tout serveur statique convient :
+Without yarn, any static server will do:
 
 ```
 python3 -m http.server 8000
-# ou
+# or
 ruby -run -ehttpd . -p8000
 ```
 
 ## Tests
 
-Aucune dépendance de test : lanceur intégré à Node (≥ 20).
+No test dependencies: Node's built-in runner (≥ 20).
 
 ```
 yarn test
 ```
 
-`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, programme (attaques, techniques, mêmes techniques, retour), écrans (accueil, tirage, fin de waza, retour à l'accueil), cohérence du numéro de version (`index.html` ↔ `sw.js` ↔ `CLAUDE.md`) et configuration mobile (balises, manifeste, icônes, précache du service worker). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
+- `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache, `src/` modules).
+- `tests/app.test.js`: pure logic (pool, weighting, sorting, merging), `update`, `h()`, `resolveGrade`, and a full walkthrough using the real runtime with `tests/helpers.js` (virtual tree, simulated history: home, draw without repetition, progress, program, back).
+
+Run the tests before every commit and add some for any new rule.
+
+## Architecture (Elm pattern)
+
+Unidirectional flow, no dependencies and no build (native ES modules + versioned import map):
+
+- `Model` (`src/update.js`): all the state (screen, grade, filters, pool, current draw, program).
+- `Msg`: objects `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Back`, `Popped`…).
+- `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
+- `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by `src/effects.js` which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
+- `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `src/vdom.js` provides `h()` and diff-based rendering; `src/runtime.js` loops `update → effects → view → render`.
+- **URL** (`src/route.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new draw (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
+- The ids and CSS classes of the views are stable (used by `style.css` and the tests).
 
 ## Structure
 
 ```
-index.html            Page unique (accueil + écran de tirage)
-favicon.ico           Icône du site (caractère 道, PNG 16/32/48/64 px intégrés)
+index.html            Single page (home + draw screen)
+favicon.ico           Site icon (character 道, embedded 16/32/48/64 px PNGs)
 style.css
-manifest.webmanifest   Manifeste PWA
-sw.js                 Service worker (hors ligne)
-icons/                Icônes de l'application (192, 512, apple-touch-icon)
-app.js                Logique (chargement, fusion des grades, tirage)
-data/grades.json      Liste des grades disponibles
-data/3eme-kyo.json    Programme du 3ème Kyo (complet, sans `inclut`)
-data/2eme-kyo.json    Ajouts et surcharges du 2ème Kyo (hérite du 3ème)
-data/1er-kyo.json     Ajouts et surcharges du 1er Kyo (hérite du 2ème et du 3ème)
-tests/app.test.js     Tests (node:test)
-package.json          Scripts `yarn server` et `yarn test`, gestionnaire de paquets (`packageManager`)
-yarn.lock             Versions verrouillées des dépendances
+manifest.webmanifest   PWA manifest
+sw.js                 Service worker (offline)
+icons/                App icons (192, 512, apple-touch-icon)
+app.js                Entry point (assembles init/update/view/effects)
+src/logic.js          Pure functions (merge, pool, weighting, sorting)
+src/update.js         Model, Msg, update
+src/route.js          URL (hash) ⇄ model
+src/view.js           view(model) → vnodes
+src/vdom.js           h() and diff-based rendering
+src/runtime.js        Elm loop
+src/effects.js        Command execution (fetch, randomness, history)
+data/grades.json      List of available grades
+data/3eme-kyo.json    3rd Kyo program (complete, without `includes`)
+data/2eme-kyo.json    2nd Kyo additions and overrides (inherits from the 3rd)
+data/1er-kyo.json     1st Kyo additions and overrides (inherits from the 2nd and the 3rd)
+tests/*.test.js       Tests (node:test), `tests/helpers.js`: utilities
+package.json          `yarn server` and `yarn test` scripts, package manager (`packageManager`)
+yarn.lock             Locked dependency versions
 ```
 
-## Données (JSON)
+## Data (JSON)
 
-Un fichier par grade :
+One file per grade:
 
 ```json
 {
@@ -146,13 +168,13 @@ Un fichier par grade :
   "waza": {
     "Tachi waza": [
       {
-        "nom": "Aï hammi katate dori",
+        "name": "Aï hammi katate dori",
         "techniques": [
           {
-            "nom": "Nikkyo",
-            "formes": ["Omote", "Ura"],
-            "nouveau": false,
-            "attention": true,
+            "name": "Nikkyo",
+            "forms": ["Omote", "Ura"],
+            "isNew": false,
+            "isWarning": true,
             "note": null,
             "video": null,
             "order": 2
@@ -164,30 +186,31 @@ Un fichier par grade :
 }
 ```
 
-- Waza : `Tachi waza`, `Suwari waza`, `Hanmi Handachi waza`.
-- `formes` : tableau, vide s'il n'y a pas de forme à tirer.
-- `nouveau` (🆕) et `attention` (⚠️) : marqueurs portés par la technique entière.
-- `note` : texte libre affiché sous la technique (ex. « Naname », « 3 formes différentes »). `video` : URL, le lien n'est affiché que s'il existe.
-- Orthographe harmonisée : Nikkyo, Sankyo, première lettre en majuscule puis minuscules (ex. « Kote gaeshi »).
-- Ajouter un grade : créer `data/<id>.json`, puis ajouter une entrée dans `data/grades.json` (`id`, `label`, `fichier`, et éventuellement `inclut`).
+- Waza: `Tachi waza`, `Suwari waza`, `Hanmi Handachi waza`.
+- `forms`: array, empty if there is no form to draw (e.g. "Omote", "Ura").
+- `isNew` (🆕) and `isWarning` (⚠️): markers carried by the whole technique.
+- `note`: free text displayed under the technique (e.g. "Naname", "3 formes différentes").
+- `video`: URL, the link is only displayed if it exists.
+- Harmonized spelling: Nikkyo, Sankyo, first letter uppercase then lowercase (e.g. "Kote gaeshi").
+- Adding a grade: create `data/<id>.json`, then add an entry in `data/grades.json` (`id`, `label`, `file`, and optionally `includes`).
 
-### Héritage entre grades
+### Inheritance between grades
 
-Les grades héritent dans l'ordre de la numérotation : le 1er Kyo hérite du 2ème, qui hérite du 3ème.
+Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits from 3rd.
 
-- `grades.json` : `inclut` est la liste des fichiers chargés, dans l'ordre, avant le fichier du grade. 3ème Kyo : pas d'`inclut` ; 2ème Kyo : `["3eme-kyo.json"]` ; 1er Kyo : `["3eme-kyo.json", "2eme-kyo.json"]`.
-- `mergeGrades` (dans `app.js`) fusionne par nom (waza, attaque, technique) : le dernier fichier prime. Chaque grade ajoute ses techniques nouvelles et surcharge au besoin celles héritées.
-- Un fichier de grade ne contient donc que ses ajouts et des surcharges minimales (`nom`, `order` et les champs qui changent, ex. `nouveau`, `attention`, `formes`, `note`). Ne pas recopier les données d'un parent (un test détecte les copies inutiles).
-- Conséquence : toute technique ajoutée au 3ème Kyo apparaît aussi au 2ème et au 1er Kyo, et toute technique du 2ème Kyo apparaît au 1er.
-- Pour une valeur `null` voulue (ex. effacer une note héritée), l'écrire explicitement dans la surcharge.
+- `grades.json`: `includes` is the list of files loaded, in order, before the grade's own file. 3rd Kyo: no `includes`; 2nd Kyo: `["3eme-kyo.json"]`; 1st Kyo: `["3eme-kyo.json", "2eme-kyo.json"]`.
+- `mergeGrades` (in `src/logic.js`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
+- A grade file therefore only contains its additions and minimal overrides (`name`, `order` and the fields that change, e.g. `isNew`, `isWarning`, `forms`, `note`). Do not copy a parent's data (a test detects needless copies).
+- Consequence: any technique added to the 3rd Kyo also appears in the 2nd and 1st Kyo, and any 2nd Kyo technique appears in the 1st.
+- For an intended `null` value (e.g. clearing an inherited note), write it explicitly in the override.
 
-## Règles de l'application
+## Application rules
 
-- **Accueil** : sélecteur de grade (avec le nombre de techniques), filtres 🆕 Nouveautés / ⚠️ Attention, puis un bouton par waza (ordre défini par `WAZA_ORDER`).
-- **Filtres** : aucun coché = tout ; un seul = techniques ayant ce marqueur ; les deux = l'un OU l'autre. Un waza sans technique correspondante est désactivé.
-- **Tirage** : uniforme sur toutes les combinaisons `attaque × technique × forme`, pondéré. Poids ×1,5 pour `nouveau` et ×1,5 pour `attention` (cumulables), constantes `POIDS_NOUVEAU` et `POIDS_ATTENTION` en haut de `app.js`.
-- **Sans répétition** : une combinaison déjà tirée ne ressort pas pendant la session. Quand tout est passé, « Waza terminé 🎉 ».
-- **Session** : réinitialisée par « Retour à l'accueil ». Les filtres sont pris en compte au choix du waza.
-- **Affichage** : waza, attaque, technique, forme, badges 🆕/⚠️, note, lien vidéo, compteur de progression (« n / total », par combinaison).
-- **Boutons** : « Technique suivante » (même waza) et « Retour à l'accueil ».
-- Le compteur du sélecteur de grade compte les techniques par attaque, sans multiplier par les formes.
+- **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then one button per waza (order defined by `WAZA_ORDER`).
+- **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. A waza with no matching technique is disabled.
+- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `WEIGHT_NEW` and `WEIGHT_WARNING` at the top of `src/logic.js`.
+- **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Waza terminé 🎉" (Waza finished).
+- **Session**: reset by "Retour à l'accueil" (Back to home). Filters are taken into account when the waza is chosen.
+- **Display**: waza, attack, technique, form, 🆕/⚠️ badges, note, video link, progress counter ("n / total", per combination).
+- **Buttons**: "Technique suivante" (Next technique, same waza) and "Retour à l'accueil" (Back to home).
+- The grade selector's counter counts techniques per attack, without multiplying by forms.
