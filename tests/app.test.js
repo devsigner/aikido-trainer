@@ -129,7 +129,7 @@ describe("application", () => {
     assert.equal(card.video.props.href, "https://v");
     assert.match(card.badges, /🆕/);
     assert.match(card.badges, /⚠️/);
-    assert.equal(app.text("progress"), "Tachi waza : 1 / 1");
+    assert.equal(app.text("progress"), "Tachi waza : 1 / 1 - Connais tu cette technique ?");
   });
 
   test("no video: link absent, empty fields kept", async () => {
@@ -155,7 +155,7 @@ describe("application", () => {
       seen.add(key());
     }
     assert.equal(seen.size, total);
-    assert.equal(app.text("progress"), `Tachi waza : ${total} / ${total}`);
+    assert.equal(app.text("progress"), `Tachi waza : ${total} / ${total} - Connais tu cette technique ?`);
     app.click("next");
     assert.ok(byId(app.tree, "done"));
     assert.equal(app.button("Technique suivante"), undefined);

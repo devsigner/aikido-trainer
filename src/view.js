@@ -27,7 +27,7 @@ const home = (model) => {
         h("label", {}, h("input", { type: "checkbox", id: "f-new", checked: model.filters.isNew, onChange: (event) => ({ type: "SetFilter", name: "isNew", checked: event.target.checked }) }), " 🆕 Nouveautés"),
         h("label", {}, h("input", { type: "checkbox", id: "f-warning", checked: model.filters.isWarning, onChange: (event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked }) }), " ⚠️ Attention"))),
     h("div", { className: "group grow" },
-      h("p", { className: "hint" }, "Choisissez un waza :"),
+      h("p", { className: "hint" }, "Choisissez un waza et test toi !"),
       h("div", { id: "waza-buttons", className: "buttons grow" },
         WAZA_ORDER.map((waza) => h("button", { disabled: empty[waza], onClick: { type: "StartSession", waza } }, waza))),
       h("p", { id: "home-msg", className: "hint" }, Object.values(empty).some(Boolean) ? "Un waza grisé n'a aucune technique pour ces filtres." : "")));
@@ -46,7 +46,7 @@ const draw = (model) => {
   };
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
-    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
+    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total} - Connais tu cette technique ?`),
     model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(model.slide)),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
@@ -64,7 +64,7 @@ const levels = {
       back: "← Tirage",
       backMessage: { type: "CloseProgram" },
       fields: { waza: model.waza },
-      title: "Attaques",
+      title: "Choisis une attaque :",
       sub: `${attacks.length} attaques`,
       items: attacks.map((attack) => item(attack.name, { level: 2, attack: attack.name })),
     };
@@ -75,7 +75,7 @@ const levels = {
       back: "← Programme",
       backMessage: { type: "Navigate", to: { level: 1 } },
       fields: { waza: model.waza, attack },
-      title: "Techniques",
+      title: "Choises une technique :",
       sub: `${techniques.length} techniques`,
       items: techniques.map((technique) => item(withBadges(technique.name, technique), { level: 3, attack, technique: technique.name })),
     };
