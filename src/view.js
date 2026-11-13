@@ -105,5 +105,8 @@ export function view(model) {
   if (model.status === "loading") body = h("p", { className: "hint" }, "Chargement…");
   else if (model.status === "error") body = h("p", { className: "hint" }, model.error);
   else body = { home, draw, program }[model.screen](model);
-  return h("main", {}, h("h1", {}, "合気道 Aïkido"), body);
+  return h("main", {},
+    h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido"),
+    body
+  );
 }

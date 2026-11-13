@@ -88,6 +88,7 @@ export function update(model, msg) {
       return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, []];
     }
     case "GoHome": {
+      if (model.screen === "home") return [model, []];
       const next = { ...model, ...noSession() };
       return [next, [url(next, "push")]];
     }
