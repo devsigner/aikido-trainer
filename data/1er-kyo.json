@@ -81,7 +81,7 @@
         "techniques": [
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "nouveau": false,
             "attention": true
           },
@@ -257,7 +257,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -381,7 +381,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "nouveau": false,
             "attention": true
           },
@@ -518,7 +518,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -559,7 +559,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -795,7 +795,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -811,7 +811,7 @@
         "techniques": [
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "nouveau": false,
             "attention": true
           },
@@ -922,7 +922,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 9,
+            "order": 8,
             "formes": [],
             "nouveau": true,
             "attention": false,
