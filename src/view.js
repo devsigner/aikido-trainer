@@ -130,10 +130,25 @@ const footer = () => h("footer", {},
 
 export function view(model) {
   const header = h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido");
-  if (model.status === "ready" && model.screen === "program") return h("main", {}, program(model, header), footer());
+
+  if (model.status === "ready" && model.screen === "program") {
+    return h("main", {}, program(model, header), footer());
+  }
+
   let body;
+
   if (model.status === "loading") body = h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
   else if (model.status === "error") body = h("p", { className: "hint" }, model.error);
   else body = { home, draw }[model.screen](model);
+
+  if (model.status === "ready" && model.screen === "draw") {
+    return h("main", {},
+      h("div", { className: "screen full" },
+        header,
+        body
+      ),
+      footer()
+    );
+  }
   return h("main", {}, header, body, footer());
 }

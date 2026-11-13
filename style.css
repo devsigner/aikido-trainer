@@ -40,6 +40,7 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .screen { display: flex; flex-direction: column; gap: 1.5rem; }
 .screen.full { min-height: calc(100vh - 3rem); min-height: calc(100dvh - var(--pad-top) - var(--pad-bottom)); }
 #program .screen.full .card { flex: 1; }
+.screen.full > #draw { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 button.back { padding: .8rem 1rem; font-size: 1rem; text-align: left; }
 button.item { display: flex; justify-content: space-between; text-align: left; padding: 1rem 1.2rem; background: var(--card); }
 button.item::after { content: "›"; color: var(--muted); }
