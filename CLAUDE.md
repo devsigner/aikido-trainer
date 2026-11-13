@@ -4,13 +4,23 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Version
 
-**Version actuelle : `20261112.2`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Version actuelle : `20261113`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
 
 À chaque nouvelle version :
 1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
 2. Mettre la même valeur dans `const VERSION` de `sw.js` (renouvelle le cache hors ligne).
 3. Mettre à jour le numéro ci-dessus.
 4. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
+
+## Programme
+
+Le bouton « Voir le programme » (écran de tirage, sous « Retour à l'accueil ») ouvre le listing complet du waza et du grade sélectionnés, sans toucher à la session (techniques déjà tirées conservées). Les filtres 🆕/⚠️ ne s'y appliquent pas.
+
+1. Liste de toutes les attaques.
+2. Clic sur une attaque : sa carte et la liste de ses techniques.
+3. Clic sur une technique : sa carte (formes, badges, note, vidéo) et, dessous, les autres attaques du même waza qui ont la même technique (nom comparé sans casse ni accents). Un clic sur l'une d'elles ouvre sa carte.
+
+Le bouton ← et le retour du navigateur (`history`) remontent d'un niveau, puis reviennent au tirage.
 
 ## Application mobile (PWA)
 
@@ -54,7 +64,7 @@ Aucune dépendance de test : lanceur intégré à Node (≥ 20).
 yarn test
 ```
 
-`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, écrans (accueil, tirage, fin de waza, retour à l'accueil), cohérence du numéro de version (`index.html` ↔ `sw.js` ↔ `CLAUDE.md`) et configuration mobile (balises, manifeste, icônes, précache du service worker). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
+`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, programme (attaques, techniques, mêmes techniques, retour), écrans (accueil, tirage, fin de waza, retour à l'accueil), cohérence du numéro de version (`index.html` ↔ `sw.js` ↔ `CLAUDE.md`) et configuration mobile (balises, manifeste, icônes, précache du service worker). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
 
 ## Structure
 
