@@ -81,13 +81,13 @@
         "techniques": [
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
@@ -180,7 +180,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },
@@ -227,13 +227,13 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },
@@ -257,7 +257,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -266,7 +266,7 @@
           },
           {
             "nom": "Kaïten nage",
-            "order": 42,
+            "order": 11,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -289,7 +289,7 @@
         "techniques": [
           {
             "nom": "Sokumen irimi nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           }
@@ -306,7 +306,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           }
@@ -335,7 +335,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
-            "order": 9,
+            "order": 6,
             "nouveau": false,
             "attention": true
           },
@@ -381,19 +381,19 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "nouveau": false,
             "attention": true
           }
@@ -415,7 +415,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -456,7 +456,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -465,7 +465,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -474,7 +474,7 @@
           },
           {
             "nom": "Kaïten nage",
-            "order": 42,
+            "order": 11,
             "formes": [
               "Uchi",
               "Soto"
@@ -509,7 +509,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -518,7 +518,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -527,7 +527,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -550,7 +550,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -559,7 +559,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -568,7 +568,7 @@
           },
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -618,7 +618,7 @@
           },
           {
             "nom": "Kaïten nage",
-            "order": 42,
+            "order": 11,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -636,7 +636,7 @@
           },
           {
             "nom": "Ude kime nage",
-            "order": 10,
+            "order": 8,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -677,7 +677,7 @@
           },
           {
             "nom": "Sokumen irimi nage",
-            "order": 9,
+            "order": 6,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -771,7 +771,7 @@
           },
           {
             "nom": "Irimi nage",
-            "order": 7,
+            "order": 9,
             "nouveau": false,
             "attention": true
           },
@@ -795,7 +795,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "formes": [],
             "nouveau": true,
             "attention": false,
@@ -811,7 +811,7 @@
         "techniques": [
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "nouveau": false,
             "attention": true
           },
@@ -849,7 +849,7 @@
         "techniques": [
           {
             "nom": "Shiho nage",
-            "order": 6,
+            "order": 7,
             "nouveau": false,
             "attention": true
           },
@@ -922,7 +922,7 @@
           },
           {
             "nom": "Kote gaeshi",
-            "order": 8,
+            "order": 10,
             "formes": [],
             "nouveau": true,
             "attention": false,

@@ -16,19 +16,21 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 Chaque technique des JSON (`data/*.json`, y compris les surcharges de `1er-kyo.json`) a une clé `order` (entier). Elle sert à trier les techniques d'une attaque dans le programme : `order` croissant, puis ordre alphabétique (français) à égalité.
 
-| order | Techniques |
-|---|---|
-| 1 | Ikkyo |
-| 2 | Nikkyo |
-| 3 | Sankyo |
-| 4 | Yonkyo |
-| 5 | Gokyo, Tenchi nage |
-| 6 | Shiho nage |
-| 7 | Irimi nage |
-| 8 | Kote gaeshi |
-| 9 | Sokumen irimi nage |
-| 10 | Ude kime nage |
-| 42 | toutes les autres (valeur par défaut) |
+| order | Techniques                            |
+|-------|---------------------------------------|
+| 1     | Ikkyo                                 |
+| 2     | Nikkyo                                |
+| 3     | Sankyo                                |
+| 4     | Yonkyo                                |
+| 5     | Gokyo                                 |
+| 5     | Tenchi nage                           |
+| 6     | Sokumen irimi nage                    |
+| 7     | Shiho nage                            |
+| 8     | Ude kime nage                         |
+| 9     | Irimi nage                            |
+| 10    | Kote gaeshi                           |
+| 11    | Kaiten nage                           |
+| 42    | toutes les autres (valeur par défaut) |
 
 Règles :
 - Une nouvelle technique reçoit l'`order` de son nom s'il est dans le tableau, sinon `42`.
