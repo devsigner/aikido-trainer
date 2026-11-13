@@ -91,6 +91,19 @@ async function createEnv({ random = Math.random } = {}) {
   };
 }
 
+// Fusion réelle de app.js, sans DOM : résout un grade en suivant `inclut`.
+const mergeGrades = (() => {
+  const ctx = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(ROOT, "app.js"), "utf8").trimEnd().replace(/init\(\);$/, ""), ctx);
+  return (a, b) => JSON.parse(JSON.stringify(ctx.mergeGrades(a, b)));
+})();
+const chain = (id) => {
+  const g = readJson("data/grades.json").find((x) => x.id === id);
+  return [...(g.inclut || []), g.fichier].map((f) => readJson(`data/${f}`));
+};
+const resolveGrade = (id) => chain(id).reduce((acc, d) => (acc ? mergeGrades(acc, d) : d), null);
+const parentsOf = (id) => chain(id).slice(0, -1).reduce((acc, d) => (acc ? mergeGrades(acc, d) : d), null);
+
 const cardKey = (c) => [c.attaque, c.technique, c.forme].join(" – ");
 const keysOf = (d) =>
   Object.entries(d.waza).flatMap(([w, l]) => l.flatMap((a) => a.techniques.map((t) => `${w}|${a.nom}|${t.nom}`)));
@@ -139,33 +152,50 @@ describe("données JSON", () => {
   });
 
   test("2ème Kyo : lignes * de Yokomen uchi marquées attention", () => {
-    const yoko = readJson("data/2eme-kyo.json").waza["Tachi waza"].find((a) => a.nom === "Yokomen uchi");
+    const yoko = resolveGrade("2eme-kyo").waza["Tachi waza"].find((a) => a.nom === "Yokomen uchi");
     for (const nom of ["Ikkyo", "Nikkyo", "Sankyo", "Irimi nage", "Kote gaeshi"]) {
       assert.equal(yoko.techniques.find((t) => t.nom === nom).attention, true, nom);
     }
   });
 
   test("2ème Kyo : formes spéciales", () => {
-    const d = readJson("data/2eme-kyo.json");
-    const kokyu = d.waza["Tachi waza"][0].techniques.find((t) => t.nom === "Kokyu nage");
+    const d = resolveGrade("2eme-kyo");
+    const kokyu = d.waza["Tachi waza"].find((a) => a.nom === "Katate dori").techniques.find((t) => t.nom === "Kokyu nage");
     assert.deepEqual(kokyu.formes, []);
     assert.equal(kokyu.note, "3 formes différentes");
     const taiken = d.waza["Hanmi Handachi waza"].flatMap((a) => a.techniques).find((t) => t.nom === "Taïken nage");
     assert.deepEqual(taiken.formes, ["Uchi", "Soto"]);
   });
 
-  test("1er-kyo.json ne recopie pas les données identiques du 2ème Kyo", () => {
-    const e2 = readJson("data/2eme-kyo.json");
-    const e1 = readJson("data/1er-kyo.json");
-    for (const [w, attaques] of Object.entries(e1.waza)) {
-      for (const a of attaques) {
-        const base = e2.waza[w]?.find((x) => x.nom === a.nom);
-        for (const t of a.techniques) {
-          const bt = base?.techniques.find((x) => x.nom === t.nom);
-          if (bt) assert.notDeepEqual({ ...bt, ...t }, bt, `${w}/${a.nom}/${t.nom} est une copie inutile`);
+  for (const g of grades.filter((x) => x.inclut)) {
+    test(`${g.fichier} ne recopie pas les données identiques de ses parents`, () => {
+      const parents = parentsOf(g.id);
+      for (const [w, attaques] of Object.entries(readJson(`data/${g.fichier}`).waza)) {
+        for (const a of attaques) {
+          const base = parents.waza[w]?.find((x) => x.nom === a.nom);
+          for (const t of a.techniques) {
+            const bt = base?.techniques.find((x) => x.nom === t.nom);
+            if (bt) assert.notDeepEqual({ ...bt, ...t }, bt, `${w}/${a.nom}/${t.nom} est une copie inutile`);
+          }
         }
       }
-    }
+    });
+  }
+
+  test("héritage : 1er Kyo ⊇ 2ème Kyo ⊇ 3ème Kyo", () => {
+    assert.deepEqual(grades.find((g) => g.id === "1er-kyo").inclut, ["3eme-kyo.json", "2eme-kyo.json"]);
+    assert.deepEqual(grades.find((g) => g.id === "2eme-kyo").inclut, ["3eme-kyo.json"]);
+    assert.equal(grades.find((g) => g.id === "3eme-kyo").inclut, undefined);
+    const k1 = new Set(keysOf(resolveGrade("1er-kyo")));
+    const k2 = new Set(keysOf(resolveGrade("2eme-kyo")));
+    for (const k of keysOf(readJson("data/3eme-kyo.json"))) assert.ok(k2.has(k), `3ème → 2ème : ${k}`);
+    for (const k of k2) assert.ok(k1.has(k), `2ème → 1er : ${k}`);
+  });
+
+  test("le 2ème Kyo surcharge le 3ème Kyo", () => {
+    const find = (d) => d.waza["Tachi waza"].find((a) => a.nom === "Katate ryote dori (ou morote dori)").techniques.find((t) => t.nom === "Ude kime nage");
+    assert.deepEqual(find(readJson("data/3eme-kyo.json")).formes, ["Omote"]);
+    assert.deepEqual(find(resolveGrade("2eme-kyo")).formes, ["Omote", "Ura"]);
   });
 });
 
@@ -229,12 +259,12 @@ describe("mergeGrades", () => {
 
   test("1er Kyo fusionné = toutes les données du 2ème Kyo + ses propres techniques", async () => {
     env ??= await createEnv();
-    const e2 = readJson("data/2eme-kyo.json");
+    const e2 = resolveGrade("2eme-kyo");
     const e1 = readJson("data/1er-kyo.json");
     const m = merge(e2, e1);
     const merged = new Set(keysOf(m));
     for (const k of [...keysOf(e2), ...keysOf(e1)]) assert.ok(merged.has(k), `perdu : ${k}`);
-    assert.equal(merged.size, 160);
+    assert.equal(merged.size, 167);
     // la vidéo du 2ème Kyo survit à la surcharge des marqueurs
     const sankyo = m.waza["Tachi waza"][0].techniques.find((t) => t.nom === "Sankyo");
     assert.equal(sankyo.nouveau, false);
@@ -249,7 +279,7 @@ describe("accueil", () => {
     const env = await createEnv();
     assert.deepEqual(
       env.el("grade").options.map((o) => o.text),
-      ["1er Kyo (160 techniques)", "2ème Kyo (101 techniques)", "3ème Kyo (65 techniques)"],
+      ["1er Kyo (167 techniques)", "2ème Kyo (108 techniques)", "3ème Kyo (65 techniques)"],
     );
   });
 
@@ -369,7 +399,7 @@ describe("session de tirage", () => {
     await env.selectGrade("2eme-kyo");
     env.start("Suwari waza");
     const total = env.run("total");
-    assert.equal(total, 20);
+    assert.ok(total > 1);
     const seen = [cardKey(env.card())];
     for (let i = 1; i < total; i++) {
       env.next();
@@ -387,16 +417,18 @@ describe("session de tirage", () => {
     const env = await createEnv();
     await env.selectGrade("2eme-kyo");
     env.start("Hanmi Handachi waza");
-    assert.equal(env.el("progress").textContent, "Hanmi Handachi waza : 1 / 5");
+    const total = env.run("total");
+    assert.equal(env.el("progress").textContent, `Hanmi Handachi waza : 1 / ${total}`);
     env.next();
-    assert.equal(env.el("progress").textContent, "Hanmi Handachi waza : 2 / 5");
+    assert.equal(env.el("progress").textContent, `Hanmi Handachi waza : 2 / ${total}`);
   });
 
   test("retour à l'accueil réinitialise la session", async () => {
     const env = await createEnv();
     await env.selectGrade("2eme-kyo");
     env.start("Hanmi Handachi waza");
-    for (let i = 0; i < 5; i++) env.next();
+    const total = env.run("total");
+    for (let i = 0; i < total; i++) env.next();
     assert.equal(env.el("done").hidden, false);
     env.home();
     assert.equal(env.el("home").hidden, false);
@@ -405,7 +437,7 @@ describe("session de tirage", () => {
     env.start("Hanmi Handachi waza");
     assert.equal(env.el("done").hidden, true);
     assert.equal(env.el("card").hidden, false);
-    assert.equal(env.run("pool.length"), 4);
+    assert.equal(env.run("pool.length"), total - 1);
   });
 
   test("les filtres sont appliqués au pool de la session", async () => {

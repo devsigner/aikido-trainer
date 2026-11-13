@@ -1,5 +1,5 @@
 // Même numéro que les ?v= de index.html (voir CLAUDE.md) : change le cache à chaque version.
-const VERSION = "20261113.2";
+const VERSION = "20261113.3";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
