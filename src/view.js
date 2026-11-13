@@ -44,7 +44,7 @@ const draw = (model) => {
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
-    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}),
+    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", { key: model.slide.count, className: "card slide-forward" }),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
       h("button", { id: "prog-btn", className: "secondary", onClick: { type: "OpenProgram" } }, "Voir le programme")));

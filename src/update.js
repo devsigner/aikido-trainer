@@ -55,8 +55,11 @@ const goTo = (model, route) => {
   return applyRoute(model, route);
 };
 
-// Records the direction of a program level change so the view can animate it.
+// Records the direction of a program level change or a new draw so the view can animate the card.
 const withSlide = (before, after) => {
+  if (before.screen === "draw" && after.screen === "draw") {
+    return before.current === after.current ? after : { ...after, slide: { direction: "forward", count: after.slide.count + 1 } };
+  }
   if (before.screen !== "program" || after.screen !== "program") return after;
   const { program: from } = before;
   const { program: to } = after;
