@@ -183,6 +183,7 @@ function renderProgram(v) {
   const list = $("prog-list");
   list.innerHTML = "";
   const open = (next) => navigate(next);
+
   if (v.niveau === 1) {
     $("prog-back").textContent = "← Tirage";
     $("prog-card").hidden = true;
@@ -190,16 +191,18 @@ function renderProgram(v) {
     const attaques = listAttaques(currentWaza);
     $("prog-sub").textContent = `${attaques.length} attaques`;
     for (const a of attaques) list.appendChild(listButton(a.nom, () => open({ niveau: 2, attaque: a.nom })));
+
   } else if (v.niveau === 2) {
     $("prog-back").textContent = "← Programme";
     $("prog-card").hidden = false;
     fillCard("prog", { waza: currentWaza, attaque: v.attaque });
-    const techniques = listTechniques(currentWaza, v.attaque);
+    const techniques = [...listTechniques(currentWaza, v.attaque)].sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
     $("prog-title").textContent = "Techniques";
     $("prog-sub").textContent = `${techniques.length} techniques`;
     for (const t of techniques) {
       list.appendChild(listButton(`${t.nom} ${badgesOf(t)}`.trim(), () => open({ niveau: 3, attaque: v.attaque, technique: t.nom })));
     }
+
   } else {
     $("prog-back").textContent = `← ${v.attaque}`;
     $("prog-card").hidden = false;

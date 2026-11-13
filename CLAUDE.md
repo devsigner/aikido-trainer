@@ -17,7 +17,7 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 Le bouton « Voir le programme » (écran de tirage, sous « Retour à l'accueil ») ouvre le listing complet du waza et du grade sélectionnés, sans toucher à la session (techniques déjà tirées conservées). Les filtres 🆕/⚠️ ne s'y appliquent pas.
 
 1. Liste de toutes les attaques.
-2. Clic sur une attaque : sa carte et la liste de ses techniques.
+2. Clic sur une attaque : sa carte et la liste de ses techniques (ordre alphabétique).
 3. Clic sur une technique : sa carte (formes, badges, note, vidéo) et, dessous, les autres attaques du même waza qui ont la même technique (nom comparé sans casse ni accents). Un clic sur l'une d'elles ouvre sa carte.
 
 Le bouton ← et le retour du navigateur (`history`) remontent d'un niveau, puis reviennent au tirage.

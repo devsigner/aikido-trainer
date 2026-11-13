@@ -461,6 +461,13 @@ describe("programme", () => {
     assert.deepEqual(labels(env), ["nikkyo ⚠️", "Sankyo"]);
   });
 
+  test("les techniques d'une attaque sont triées par ordre alphabétique", async () => {
+    const env = await open();
+    env.run(`data.waza["Tachi waza"][0].techniques.push({ nom: "Ikkyo", formes: [] })`);
+    click(env, "Katate dori");
+    assert.deepEqual(labels(env), ["Ikkyo", "Kote gaeshi", "Nikkyo 🆕"]);
+  });
+
   test("une technique affiche sa carte et les autres attaques avec le même nom", async () => {
     const env = await open();
     click(env, "Katate dori");
