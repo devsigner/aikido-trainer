@@ -7,7 +7,7 @@
         "techniques": [
           {
             "nom": "Tenchi nage",
-            "order": 42,
+            "order": 5,
             "formes": [
               "Omote",
               "Ura"
@@ -268,7 +268,7 @@
         "techniques": [
           {
             "nom": "Tenchi nage",
-            "order": 42,
+            "order": 5,
             "formes": [
               "Omote",
               "Ura"

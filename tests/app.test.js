@@ -426,7 +426,7 @@ describe("session de tirage", () => {
 
 // ---------- Cache-busting et version ----------
 describe("clé order", () => {
-  const NOMBRES = { Ikkyo: 1, Nikkyo: 2, Sankyo: 3, Yonkyo: 4, Gokyo: 5, "Shiho nage": 6, "Irimi nage": 7, "Kote gaeshi": 8 };
+  const NOMBRES = { Ikkyo: 1, Nikkyo: 2, Sankyo: 3, Yonkyo: 4, Gokyo: 5, "Shiho nage": 6, "Irimi nage": 7, "Kote gaeshi": 8, "Tenchi nage": 5 };
   for (const f of ["2eme-kyo", "1er-kyo"]) {
     test(`${f}.json : order = nombre japonais du nom, sinon 42`, () => {
       for (const l of Object.values(readJson(`data/${f}.json`).waza))
