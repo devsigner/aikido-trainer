@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261113.12`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261113.13`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -129,6 +129,7 @@ Unidirectional flow, no dependencies and no build (native ES modules + versioned
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
 - `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by `src/effects.js` which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
 - `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `src/vdom.js` provides `h()` and diff-based rendering; `src/runtime.js` loops `update → effects → view → render`.
+- **Swipe** (`src/gesture.js`, wired in `app.js`): on touch devices, swiping right goes back in the history and swiping left goes forward (same as the browser buttons, so the card slides accordingly). Ignored on form fields and when starting from a screen edge (left to the native browser gesture).
 - **URL** (`src/route.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new draw (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
 - The ids and CSS classes of the views are stable (used by `style.css` and the tests).
 
@@ -145,6 +146,7 @@ app.js                Entry point (assembles init/update/view/effects)
 src/logic.js          Pure functions (merge, pool, weighting, sorting)
 src/update.js         Model, Msg, update
 src/route.js          URL (hash) ⇄ model
+src/gesture.js        Horizontal swipe detection (touch → history back/forward)
 src/view.js           view(model) → vnodes
 src/vdom.js           h() and diff-based rendering
 src/runtime.js        Elm loop

@@ -6,6 +6,7 @@ import { h } from "../src/vdom.js";
 import { parseHash, toHash } from "../src/route.js";
 import { update, init, initialModel } from "../src/update.js";
 import { view } from "../src/view.js";
+import { swipeDirection } from "../src/gesture.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
 const DATA = {
@@ -487,5 +488,22 @@ describe("program buttons", () => {
     app.click("Sankyo");
     assert.equal(app.byId("prog-prev").props.disabled, true);
     assert.equal(app.byId("prog-next").props.disabled, true);
+  });
+});
+
+describe("swipe", () => {
+  const swipe = (dx, dy = 0, { x = 200, ms = 200 } = {}) => swipeDirection({ x, y: 300, time: 0 }, { x: x + dx, y: 300 + dy, time: ms }, 400);
+
+  test("a horizontal swipe gives its direction", () => {
+    assert.equal(swipe(120), "right");
+    assert.equal(swipe(-120), "left");
+  });
+
+  test("too short, too vertical, too slow or from a screen edge is ignored", () => {
+    assert.equal(swipe(30), null);
+    assert.equal(swipe(100, 90), null);
+    assert.equal(swipe(120, 0, { ms: 900 }), null);
+    assert.equal(swipe(120, 0, { x: 10 }), null);
+    assert.equal(swipe(-120, 0, { x: 390 }), null);
   });
 });
