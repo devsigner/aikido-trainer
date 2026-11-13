@@ -30,3 +30,8 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .video[hidden] { display: none; }
 #done { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
 #done[hidden] { display: none; }
+#program h2 { margin: 0; font-size: 1.1rem; }
+#program .card { flex: none; }
+button.back { padding: .8rem 1rem; font-size: 1rem; text-align: left; }
+button.item { display: flex; justify-content: space-between; text-align: left; padding: 1rem 1.2rem; background: var(--card); }
+button.item::after { content: "›"; color: var(--muted); }

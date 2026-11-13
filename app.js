@@ -135,6 +135,120 @@ function next() {
   $("progress").textContent = `${currentWaza} : ${total - pool.length} / ${total}`;
 }
 
+const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+function listAttaques(waza) {
+  return data.waza[waza] || [];
+}
+
+function listTechniques(waza, attaque) {
+  return (listAttaques(waza).find((a) => a.nom === attaque) || { techniques: [] }).techniques;
+}
+
+// Même technique (nom normalisé) sous d'autres attaques du même waza.
+function findSameTechnique(waza, attaque, nomTechnique) {
+  return listAttaques(waza)
+    .filter((a) => a.nom !== attaque)
+    .flatMap((a) => a.techniques.filter((t) => norm(t.nom) === norm(nomTechnique)).map((t) => ({ attaque: a.nom, t })));
+}
+
+const badgesOf = (t) => [t.nouveau ? "🆕" : "", t.attention ? "⚠️" : ""].join(" ").trim();
+
+function listButton(label, onclick) {
+  const b = document.createElement("button");
+  b.className = "item";
+  b.textContent = label;
+  b.onclick = onclick;
+  return b;
+}
+
+function fillCard(prefix, { waza = "", attaque = "", technique = "", formes = "", badges = "", note = "", video = "" }) {
+  $(`${prefix}-waza`).textContent = waza;
+  $(`${prefix}-attaque`).textContent = attaque;
+  $(`${prefix}-technique`).textContent = technique;
+  $(`${prefix}-forme`).textContent = formes;
+  $(`${prefix}-badges`).textContent = badges;
+  $(`${prefix}-note`).textContent = note;
+  const v = $(`${prefix}-video`);
+  v.hidden = !video;
+  if (video) v.href = video;
+}
+
+let view = null;
+
+function renderProgram(v) {
+  view = v;
+  $("draw").hidden = true;
+  $("program").hidden = false;
+  const list = $("prog-list");
+  list.innerHTML = "";
+  const open = (next) => navigate(next);
+  if (v.niveau === 1) {
+    $("prog-back").textContent = "← Tirage";
+    $("prog-card").hidden = true;
+    $("prog-title").textContent = currentWaza;
+    const attaques = listAttaques(currentWaza);
+    $("prog-sub").textContent = `${attaques.length} attaques`;
+    for (const a of attaques) list.appendChild(listButton(a.nom, () => open({ niveau: 2, attaque: a.nom })));
+  } else if (v.niveau === 2) {
+    $("prog-back").textContent = "← Programme";
+    $("prog-card").hidden = false;
+    fillCard("prog", { waza: currentWaza, attaque: v.attaque });
+    const techniques = listTechniques(currentWaza, v.attaque);
+    $("prog-title").textContent = "Techniques";
+    $("prog-sub").textContent = `${techniques.length} techniques`;
+    for (const t of techniques) {
+      list.appendChild(listButton(`${t.nom} ${badgesOf(t)}`.trim(), () => open({ niveau: 3, attaque: v.attaque, technique: t.nom })));
+    }
+  } else {
+    $("prog-back").textContent = `← ${v.attaque}`;
+    $("prog-card").hidden = false;
+    const t = listTechniques(currentWaza, v.attaque).find((x) => x.nom === v.technique);
+    fillCard("prog", {
+      waza: currentWaza,
+      attaque: v.attaque,
+      technique: t.nom,
+      formes: t.formes.join(" · "),
+      badges: badgesOf(t),
+      note: t.note,
+      video: t.video,
+    });
+    const others = findSameTechnique(currentWaza, v.attaque, t.nom);
+    $("prog-title").textContent = "Même technique, autres attaques";
+    $("prog-sub").textContent = others.length ? "" : "Aucune autre attaque pour cette technique.";
+    for (const o of others) {
+      list.appendChild(listButton(`${o.attaque} ${badgesOf(o.t)}`.trim(), () => open({ niveau: 3, attaque: o.attaque, technique: o.t.nom })));
+    }
+  }
+}
+
+function navigate(v) {
+  renderProgram(v);
+  if (typeof history !== "undefined") history.pushState(v, "");
+}
+
+function openProgram() {
+  $("draw").hidden = true;
+  $("program").hidden = false;
+  navigate({ niveau: 1 });
+}
+
+function closeProgram() {
+  view = null;
+  $("program").hidden = true;
+  $("draw").hidden = false;
+}
+
+function applyBack() {
+  if (!view || view.niveau === 1) closeProgram();
+  else renderProgram(view.niveau === 3 ? { niveau: 2, attaque: view.attaque } : { niveau: 1 });
+}
+
+function backProgram() {
+  if (typeof history !== "undefined") history.back();
+  else applyBack();
+}
+
 function goHome() {
   pool = [];
   $("draw").hidden = true;
@@ -153,6 +267,13 @@ async function init() {
   $("f-nouveau").onchange = $("f-attention").onchange = () => data && renderWazaButtons();
   $("next").onclick = next;
   $("home-btn").onclick = goHome;
+  $("prog-btn").onclick = openProgram;
+  $("prog-back").onclick = backProgram;
+  if (typeof window !== "undefined") {
+    // Le retour du navigateur remonte d'un niveau, puis ferme le programme.
+    window.addEventListener("popstate", (e) => (e.state ? renderProgram(e.state) : closeProgram()));
+    history.replaceState(null, "");
+  }
   await loadGrade(sel.value);
 }
 

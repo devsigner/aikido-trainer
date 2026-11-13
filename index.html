@@ -11,8 +11,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Aïkido – Entraînement</title>
-  <link rel="icon" href="favicon.ico?v=20261112.2" sizes="any">
-  <link rel="stylesheet" href="style.css?v=20261112.2">
+  <link rel="icon" href="favicon.ico?v=20261113" sizes="any">
+  <link rel="stylesheet" href="style.css?v=20261113">
 </head>
 <body>
   <main>
@@ -50,10 +50,29 @@
       <div class="buttons actions">
         <button id="next">Technique suivante</button>
         <button id="home-btn" class="secondary">Retour à l'accueil</button>
+        <button id="prog-btn" class="secondary">Voir le programme</button>
+      </div>
+    </section>
+
+    <section id="program" hidden>
+      <button id="prog-back" class="secondary back"></button>
+      <div id="prog-card" class="card" hidden>
+        <div id="prog-waza" class="waza"></div>
+        <div id="prog-attaque" class="attaque"></div>
+        <div id="prog-technique" class="technique"></div>
+        <div id="prog-forme" class="forme"></div>
+        <div id="prog-badges" class="badges"></div>
+        <div id="prog-note" class="note"></div>
+        <a id="prog-video" class="video" target="_blank" rel="noopener" hidden>▶ Voir la vidéo</a>
+      </div>
+      <div class="group">
+        <h2 id="prog-title"></h2>
+        <p id="prog-sub" class="hint"></p>
+        <div id="prog-list" class="buttons"></div>
       </div>
     </section>
   </main>
-  <script src="app.js?v=20261112.2"></script>
+  <script src="app.js?v=20261113"></script>
   <script>
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   </script>
