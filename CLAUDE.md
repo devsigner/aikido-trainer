@@ -4,10 +4,10 @@ Petite application web statique (HTML/CSS/JS sans dépendance ni build) qui tire
 
 ## Version
 
-**Version actuelle : `20261113.3`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
+**Version actuelle : `20261113.4`** (format `AAAAMMJJ`, la date du jour de la mise à jour).
 
 À chaque nouvelle version :
-1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...` et `app.js?v=...` (force le rechargement et contourne le cache).
+1. Remplacer le numéro dans `index.html` : `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` et chaque entrée de l'import map (`./src/*.js?v=...`) : force le rechargement et contourne le cache. Tout nouveau module de `src/` doit être ajouté à l'import map et au précache de `sw.js`.
 2. Mettre la même valeur dans `const VERSION` de `sw.js` (renouvelle le cache hors ligne).
 3. Mettre à jour le numéro ci-dessus.
 4. Si deux versions sont publiées le même jour, ajouter un suffixe : `20261111.2`.
@@ -34,7 +34,7 @@ Chaque technique des JSON (`data/*.json`, y compris les surcharges de `1er-kyo.j
 
 Règles :
 - Une nouvelle technique reçoit l'`order` de son nom s'il est dans le tableau, sinon `42`.
-- Pour changer l'`order` d'un nom, le modifier partout (3ème, 2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/app.test.js` : un test vérifie la cohérence.
+- Pour changer l'`order` d'un nom, le modifier partout (3ème, 2ème et 1er Kyo) et mettre à jour ce tableau et `NOMBRES` dans `tests/data.test.js` : un test vérifie la cohérence.
 
 ## Ordre des attaques (`order`)
 
@@ -61,7 +61,7 @@ Chaque attaque des JSON a aussi une clé `order` (entier), qui trie la liste des
 | 17    | Jodan tsuki                           |
 | 42    | toutes les autres (valeur par défaut) |
 
-Mêmes règles que pour les techniques : une nouvelle attaque reçoit la valeur de son nom si elle est dans le tableau, sinon `42` ; pour changer une valeur, la modifier partout et mettre à jour ce tableau et `ATTAQUES` dans `tests/app.test.js`.
+Mêmes règles que pour les techniques : une nouvelle attaque reçoit la valeur de son nom si elle est dans le tableau, sinon `42` ; pour changer une valeur, la modifier partout et mettre à jour ce tableau et `ATTAQUES` dans `tests/data.test.js`.
 
 ## Programme
 
@@ -115,7 +115,21 @@ Aucune dépendance de test : lanceur intégré à Node (≥ 20).
 yarn test
 ```
 
-`tests/app.test.js` charge le vrai `app.js` dans un faux DOM (`vm`) et couvre : validité des JSON (format, doublons, orthographe), fusion des grades (sans perte), pondération et filtres, tirage sans répétition, programme (attaques, techniques, mêmes techniques, retour), écrans (accueil, tirage, fin de waza, retour à l'accueil), cohérence du numéro de version (`index.html` ↔ `sw.js` ↔ `CLAUDE.md`) et configuration mobile (balises, manifeste, icônes, précache du service worker). `app.js` doit se terminer par `init();`. Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
+- `tests/data.test.js` : validité des JSON (format, doublons, orthographe, `order`, héritage), cohérence du numéro de version (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), configuration mobile (balises, manifeste, icônes, précache, modules `src/`).
+- `tests/app.test.js` : logique pure (pool, pondération, tri, fusion), `update`, `h()`, `resolveGrade`, et parcours complet via le vrai runtime avec `tests/helpers.js` (arbre virtuel, historique simulé : accueil, tirage sans répétition, progression, programme, retour).
+
+Lancer les tests avant chaque commit et en ajouter pour toute nouvelle règle.
+
+## Architecture (pattern Elm)
+
+Flux unidirectionnel, sans dépendance ni build (ES modules natifs + import map versionnée) :
+
+- `Model` (`src/update.js`) : tout l'état (écran, grade, filtres, pool, tirage courant, programme).
+- `Msg` : objets `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Back`, `Popped`…).
+- `update(model, msg) → [model, cmds]` : fonction pure, jamais d'accès au DOM, au hasard ni au réseau.
+- `cmds` : effets décrits en données (`LoadGrade`, `Random`, `PushHistory`…), exécutés par `src/effects.js` qui renvoie un `Msg`. Le hasard est un effet (`Random` → `Rolled`) pour rester testable.
+- `view(model) → vnode` (`src/view.js`) : fonction pure ; les gestionnaires sont des messages. `src/vdom.js` fournit `h()` et le rendu par différences ; `src/runtime.js` boucle `update → effets → view → render`.
+- Les ids et classes CSS des vues sont stables (utilisés par `style.css` et les tests).
 
 ## Structure
 
@@ -126,12 +140,18 @@ style.css
 manifest.webmanifest   Manifeste PWA
 sw.js                 Service worker (hors ligne)
 icons/                Icônes de l'application (192, 512, apple-touch-icon)
-app.js                Logique (chargement, fusion des grades, tirage)
+app.js                Point d'entrée (assemble init/update/view/effets)
+src/logic.js          Fonctions pures (fusion, pool, pondération, tri)
+src/update.js         Model, Msg, update
+src/view.js           view(model) → vnodes
+src/vdom.js           h() et rendu par différences
+src/runtime.js        Boucle Elm
+src/effects.js        Exécution des commandes (fetch, hasard, historique)
 data/grades.json      Liste des grades disponibles
 data/3eme-kyo.json    Programme du 3ème Kyo (complet, sans `inclut`)
 data/2eme-kyo.json    Ajouts et surcharges du 2ème Kyo (hérite du 3ème)
 data/1er-kyo.json     Ajouts et surcharges du 1er Kyo (hérite du 2ème et du 3ème)
-tests/app.test.js     Tests (node:test)
+tests/*.test.js       Tests (node:test), `tests/helpers.js` : utilitaires
 package.json          Scripts `yarn server` et `yarn test`, gestionnaire de paquets (`packageManager`)
 yarn.lock             Versions verrouillées des dépendances
 ```
@@ -176,7 +196,7 @@ Un fichier par grade :
 Les grades héritent dans l'ordre de la numérotation : le 1er Kyo hérite du 2ème, qui hérite du 3ème.
 
 - `grades.json` : `inclut` est la liste des fichiers chargés, dans l'ordre, avant le fichier du grade. 3ème Kyo : pas d'`inclut` ; 2ème Kyo : `["3eme-kyo.json"]` ; 1er Kyo : `["3eme-kyo.json", "2eme-kyo.json"]`.
-- `mergeGrades` (dans `app.js`) fusionne par nom (waza, attaque, technique) : le dernier fichier prime. Chaque grade ajoute ses techniques nouvelles et surcharge au besoin celles héritées.
+- `mergeGrades` (dans `src/logic.js`) fusionne par nom (waza, attaque, technique) : le dernier fichier prime. Chaque grade ajoute ses techniques nouvelles et surcharge au besoin celles héritées.
 - Un fichier de grade ne contient donc que ses ajouts et des surcharges minimales (`nom`, `order` et les champs qui changent, ex. `nouveau`, `attention`, `formes`, `note`). Ne pas recopier les données d'un parent (un test détecte les copies inutiles).
 - Conséquence : toute technique ajoutée au 3ème Kyo apparaît aussi au 2ème et au 1er Kyo, et toute technique du 2ème Kyo apparaît au 1er.
 - Pour une valeur `null` voulue (ex. effacer une note héritée), l'écrire explicitement dans la surcharge.
@@ -185,7 +205,7 @@ Les grades héritent dans l'ordre de la numérotation : le 1er Kyo hérite du 2�
 
 - **Accueil** : sélecteur de grade (avec le nombre de techniques), filtres 🆕 Nouveautés / ⚠️ Attention, puis un bouton par waza (ordre défini par `WAZA_ORDER`).
 - **Filtres** : aucun coché = tout ; un seul = techniques ayant ce marqueur ; les deux = l'un OU l'autre. Un waza sans technique correspondante est désactivé.
-- **Tirage** : uniforme sur toutes les combinaisons `attaque × technique × forme`, pondéré. Poids ×1,5 pour `nouveau` et ×1,5 pour `attention` (cumulables), constantes `POIDS_NOUVEAU` et `POIDS_ATTENTION` en haut de `app.js`.
+- **Tirage** : uniforme sur toutes les combinaisons `attaque × technique × forme`, pondéré. Poids ×1,5 pour `nouveau` et ×1,5 pour `attention` (cumulables), constantes `POIDS_NOUVEAU` et `POIDS_ATTENTION` en haut de `src/logic.js`.
 - **Sans répétition** : une combinaison déjà tirée ne ressort pas pendant la session. Quand tout est passé, « Waza terminé 🎉 ».
 - **Session** : réinitialisée par « Retour à l'accueil ». Les filtres sont pris en compte au choix du waza.
 - **Affichage** : waza, attaque, technique, forme, badges 🆕/⚠️, note, lien vidéo, compteur de progression (« n / total », par combinaison).
