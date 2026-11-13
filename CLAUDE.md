@@ -136,6 +136,7 @@ Unidirectional flow, no dependencies and no build (native ES modules + versioned
 ## Structure
 
 ```
+README.md             User manual (French) with screenshots from `docs/screenshots/`
 index.html            Single page (home + draw screen)
 favicon.ico           Site icon (character 道, embedded 16/32/48/64 px PNGs)
 style.css
