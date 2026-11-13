@@ -1,9 +1,9 @@
-:root { --bg: #14171c; --fg: #eceff4; --accent: #c0392b; --card: #1f242c; --muted: #8b95a5; }
+:root { --pad-top: max(1.5rem, env(safe-area-inset-top)); --pad-bottom: max(1.5rem, env(safe-area-inset-bottom)); --bg: #14171c; --fg: #eceff4; --accent: #c0392b; --card: #1f242c; --muted: #8b95a5; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { background: var(--bg); -webkit-text-size-adjust: 100%; }
 body { margin: 0; overscroll-behavior: none; touch-action: manipulation; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
 #app { display: contents; }
-main { max-width: 640px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: max(1.5rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 1.5rem; }
+main { max-width: 640px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: var(--pad-top) max(1rem, env(safe-area-inset-right)) var(--pad-bottom) max(1rem, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 1.5rem; }
 main > section { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 main > section[hidden] { display: none; }
 .group { display: flex; flex-direction: column; gap: .8rem; }
@@ -35,6 +35,9 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 #done[hidden] { display: none; }
 #program h2 { margin: 0; font-size: 1.1rem; }
 #program .card { flex: none; }
+.screen { display: flex; flex-direction: column; gap: 1.5rem; }
+.screen.full { min-height: calc(100vh - 3rem); min-height: calc(100dvh - var(--pad-top) - var(--pad-bottom)); }
+#program .screen.full .card { flex: 1; }
 button.back { padding: .8rem 1rem; font-size: 1rem; text-align: left; }
 button.item { display: flex; justify-content: space-between; text-align: left; padding: 1rem 1.2rem; background: var(--card); }
 button.item::after { content: "›"; color: var(--muted); }
@@ -49,5 +52,6 @@ button.item::after { content: "›"; color: var(--muted); }
 .slide-back { animation: slide-from-left .25s ease-out; }
 /* @media (prefers-reduced-motion: reduce) { .slide-forward, .slide-back { animation: none; } } */
 body { overflow-x: hidden; }
-.pager { display: flex; gap: .8rem; }
-.pager button { flex: 1; }
+.pager { display: flex; flex-direction: column; gap: .5rem; }
+.pager-buttons { display: flex; gap: .8rem; }
+.pager-buttons button { flex: 1; }

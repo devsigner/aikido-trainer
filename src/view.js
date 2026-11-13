@@ -47,7 +47,7 @@ const draw = (model) => {
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
-    h("h3", { id: "", className: "hint" }, "Connais-tu cette technique ?"),
+    h("h3", { className: "hint" }, "Connais-tu cette technique ?"),
     model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(model.slide)),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
@@ -94,39 +94,42 @@ const levels = {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
       fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" },
-      actions: [
+      // Last row of the first screen (see `.screen.full`).
+      actions: h("div", { className: "pager" },
         h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
-        h("div", { className: "pager" },
+        h("div", { className: "pager-buttons" },
           pagerButton("prog-prev", "Précédente", neighbour(-1), "back"),
-          pagerButton("prog-next", "Suivante", neighbour(1), "forward")),
-      ],
-      title: "Même technique, autres attaques",
+          pagerButton("prog-next", "Suivante", neighbour(1), "forward"))),
+      title: "Même technique, autres attaques ↓",
       sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
       items: others.map((other) => item(withBadges(other.attack, other.technique), { level: 3, attack: other.attack, technique: other.technique.name })),
     };
   },
 };
 
-const program = (model) => {
+// The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
+const program = (model, header) => {
   const { back, backMessage, fields, actions, title, sub, items } = levels[model.program.level](model, model.program);
   return h("section", { id: "program" },
-    h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
-    h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
-    card("prog", fields, "prog-card", slideProps(model.slide)),
-    actions,
-    h("div", { className: "group" },
+    h("div", { className: actions ? "screen full" : "screen" },
+      header,
+      h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
+      h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
+      card("prog", fields, "prog-card", slideProps(model.slide)),
+      actions,
       h("h2", { id: "prog-title" }, title),
+    ),
+    h("div", { className: "group" },
       h("p", { id: "prog-sub", className: "hint" }, sub),
       h("div", { id: "prog-list", className: "buttons" }, items)));
 };
 
 export function view(model) {
+  const header = h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido");
+  if (model.status === "ready" && model.screen === "program") return h("main", {}, program(model, header));
   let body;
   if (model.status === "loading") body = h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
   else if (model.status === "error") body = h("p", { className: "hint" }, model.error);
-  else body = { home, draw, program }[model.screen](model);
-  return h("main", {},
-    h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido"),
-    body
-  );
+  else body = { home, draw }[model.screen](model);
+  return h("main", {}, header, body);
 }
