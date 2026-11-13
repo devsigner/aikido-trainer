@@ -2,6 +2,9 @@
 // Les effets (réseau, hasard, historique) sont décrits par des commandes exécutées par le runtime.
 import { buildPool, pickIndex } from "./logic.js";
 
+// État d'une session de tirage ; `program` = { niveau, attaque?, technique? }.
+const noSession = () => ({ screen: "home", waza: "", pool: [], total: 0, current: null, done: false, program: null });
+
 export const initialModel = () => ({
   status: "loading", // loading | ready | error
   error: "",
@@ -9,20 +12,14 @@ export const initialModel = () => ({
   gradeId: "",
   data: null,
   filters: { nouveau: false, attention: false },
-  screen: "home", // home | draw | program
-  waza: "",
-  pool: [],
-  total: 0,
-  current: null, // dernière combinaison tirée
-  done: false,
-  program: null, // { niveau, attaque?, technique? }
+  ...noSession(),
 });
 
 export const init = () => [initialModel(), [{ type: "LoadGrades" }, { type: "ReplaceHistory" }]];
 
 const session = (model, waza) => {
   const pool = buildPool(model.data, waza, model.filters);
-  return { ...model, screen: "draw", waza, pool, total: pool.length, current: null, done: false, program: null };
+  return { ...model, ...noSession(), screen: "draw", waza, pool, total: pool.length };
 };
 
 export function update(model, msg) {
@@ -52,7 +49,7 @@ export function update(model, msg) {
       return [{ ...model, current: model.pool[i], pool: model.pool.filter((_, j) => j !== i) }, []];
     }
     case "GoHome":
-      return [{ ...model, screen: "home", waza: "", pool: [], total: 0, current: null, done: false, program: null }, []];
+      return [{ ...model, ...noSession() }, []];
     case "OpenProgram":
     case "Navigate": {
       const program = msg.type === "OpenProgram" ? { niveau: 1 } : msg.to;

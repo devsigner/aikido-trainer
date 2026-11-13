@@ -3,7 +3,7 @@ import { h } from "./vdom.js";
 import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttaques, listTechniques } from "./logic.js";
 
 const card = (prefix, { waza = "", attaque = "", technique = "", forme = "", badges = "", note = "", video = "" }, id = prefix) =>
-  h("div", { id: `${id}`, className: "card" },
+  h("div", { id, className: "card" },
     h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
     h("div", { id: `${prefix}-attaque`, className: "attaque" }, attaque),
     h("div", { id: `${prefix}-technique`, className: "technique" }, technique),
@@ -52,32 +52,43 @@ const draw = (m) => {
 
 const item = (label, to) => h("button", { className: "item", onClick: { type: "Navigate", to } }, label);
 
-const program = (m) => {
-  const { niveau, attaque, technique } = m.program;
-  const back = niveau === 1 ? "← Tirage" : niveau === 2 ? "← Programme" : `← ${attaque}`;
-  let head = null;
-  let title;
-  let sub;
-  let items;
-  if (niveau === 1) {
+const withBadges = (label, t) => `${label} ${badgesOf(t)}`.trim();
+
+const levels = {
+  1(m) {
     const attaques = listAttaques(m.data, m.waza);
-    title = m.waza;
-    sub = `${attaques.length} attaques`;
-    items = attaques.map((a) => item(a.nom, { niveau: 2, attaque: a.nom }));
-  } else if (niveau === 2) {
+    return {
+      back: "← Tirage",
+      title: m.waza,
+      sub: `${attaques.length} attaques`,
+      items: attaques.map((a) => item(a.nom, { niveau: 2, attaque: a.nom })),
+    };
+  },
+  2(m, { attaque }) {
     const techniques = listTechniques(m.data, m.waza, attaque);
-    head = card("prog", { waza: m.waza, attaque }, "prog-card");
-    title = "Techniques";
-    sub = `${techniques.length} techniques`;
-    items = techniques.map((t) => item(`${t.nom} ${badgesOf(t)}`.trim(), { niveau: 3, attaque, technique: t.nom }));
-  } else {
+    return {
+      back: "← Programme",
+      head: card("prog", { waza: m.waza, attaque }, "prog-card"),
+      title: "Techniques",
+      sub: `${techniques.length} techniques`,
+      items: techniques.map((t) => item(withBadges(t.nom, t), { niveau: 3, attaque, technique: t.nom })),
+    };
+  },
+  3(m, { attaque, technique }) {
     const t = listTechniques(m.data, m.waza, attaque).find((x) => x.nom === technique);
-    head = card("prog", { waza: m.waza, attaque, technique: t.nom, forme: t.formes.join(" · "), badges: badgesOf(t), note: t.note || "", video: t.video || "" }, "prog-card");
     const others = findSameTechnique(m.data, m.waza, attaque, t.nom);
-    title = "Même technique, autres attaques";
-    sub = others.length ? "" : "Aucune autre attaque pour cette technique.";
-    items = others.map((o) => item(`${o.attaque} ${badgesOf(o.t)}`.trim(), { niveau: 3, attaque: o.attaque, technique: o.t.nom }));
-  }
+    return {
+      back: `← ${attaque}`,
+      head: card("prog", { waza: m.waza, attaque, technique: t.nom, forme: t.formes.join(" · "), badges: badgesOf(t), note: t.note || "", video: t.video || "" }, "prog-card"),
+      title: "Même technique, autres attaques",
+      sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
+      items: others.map((o) => item(withBadges(o.attaque, o.t), { niveau: 3, attaque: o.attaque, technique: o.t.nom })),
+    };
+  },
+};
+
+const program = (m) => {
+  const { back, head, title, sub, items } = levels[m.program.niveau](m, m.program);
   return h("section", { id: "program" },
     h("button", { id: "prog-back", className: "secondary back", onClick: { type: "Back" } }, back),
     head,

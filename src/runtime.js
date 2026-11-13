@@ -6,16 +6,15 @@ export function run({ init, update, view, render, effects, subscribe }) {
       if (!effects[cmd.type]) throw new Error(`Effet inconnu : ${cmd.type}`);
       effects[cmd.type](cmd, dispatch);
     });
-  function dispatch(msg) {
-    const [next, cmds] = update(model, msg);
+  const apply = ([next, cmds]) => {
     model = next;
     render(view(model), dispatch);
     exec(cmds);
+  };
+  function dispatch(msg) {
+    apply(update(model, msg));
   }
-  const [first, cmds] = init();
-  model = first;
-  render(view(model), dispatch);
-  exec(cmds);
+  apply(init());
   subscribe?.(dispatch);
   return dispatch;
 }
