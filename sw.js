@@ -1,5 +1,5 @@
-// Même numéro que les ?v= de index.html (voir CLAUDE.md) : change le cache à chaque version.
-const VERSION = "20261113.4";
+// Same number as the ?v= in index.html (see CLAUDE.md): renews the cache on every version.
+const VERSION = "20261113.5";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -13,6 +13,7 @@ const PRECACHE = [
   `src/update.js?v=${VERSION}`,
   `src/view.js?v=${VERSION}`,
   `src/logic.js?v=${VERSION}`,
+  `src/route.js?v=${VERSION}`,
   `favicon.ico?v=${VERSION}`,
   "manifest.webmanifest",
   "icons/icon-192.png",
@@ -37,7 +38,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Réseau d'abord (contenu toujours à jour en ligne), cache en secours (hors ligne).
+// Network first (always fresh when online), cache as fallback (offline).
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;

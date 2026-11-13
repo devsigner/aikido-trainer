@@ -22,9 +22,9 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .card { background: var(--card); border-radius: 14px; padding: 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .card[hidden] { display: none; }
 .waza { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: .85rem; }
-.attaque { font-size: 1.3rem; margin-top: .8rem; }
+.attack { font-size: 1.3rem; margin-top: .8rem; }
 .technique { font-size: 2.2rem; font-weight: bold; color: var(--accent); margin: .3rem 0; }
-.forme { font-size: 1.6rem; }
+.form { font-size: 1.6rem; }
 .badges { margin-top: .6rem; font-size: 1.2rem; }
 .note { margin-top: .6rem; color: var(--muted); font-style: italic; }
 .video { display: inline-block; margin-top: 1rem; color: #5dade2; }

@@ -1,115 +1,116 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { createApp, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
-import { buildPool, pickIndex, mergeGrades, listAttaques, listTechniques, findSameTechnique, countTechniques } from "../src/logic.js";
+import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
+import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/logic.js";
 import { h } from "../src/vdom.js";
+import { parseHash, toHash } from "../src/route.js";
 import { update, init } from "../src/update.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
 const DATA = {
   waza: {
     "Tachi waza": [
-      { nom: "Katate dori", order: 2, techniques: [
-        { nom: "Nikkyo", order: 2, formes: ["Omote", "Ura"], nouveau: true, attention: false, note: "N", video: "https://v" },
-        { nom: "Kote gaeshi", order: 10, formes: [] },
+      { name: "Katate dori", order: 2, techniques: [
+        { name: "Nikkyo", order: 2, forms: ["Omote", "Ura"], isNew: true, isWarning: false, note: "N", video: "https://v" },
+        { name: "Kote gaeshi", order: 10, forms: [] },
       ] },
-      { nom: "Ryote dori", order: 3, techniques: [{ nom: "nikkyo", order: 2, formes: [], attention: true }, { nom: "Sankyo", order: 3, formes: [] }] },
-      { nom: "Aï hammi katate dori", order: 1, techniques: [{ nom: "Sankyo", order: 3, formes: [] }] },
+      { name: "Ryote dori", order: 3, techniques: [{ name: "nikkyo", order: 2, forms: [], isWarning: true }, { name: "Sankyo", order: 3, forms: [] }] },
+      { name: "Aï hammi katate dori", order: 1, techniques: [{ name: "Sankyo", order: 3, forms: [] }] },
     ],
     "Suwari waza": [],
   },
 };
-const ALL = { nouveau: false, attention: false };
+const ALL = { isNew: false, isWarning: false };
 
 describe("logic", () => {
-  test("pool : une entrée par forme, poids 1 / 1.5 / 2.25", () => {
+  test("pool: one entry per form, weights 1 / 1.5 / 2.25", () => {
     const pool = buildPool(DATA, "Tachi waza", ALL);
     assert.equal(pool.length, 6);
-    const w = (t, f) => pool.find((e) => e.t.nom === t && e.forme === f).poids;
-    assert.equal(w("Nikkyo", "Omote"), 1.5);
-    assert.equal(pool.find((e) => e.t.nom === "Kote gaeshi").poids, 1);
-    assert.equal(pool.find((e) => e.t.nom === "nikkyo").poids, 1.5);
+    const weightOf = (name, form) => pool.find((entry) => entry.technique.name === name && entry.form === form).weight;
+    assert.equal(weightOf("Nikkyo", "Omote"), 1.5);
+    assert.equal(pool.find((entry) => entry.technique.name === "Kote gaeshi").weight, 1);
+    assert.equal(pool.find((entry) => entry.technique.name === "nikkyo").weight, 1.5);
   });
 
-  test("filtres : Nouveautés, Attention, ou les deux (OU)", () => {
-    const n = (f) => buildPool(DATA, "Tachi waza", f).length;
-    assert.equal(n({ nouveau: true, attention: false }), 2);
-    assert.equal(n({ nouveau: false, attention: true }), 1);
-    assert.equal(n({ nouveau: true, attention: true }), 3);
+  test("filters: New, Warning, or both (OR)", () => {
+    const countFor = (filters) => buildPool(DATA, "Tachi waza", filters).length;
+    assert.equal(countFor({ isNew: true, isWarning: false }), 2);
+    assert.equal(countFor({ isNew: false, isWarning: true }), 1);
+    assert.equal(countFor({ isNew: true, isWarning: true }), 3);
   });
 
-  test("pickIndex respecte les poids", () => {
-    const pool = [{ poids: 1 }, { poids: 3 }];
+  test("pickIndex respects the weights", () => {
+    const pool = [{ weight: 1 }, { weight: 3 }];
     assert.equal(pickIndex(pool, 0), 0);
     assert.equal(pickIndex(pool, 0.24), 0);
     assert.equal(pickIndex(pool, 0.26), 1);
     assert.equal(pickIndex(pool, 0.999), 1);
   });
 
-  test("tri par order puis alphabétique ; même technique sans casse ni accents", () => {
-    assert.deepEqual(listAttaques(DATA, "Tachi waza").map((a) => a.nom), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
-    assert.deepEqual(listTechniques(DATA, "Tachi waza", "Ryote dori").map((t) => t.nom), ["nikkyo", "Sankyo"]);
-    assert.deepEqual(findSameTechnique(DATA, "Tachi waza", "Katate dori", "Nikkyo").map((o) => o.attaque), ["Ryote dori"]);
+  test("sorted by order then alphabetically; same technique ignoring case and accents", () => {
+    assert.deepEqual(listAttacks(DATA, "Tachi waza").map((attack) => attack.name), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
+    assert.deepEqual(listTechniques(DATA, "Tachi waza", "Ryote dori").map((technique) => technique.name), ["nikkyo", "Sankyo"]);
+    assert.deepEqual(findSameTechnique(DATA, "Tachi waza", "Katate dori", "Nikkyo").map((other) => other.attack), ["Ryote dori"]);
   });
 
-  test("héritage : compteurs 167 / 108 / 65 et 1er ⊇ 2ème ⊇ 3ème", () => {
-    assert.deepEqual(["1er-kyo", "2eme-kyo", "3eme-kyo"].map((g) => countTechniques(resolveGrade(g))), [167, 108, 65]);
-    const k1 = new Set(keysOf(resolveGrade("1er-kyo")));
-    for (const k of keysOf(resolveGrade("2eme-kyo"))) assert.ok(k1.has(k), k);
+  test("inheritance: counts 167 / 108 / 65 and 1st ⊇ 2nd ⊇ 3rd", () => {
+    assert.deepEqual(["1er-kyo", "2eme-kyo", "3eme-kyo"].map((grade) => countTechniques(resolveGrade(grade))), [167, 108, 65]);
+    const firstKyoKeys = new Set(keysOf(resolveGrade("1er-kyo")));
+    for (const key of keysOf(resolveGrade("2eme-kyo"))) assert.ok(firstKyoKeys.has(key), key);
     assert.ok(keysOf(parentsOf("2eme-kyo")).length === 65);
   });
 
-  test("mergeGrades ne modifie pas la base", () => {
+  test("mergeGrades does not mutate the base", () => {
     const base = structuredClone(DATA);
-    mergeGrades(base, { waza: { "Tachi waza": [{ nom: "Katate dori", techniques: [{ nom: "Nikkyo", formes: ["X"] }] }] } });
+    mergeGrades(base, { waza: { "Tachi waza": [{ name: "Katate dori", techniques: [{ name: "Nikkyo", forms: ["X"] }] }] } });
     assert.deepEqual(base, DATA);
   });
 });
 
 describe("update (pure)", () => {
-  test("Rolled est ignoré hors tirage", () => {
-    const [m] = init();
-    const [m2, cmds] = update(m, { type: "Rolled", value: 0.5 });
-    assert.equal(m2.current ?? null, m.current ?? null);
+  test("Rolled is ignored outside a draw", () => {
+    const [model] = init();
+    const [next, cmds] = update(model, { type: "Rolled", value: 0.5 });
+    assert.equal(next.current, model.current);
     assert.deepEqual(cmds, []);
   });
 });
 
 describe("vdom", () => {
-  test("h() normalise enfants (null/false ignorés, tableaux aplatis)", () => {
-    const n = h("div", { id: "x" }, "a", null, false, [h("b", {}, "c")], 3);
-    assert.equal(n.children.length, 3);
-    assert.equal(text(n), "ac3");
+  test("h() normalizes children (null/false ignored, arrays flattened)", () => {
+    const node = h("div", { id: "x" }, "a", null, false, [h("b", {}, "c")], 3);
+    assert.equal(node.children.length, 3);
+    assert.equal(text(node), "ac3");
   });
 });
 
 describe("effects.resolveGrade", () => {
-  test("fusionne les parents puis le grade", async () => {
+  test("merges the parents then the grade", async () => {
     const grades = readJson("data/grades.json");
-    const d = await resolveGradeFx(grades.find((g) => g.id === "2eme-kyo"), async (u) => readJson(u));
-    assert.equal(countTechniques(d), 108);
+    const data = await resolveGradeFx(grades.find((grade) => grade.id === "2eme-kyo"), async (url) => readJson(url));
+    assert.equal(countTechniques(data), 108);
   });
 });
 
 describe("application", () => {
-  test("accueil : grades, waza actifs, programme caché", async () => {
+  test("home: grades, enabled waza buttons", async () => {
     const app = await createApp();
     assert.equal(app.model.screen, "home");
-    assert.equal(find(app.tree, (n) => n.tag === "option").length, 3);
-    for (const w of WAZA) assert.equal(app.button(w).props.disabled, false);
+    assert.equal(find(app.tree, (node) => node.tag === "option").length, 3);
+    for (const waza of WAZA) assert.equal(app.button(waza).props.disabled, false);
   });
 
-  test("filtre Attention désactive un waza sans technique correspondante", async () => {
+  test("Warning filter disables a waza with no matching technique", async () => {
     const app = await createApp();
     app.load(DATA);
-    app.setFilter("f-attention", true);
+    app.setFilter("f-warning", true);
     assert.equal(app.button("Tachi waza").props.disabled, false);
     assert.equal(app.button("Suwari waza").props.disabled, true);
     assert.equal(app.button("Hanmi Handachi waza").props.disabled, true);
     assert.match(app.text("home-msg"), /grisé/);
   });
 
-  test("changer de grade recharge les données fusionnées", async () => {
+  test("changing grade reloads the merged data", async () => {
     const app = await createApp();
     const n1 = app.model.total ?? 0;
     await app.selectGrade("3eme-kyo");
@@ -118,29 +119,29 @@ describe("application", () => {
     assert.ok(n1 >= 0);
   });
 
-  test("tirage : carte complète, vidéo, progression", async () => {
+  test("draw: full card, video, progress", async () => {
     const app = await createApp({ random: () => 0 });
-    app.load({ waza: { "Tachi waza": [{ nom: "Katate dori", order: 1, techniques: [{ nom: "Nikkyo", order: 2, formes: ["Ura"], nouveau: true, attention: true, note: "N", video: "https://v" }] }] } });
+    app.load({ waza: { "Tachi waza": [{ name: "Katate dori", order: 1, techniques: [{ name: "Nikkyo", order: 2, forms: ["Ura"], isNew: true, isWarning: true, note: "N", video: "https://v" }] }] } });
     app.click("Tachi waza");
-    const c = app.card();
-    assert.deepEqual([c.waza, c.attaque, c.technique, c.forme, c.note], ["Tachi waza", "Katate dori", "Nikkyo", "Ura", "N"]);
-    assert.equal(c.video.props.href, "https://v");
-    assert.match(c.badges, /🆕/);
-    assert.match(c.badges, /⚠️/);
+    const card = app.card();
+    assert.deepEqual([card.waza, card.attack, card.technique, card.form, card.note], ["Tachi waza", "Katate dori", "Nikkyo", "Ura", "N"]);
+    assert.equal(card.video.props.href, "https://v");
+    assert.match(card.badges, /🆕/);
+    assert.match(card.badges, /⚠️/);
     assert.equal(app.text("progress"), "Tachi waza : 1 / 1");
   });
 
-  test("sans vidéo : lien absent, champs vides conservés", async () => {
+  test("no video: link absent, empty fields kept", async () => {
     const app = await createApp({ random: () => 0 });
-    app.load({ waza: { "Tachi waza": [{ nom: "A", order: 1, techniques: [{ nom: "Ikkyo", order: 1, formes: [] }] }] } });
+    app.load({ waza: { "Tachi waza": [{ name: "A", order: 1, techniques: [{ name: "Ikkyo", order: 1, forms: [] }] }] } });
     app.click("Tachi waza");
-    const c = app.card();
-    assert.equal(c.video, undefined);
-    assert.equal(c.forme, "");
-    assert.equal(c.note, "");
+    const card = app.card();
+    assert.equal(card.video, undefined);
+    assert.equal(card.form, "");
+    assert.equal(card.note, "");
   });
 
-  test("aucune répétition puis « terminé »", async () => {
+  test("no repetition, then done", async () => {
     const app = await createApp();
     app.load(DATA);
     app.click("Tachi waza");
@@ -159,10 +160,10 @@ describe("application", () => {
     assert.equal(app.button("Technique suivante"), undefined);
   });
 
-  test("retour accueil réinitialise ; filtres appliqués au pool", async () => {
+  test("going home resets; filters apply to the pool", async () => {
     const app = await createApp();
     app.load(DATA);
-    app.setFilter("f-nouveau", true);
+    app.setFilter("f-new", true);
     app.click("Tachi waza");
     assert.equal(app.model.total, 2);
     app.click("home-btn");
@@ -172,7 +173,7 @@ describe("application", () => {
   });
 });
 
-describe("programme", () => {
+describe("program", () => {
   async function open() {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
@@ -182,13 +183,13 @@ describe("programme", () => {
     return { app, before };
   }
 
-  test("attaques triées, session intacte", async () => {
+  test("attacks sorted, session untouched", async () => {
     const { app, before } = await open();
     assert.deepEqual(app.list(), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
     assert.equal(app.model.pool.length, before);
   });
 
-  test("attaque → techniques avec badges, triées", async () => {
+  test("attack → techniques with badges, sorted", async () => {
     const { app } = await open();
     app.click("Katate dori");
     assert.equal(app.text("prog-sub"), "2 techniques");
@@ -196,14 +197,14 @@ describe("programme", () => {
     assert.match(app.list()[1], /^Kote gaeshi/);
   });
 
-  test("technique : carte et autres attaques ; unique → message", async () => {
+  test("technique: card and other attacks; unique → message", async () => {
     const { app } = await open();
     app.click("Katate dori");
     app.click("Nikkyo");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     assert.match(app.list()[0], /^Ryote dori/);
     app.click(app.list()[0]);
-    assert.equal(app.text("prog-attaque"), "Ryote dori");
+    assert.equal(app.text("prog-attack"), "Ryote dori");
     app.click("prog-back");
     app.click("prog-back");
     app.click("Kote gaeshi");
@@ -211,16 +212,90 @@ describe("programme", () => {
     assert.match(app.text("prog-sub"), /Aucune autre attaque/);
   });
 
-  test("bouton retour : remonte d'un niveau puis revient au tirage", async () => {
+  test("back button: goes up one level then returns to the draw", async () => {
     const { app } = await open();
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.niveau, 2);
+    assert.equal(app.model.program.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.niveau, 1);
+    assert.equal(app.model.program.level, 1);
     app.click("prog-back");
     assert.equal(app.model.screen, "draw");
     assert.ok(byId(app.tree, "card"));
+  });
+});
+
+describe("URL and history", () => {
+  test("parseHash / toHash: round trip, accents and spaces encoded", () => {
+    const model = { gradeId: "2eme-kyo", screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } };
+    assert.equal(toHash(model), "#/2eme-kyo/Tachi%20waza/program/A%C3%AF%20hammi%20katate%20dori/Nikkyo");
+    assert.deepEqual(parseHash(toHash(model)), { grade: "2eme-kyo", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } });
+    assert.deepEqual(parseHash("#/%E0%A4%A"), {});
+  });
+
+  test("the URL follows navigation: home, draw, program, back", async () => {
+    const app = await createApp();
+    assert.equal(app.history.url, "#/1er-kyo");
+    app.click("Tachi waza");
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza");
+    app.click("prog-btn");
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
+    app.click(app.list()[0]);
+    assert.match(app.history.url, /\/program\/A%C3%AF%20hammi%20katate%20dori$/);
+    app.click("prog-back");
+    app.click("prog-back");
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza");
+    assert.equal(app.model.screen, "draw");
+    app.click("home-btn");
+    assert.equal(app.history.url, "#/1er-kyo");
+  });
+
+  test("changing grade updates the URL without a new history entry", async () => {
+    const app = await createApp();
+    await app.selectGrade("3eme-kyo");
+    assert.equal(app.history.url, "#/3eme-kyo");
+    assert.equal(app.history.index, 0);
+  });
+
+  test("reloading on a program URL restores the same state", async () => {
+    const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
+    const app = await createApp({ hash });
+    assert.deepEqual([app.model.gradeId, app.model.waza, app.model.screen], ["2eme-kyo", "Suwari waza", "program"]);
+    assert.equal(app.model.program.technique, "Nikkyo");
+    assert.equal(app.text("prog-technique"), "Nikkyo");
+    assert.equal(app.history.url, hash);
+  });
+
+  test("reloading on a draw URL starts a new draw of that waza", async () => {
+    const app = await createApp({ hash: "#/3eme-kyo/Tachi%20waza" });
+    assert.equal(app.model.screen, "draw");
+    assert.equal(app.model.gradeId, "3eme-kyo");
+    assert.ok(app.model.current);
+    assert.equal(app.card().waza, "Tachi waza");
+  });
+
+  test("after reloading on the program, going back to the draw starts a draw", async () => {
+    const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program" });
+    assert.equal(app.model.current, null);
+    app.dispatch({ type: "Popped", hash: "#/1er-kyo/Tachi%20waza" });
+    assert.equal(app.model.screen, "draw");
+    assert.ok(app.model.current);
+  });
+
+  test("invalid URL: unknown grade or waza → home, unknown attack → level 1", async () => {
+    assert.equal((await createApp({ hash: "#/xx/Foo" })).model.screen, "home");
+    const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program/Nimporte/Quoi" });
+    assert.deepEqual(app.model.program, { level: 1 });
+    assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
+  });
+
+  test("popstate to another grade loads its data", async () => {
+    const app = await createApp();
+    app.dispatch({ type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" });
+    await settle();
+    assert.equal(app.model.gradeId, "3eme-kyo");
+    assert.equal(countTechniques(app.model.data), 65);
+    assert.equal(app.model.screen, "program");
   });
 });

@@ -4,660 +4,660 @@
   "waza": {
     "Tachi waza": [
       {
-        "nom": "Katate dori",
+        "name": "Katate dori",
         "order": 2,
         "techniques": [
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=YmfjwgbEG40"
           },
           {
-            "nom": "Ushiro kiri otoshi",
+            "name": "Ushiro kiri otoshi",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           }
         ]
       },
       {
-        "nom": "Aï hammi katate dori",
+        "name": "Aï hammi katate dori",
         "order": 1,
         "techniques": [
           {
-            "nom": "Koshi nage",
+            "name": "Koshi nage",
             "order": 42,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Ushiro kiri otoshi",
+            "name": "Ushiro kiri otoshi",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           }
         ]
       },
       {
-        "nom": "Ryote dori",
+        "name": "Ryote dori",
         "order": 3,
         "techniques": [
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Ushiro kiri otoshi",
+            "name": "Ushiro kiri otoshi",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           }
         ]
       },
       {
-        "nom": "Katate ryote dori (ou morote dori)",
+        "name": "Katate ryote dori (ou morote dori)",
         "order": 4,
         "precision": "2 mains sur 1 bras (entrée tenkan)",
         "techniques": [
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Juji garami",
+            "name": "Juji garami",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=zG51CPcfiRQ"
           },
           {
-            "nom": "Ushiro kiri otoshi",
+            "name": "Ushiro kiri otoshi",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=jZsUT02PjR8"
           }
         ]
       },
       {
-        "nom": "Kata dori",
+        "name": "Kata dori",
         "order": 5,
         "techniques": [
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=o-Lgertx9LE"
           }
         ]
       },
       {
-        "nom": "Yokomen uchi",
+        "name": "Yokomen uchi",
         "order": 15,
         "techniques": [
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=0Y1tMGTY-Vc"
           },
           {
-            "nom": "Gokyo",
+            "name": "Gokyo",
             "order": 5,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=lwK2P2Qb0m4"
           }
         ]
       },
       {
-        "nom": "Shomen uchi",
+        "name": "Shomen uchi",
         "order": 14,
         "techniques": [
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Soto kaïten nage",
+            "name": "Soto kaïten nage",
             "order": 42,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Uchi kaïten nage",
+            "name": "Uchi kaïten nage",
             "order": 42,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hh45k7dKPtw"
           },
           {
-            "nom": "Gokyo",
+            "name": "Gokyo",
             "order": 5,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=nR0irbbgHyw"
           }
         ]
       },
       {
-        "nom": "Chudan tsuki",
+        "name": "Chudan tsuki",
         "order": 16,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=NbNbueFTsw4"
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=44lXrmJg_E4"
           },
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=9B0FDMGLeiE"
           },
           {
-            "nom": "Kaïten nage",
+            "name": "Kaïten nage",
             "order": 11,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Ushiro kiri otoshi",
+            "name": "Ushiro kiri otoshi",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=z9sjt0duCA4"
           }
         ]
       },
       {
-        "nom": "Ryo kata dori",
+        "name": "Ryo kata dori",
         "order": 7,
         "techniques": [
           {
-            "nom": "Sokumen irimi nage",
+            "name": "Sokumen irimi nage",
             "order": 6,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Ushiro ryote dori",
+        "name": "Ushiro ryote dori",
         "order": 9,
         "techniques": [
           {
-            "nom": "Juji garami",
+            "name": "Juji garami",
             "order": 42,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Sokumen irimi nage",
+            "name": "Sokumen irimi nage",
             "order": 6,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Ushiro ryo kata dori",
+        "name": "Ushiro ryo kata dori",
         "order": 11,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Sokumen irimi nage",
+            "name": "Sokumen irimi nage",
             "order": 6,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Aïki otoshi",
+            "name": "Aïki otoshi",
             "order": 42,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Ushiro ryo hiji dori",
+        "name": "Ushiro ryo hiji dori",
         "order": 10,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Kata dori men uchi",
+        "name": "Kata dori men uchi",
         "order": 6,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Diverses formes d'attaques",
+        "name": "Diverses formes d'attaques",
         "order": 42,
         "techniques": [
           {
-            "nom": "Kokyu nage",
+            "name": "Kokyu nage",
             "order": 42,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Muna dori",
+        "name": "Muna dori",
         "order": 8,
         "techniques": [
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=RZnxmCDsKTk"
           }
         ]
       },
       {
-        "nom": "Jodan tsuki",
+        "name": "Jodan tsuki",
         "order": 17,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=icXLgsg5row"
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=YQv4dbSnSYI"
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=FqGzgmjccac"
           },
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=B_2KDjB8O44"
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=suYhRUdg3gQ"
           },
           {
-            "nom": "Kaïten nage",
+            "name": "Kaïten nage",
             "order": 11,
-            "formes": [
+            "forms": [
               "Uchi",
               "Soto"
             ],
-            "nouveau": true,
-            "attention": false,
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Hiji kime osae",
+            "name": "Hiji kime osae",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=D9ZAEbZCdCE"
           }
         ]
       },
       {
-        "nom": "Ushiro eri dori",
+        "name": "Ushiro eri dori",
         "order": 12,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=BLiJ7bLLqFk"
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=s_uU3JMAgY0"
           },
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=gp3ZwrZ-q_g"
           },
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=UMYOuNIubKM"
           }
         ]
       },
       {
-        "nom": "Ushiro katate dori kubi shime",
+        "name": "Ushiro katate dori kubi shime",
         "order": 13,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=tx7XCx60Cj0"
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=walvZ8PxIPo"
           },
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=gV5mMz73WCI"
           },
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Zc6-_WX7RRY"
           }
         ]
       },
       {
-        "nom": "Diverses applications",
+        "name": "Diverses applications",
         "order": 42,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Kaïten nage",
+            "name": "Kaïten nage",
             "order": 11,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Sumi otoshi",
+            "name": "Sumi otoshi",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Ude kime nage",
+            "name": "Ude kime nage",
             "order": 8,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": "À partir de la base Shiho nage",
             "video": null
           },
           {
-            "nom": "Hiji kime osae",
+            "name": "Hiji kime osae",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": "À partir de la base Ikkyo et Nikkyo ura",
             "video": null
           },
           {
-            "nom": "Ude garami",
+            "name": "Ude garami",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": "À partir de la base de Kaïten nage",
             "video": null
           }
         ]
       },
       {
-        "nom": "Divers saisies et frappes",
+        "name": "Divers saisies et frappes",
         "order": 42,
         "techniques": [
           {
-            "nom": "Koshi nage",
+            "name": "Koshi nage",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Sokumen irimi nage",
+            "name": "Sokumen irimi nage",
             "order": 6,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": "Naname",
             "video": null
           }
@@ -666,113 +666,113 @@
     ],
     "Suwari waza": [
       {
-        "nom": "Ryote dori",
+        "name": "Ryote dori",
         "order": 3,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Shomen uchi",
+        "name": "Shomen uchi",
         "order": 14,
         "techniques": [
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=LRtp2w2-pOY"
           },
           {
-            "nom": "Gokyo",
+            "name": "Gokyo",
             "order": 5,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=D65OSmnIo5o"
           }
         ]
       },
       {
-        "nom": "Kata dori",
+        "name": "Kata dori",
         "order": 5,
         "techniques": [
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=fkNW2VQ1-oY"
           }
         ]
       },
       {
-        "nom": "Yokomen uchi",
+        "name": "Yokomen uchi",
         "order": 15,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Irimi nage",
+            "name": "Irimi nage",
             "order": 9,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Yonkyo",
+            "name": "Yonkyo",
             "order": 4,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=lGGI7hJjg_o"
           },
           {
-            "nom": "Gokyo",
+            "name": "Gokyo",
             "order": 5,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=oFus9mb_1tM"
           },
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=dcLYSj8E1q0"
           }
@@ -781,125 +781,125 @@
     ],
     "Hanmi Handachi waza": [
       {
-        "nom": "Shomen uchi",
+        "name": "Shomen uchi",
         "order": 14,
         "techniques": [
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=uBhd-RhZ66Y"
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           },
           {
-            "nom": "Gokyo",
+            "name": "Gokyo",
             "order": 5,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": null
           }
         ]
       },
       {
-        "nom": "Ryote dori",
+        "name": "Ryote dori",
         "order": 3,
         "techniques": [
           {
-            "nom": "Shiho nage",
+            "name": "Shiho nage",
             "order": 7,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Kokyu nage",
+            "name": "Kokyu nage",
             "order": 42,
-            "attention": true
+            "isWarning": true
           }
         ]
       },
       {
-        "nom": "Katate dori",
+        "name": "Katate dori",
         "order": 2,
         "techniques": [
           {
-            "nom": "Taïken nage",
+            "name": "Taïken nage",
             "order": 42,
-            "attention": true
+            "isWarning": true
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=YnQHWC5DbUw"
           }
         ]
       },
       {
-        "nom": "Ushiro ryo kata dori",
+        "name": "Ushiro ryo kata dori",
         "order": 11,
         "techniques": [
           {
-            "nom": "Ikkyo",
+            "name": "Ikkyo",
             "order": 1,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hS79SMa5fFE"
           },
           {
-            "nom": "Nikkyo",
+            "name": "Nikkyo",
             "order": 2,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=P_cY-zn_AuY"
           },
           {
-            "nom": "Sankyo",
+            "name": "Sankyo",
             "order": 3,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=HdsX2oizp14"
           },
           {
-            "nom": "Kokyu nage",
+            "name": "Kokyu nage",
             "order": 42,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=pLs0ndYRDvY"
           },
           {
-            "nom": "Kote gaeshi",
+            "name": "Kote gaeshi",
             "order": 10,
-            "formes": [],
-            "nouveau": true,
-            "attention": false,
+            "forms": [],
+            "isNew": true,
+            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=SwO3RoQG4Oc"
           }

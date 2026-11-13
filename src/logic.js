@@ -1,72 +1,73 @@
-// Fonctions pures : aucune dépendance au DOM, au réseau ni au hasard.
-export const POIDS_NOUVEAU = 1.5;
-export const POIDS_ATTENTION = 1.5;
+// Pure functions: no dependency on the DOM, the network or randomness.
+export const WEIGHT_NEW = 1.5;
+export const WEIGHT_WARNING = 1.5;
 export const WAZA_ORDER = ["Tachi waza", "Hanmi Handachi waza", "Suwari waza"];
 
-// Fusionne `over` dans `base` : les attaques et techniques sont appariées par nom,
-// les champs de `over` écrasent ceux de `base`.
+// Merges `over` into `base`: attacks and techniques are matched by name,
+// fields of `over` override those of `base`.
 export function mergeGrades(base, over) {
   const merged = { ...base, ...over, waza: {} };
   const wazaNames = new Set([...Object.keys(base.waza), ...Object.keys(over.waza)]);
-  for (const w of wazaNames) {
-    const attaques = (base.waza[w] || []).map((a) => ({ ...a, techniques: [...a.techniques] }));
-    for (const oa of over.waza[w] || []) {
-      const ba = attaques.find((a) => a.nom === oa.nom);
-      if (!ba) {
-        attaques.push(oa);
+  for (const wazaName of wazaNames) {
+    const attacks = (base.waza[wazaName] || []).map((attack) => ({ ...attack, techniques: [...attack.techniques] }));
+    for (const overAttack of over.waza[wazaName] || []) {
+      const baseAttack = attacks.find((attack) => attack.name === overAttack.name);
+      if (!baseAttack) {
+        attacks.push(overAttack);
         continue;
       }
-      Object.assign(ba, { ...oa, techniques: ba.techniques });
-      for (const ot of oa.techniques) {
-        const i = ba.techniques.findIndex((t) => t.nom === ot.nom);
-        if (i < 0) ba.techniques.push(ot);
-        else ba.techniques[i] = { ...ba.techniques[i], ...ot };
+      Object.assign(baseAttack, { ...overAttack, techniques: baseAttack.techniques });
+      for (const overTechnique of overAttack.techniques) {
+        const index = baseAttack.techniques.findIndex((technique) => technique.name === overTechnique.name);
+        if (index < 0) baseAttack.techniques.push(overTechnique);
+        else baseAttack.techniques[index] = { ...baseAttack.techniques[index], ...overTechnique };
       }
     }
-    merged.waza[w] = attaques;
+    merged.waza[wazaName] = attacks;
   }
   return merged;
 }
 
-export function countTechniques(d) {
-  return Object.values(d.waza).flat().reduce((n, a) => n + a.techniques.length, 0);
+export function countTechniques(data) {
+  return Object.values(data.waza).flat().reduce((total, attack) => total + attack.techniques.length, 0);
 }
 
-export function buildPool(data, waza, { nouveau = false, attention = false } = {}) {
+export function buildPool(data, waza, { isNew = false, isWarning = false } = {}) {
   const items = [];
-  for (const att of data.waza[waza] || []) {
-    for (const t of att.techniques) {
-      if ((nouveau || attention) && !((nouveau && t.nouveau) || (attention && t.attention))) continue;
-      const poids = (t.nouveau ? POIDS_NOUVEAU : 1) * (t.attention ? POIDS_ATTENTION : 1);
-      const formes = t.formes.length ? t.formes : [null];
-      for (const forme of formes) items.push({ waza, attaque: att.nom, t, forme, poids });
+  for (const attack of data.waza[waza] || []) {
+    for (const technique of attack.techniques) {
+      if ((isNew || isWarning) && !((isNew && technique.isNew) || (isWarning && technique.isWarning))) continue;
+      const weight = (technique.isNew ? WEIGHT_NEW : 1) * (technique.isWarning ? WEIGHT_WARNING : 1);
+      const forms = technique.forms.length ? technique.forms : [null];
+      for (const form of forms) items.push({ waza, attack: attack.name, technique, form, weight });
     }
   }
   return items;
 }
 
-// Tirage pondéré : `r` ∈ [0, 1[ vient d'un effet (Random), la fonction reste pure.
-export function pickIndex(pool, r) {
-  let left = r * pool.reduce((s, i) => s + i.poids, 0);
-  for (let i = 0; i < pool.length; i++) {
-    left -= pool[i].poids;
-    if (left <= 0) return i;
+// Weighted draw: `random` ∈ [0, 1[ comes from an effect (Random), so the function stays pure.
+export function pickIndex(pool, random) {
+  let left = random * pool.reduce((sum, entry) => sum + entry.weight, 0);
+  for (let index = 0; index < pool.length; index++) {
+    left -= pool[index].weight;
+    if (left <= 0) return index;
   }
   return pool.length - 1;
 }
 
-export const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-export const byOrder = (a, b) => a.order - b.order || a.nom.localeCompare(b.nom, "fr");
-export const badgesOf = (t) => [t.nouveau ? "🆕" : "", t.attention ? "⚠️" : ""].join(" ").trim();
+export const norm = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+export const byOrder = (first, second) => first.order - second.order || first.name.localeCompare(second.name, "fr");
+export const badgesOf = (technique) => [technique.isNew ? "🆕" : "", technique.isWarning ? "⚠️" : ""].join(" ").trim();
 
-export const listAttaques = (data, waza) => [...(data.waza[waza] || [])].sort(byOrder);
+export const listAttacks = (data, waza) => [...(data.waza[waza] || [])].sort(byOrder);
 
-export const listTechniques = (data, waza, attaque) =>
-  [...((data.waza[waza] || []).find((a) => a.nom === attaque) || { techniques: [] }).techniques].sort(byOrder);
+export const listTechniques = (data, waza, attack) =>
+  [...((data.waza[waza] || []).find((candidate) => candidate.name === attack) || { techniques: [] }).techniques].sort(byOrder);
 
-// Même technique (nom normalisé) sous d'autres attaques du même waza.
-export function findSameTechnique(data, waza, attaque, nomTechnique) {
+// Same technique (normalized name) under other attacks of the same waza.
+export function findSameTechnique(data, waza, attack, techniqueName) {
   return (data.waza[waza] || [])
-    .filter((a) => a.nom !== attaque)
-    .flatMap((a) => a.techniques.filter((t) => norm(t.nom) === norm(nomTechnique)).map((t) => ({ attaque: a.nom, t })));
+    .filter((other) => other.name !== attack)
+    .flatMap((other) =>
+      other.techniques.filter((technique) => norm(technique.name) === norm(techniqueName)).map((technique) => ({ attack: other.name, technique })));
 }
