@@ -46,7 +46,8 @@ const draw = (model) => {
   };
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
-    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total} - Connais-tu cette technique ?`),
+    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
+    h("h3", { id: "", className: "hint" }, "Connais-tu cette technique ?"),
     model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(model.slide)),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),

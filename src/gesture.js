@@ -1,7 +1,7 @@
 // Horizontal swipe detection: pure, so it can be tested without touch events.
 const MIN_DISTANCE = 60; // px travelled horizontally
 const MAX_SLOPE = 0.6; // |dy| / |dx| above this is a scroll, not a swipe
-const EDGE = 24; // px: a start this close to a screen edge belongs to the native browser gesture
+const EDGE = 5; // px: a start this close to a screen edge belongs to the native browser gesture
 const MAX_DURATION = 600; // ms
 
 // start/end: { x, y, time }. Returns "right", "left" or null.
