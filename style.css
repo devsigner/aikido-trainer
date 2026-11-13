@@ -4,6 +4,8 @@ html { background: var(--bg); -webkit-text-size-adjust: 100%; }
 body { margin: 0; overscroll-behavior: none; touch-action: manipulation; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
 #app { display: contents; }
 main { max-width: 640px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: var(--pad-top) max(1rem, env(safe-area-inset-right)) var(--pad-bottom) max(1rem, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 1.5rem; }
+footer { margin-top: auto; text-align: center; color: var(--muted); font-size: .8rem; }
+footer p { margin: .2rem 0; }
 main > section { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 main > section[hidden] { display: none; }
 .group { display: flex; flex-direction: column; gap: .8rem; }

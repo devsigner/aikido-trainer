@@ -124,12 +124,16 @@ const program = (model, header) => {
       h("div", { id: "prog-list", className: "buttons" }, items)));
 };
 
+const footer = () => h("footer", {},
+  h("p", {}, "© 2026 Aïkido Trainer. Tous droits réservés."),
+  h("p", {}, "Développé par amour de l'Aïkido 🙏"));
+
 export function view(model) {
   const header = h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido");
-  if (model.status === "ready" && model.screen === "program") return h("main", {}, program(model, header));
+  if (model.status === "ready" && model.screen === "program") return h("main", {}, program(model, header), footer());
   let body;
   if (model.status === "loading") body = h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
   else if (model.status === "error") body = h("p", { className: "hint" }, model.error);
   else body = { home, draw }[model.screen](model);
-  return h("main", {}, header, body);
+  return h("main", {}, header, body, footer());
 }
