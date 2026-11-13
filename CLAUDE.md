@@ -187,9 +187,10 @@ One file per grade:
 ```
 
 - Waza: `Tachi waza`, `Suwari waza`, `Hanmi Handachi waza`.
-- `forms`: array, empty if there is no form to draw.
+- `forms`: array, empty if there is no form to draw (e.g. "Omote", "Ura").
 - `isNew` (🆕) and `isWarning` (⚠️): markers carried by the whole technique.
-- `note`: free text displayed under the technique (e.g. "Naname", "3 formes différentes"). `video`: URL, the link is only displayed if it exists.
+- `note`: free text displayed under the technique (e.g. "Naname", "3 formes différentes").
+- `video`: URL, the link is only displayed if it exists.
 - Harmonized spelling: Nikkyo, Sankyo, first letter uppercase then lowercase (e.g. "Kote gaeshi").
 - Adding a grade: create `data/<id>.json`, then add an entry in `data/grades.json` (`id`, `label`, `file`, and optionally `includes`).
 
