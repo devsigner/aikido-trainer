@@ -5,6 +5,7 @@
     "Tachi waza": [
       {
         "nom": "Katate dori",
+        "order": 1,
         "techniques": [
           {
             "nom": "Sankyo",
@@ -49,6 +50,7 @@
       },
       {
         "nom": "Aï hammi katate dori",
+        "order": 2,
         "techniques": [
           {
             "nom": "Koshi nage",
@@ -78,6 +80,7 @@
       },
       {
         "nom": "Ryote dori",
+        "order": 3,
         "techniques": [
           {
             "nom": "Kote gaeshi",
@@ -104,6 +107,7 @@
       },
       {
         "nom": "Katate ryote dori (ou morote dori)",
+        "order": 4,
         "precision": "2 mains sur 1 bras (entrée tenkan)",
         "techniques": [
           {
@@ -134,6 +138,7 @@
       },
       {
         "nom": "Kata dori",
+        "order": 5,
         "techniques": [
           {
             "nom": "Sankyo",
@@ -154,6 +159,7 @@
       },
       {
         "nom": "Yokomen uchi",
+        "order": 6,
         "techniques": [
           {
             "nom": "Yonkyo",
@@ -177,6 +183,7 @@
       },
       {
         "nom": "Shomen uchi",
+        "order": 7,
         "techniques": [
           {
             "nom": "Shiho nage",
@@ -218,6 +225,7 @@
       },
       {
         "nom": "Chudan tsuki",
+        "order": 8,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -286,6 +294,7 @@
       },
       {
         "nom": "Ryo kata dori",
+        "order": 9,
         "techniques": [
           {
             "nom": "Sokumen irimi nage",
@@ -297,6 +306,7 @@
       },
       {
         "nom": "Ushiro ryote dori",
+        "order": 10,
         "techniques": [
           {
             "nom": "Juji garami",
@@ -314,6 +324,7 @@
       },
       {
         "nom": "Ushiro ryo kata dori",
+        "order": 11,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -349,6 +360,7 @@
       },
       {
         "nom": "Ushiro ryo hiji dori",
+        "order": 12,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -360,6 +372,7 @@
       },
       {
         "nom": "Kata dori men uchi",
+        "order": 13,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -401,6 +414,7 @@
       },
       {
         "nom": "Diverses formes d'attaques",
+        "order": 14,
         "techniques": [
           {
             "nom": "Kokyu nage",
@@ -412,6 +426,7 @@
       },
       {
         "nom": "Muna dori",
+        "order": 15,
         "techniques": [
           {
             "nom": "Shiho nage",
@@ -426,6 +441,7 @@
       },
       {
         "nom": "Jodan tsuki",
+        "order": 16,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -497,6 +513,7 @@
       },
       {
         "nom": "Ushiro eri dori",
+        "order": 17,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -538,6 +555,7 @@
       },
       {
         "nom": "Ushiro katate dori kubi shime",
+        "order": 18,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -579,6 +597,7 @@
       },
       {
         "nom": "Diverses applications",
+        "order": 19,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -665,6 +684,7 @@
       },
       {
         "nom": "Divers saisies et frappes",
+        "order": 20,
         "techniques": [
           {
             "nom": "Koshi nage",
@@ -690,6 +710,7 @@
     "Suwari waza": [
       {
         "nom": "Ryote dori",
+        "order": 3,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -707,6 +728,7 @@
       },
       {
         "nom": "Shomen uchi",
+        "order": 7,
         "techniques": [
           {
             "nom": "Yonkyo",
@@ -730,6 +752,7 @@
       },
       {
         "nom": "Kata dori",
+        "order": 5,
         "techniques": [
           {
             "nom": "Sankyo",
@@ -750,6 +773,7 @@
       },
       {
         "nom": "Yokomen uchi",
+        "order": 6,
         "techniques": [
           {
             "nom": "Ikkyo",
@@ -808,6 +832,7 @@
     "Hanmi Handachi waza": [
       {
         "nom": "Shomen uchi",
+        "order": 7,
         "techniques": [
           {
             "nom": "Kote gaeshi",
@@ -846,6 +871,7 @@
       },
       {
         "nom": "Ryote dori",
+        "order": 3,
         "techniques": [
           {
             "nom": "Shiho nage",
@@ -863,6 +889,7 @@
       },
       {
         "nom": "Katate dori",
+        "order": 1,
         "techniques": [
           {
             "nom": "Taïken nage",
@@ -883,6 +910,7 @@
       },
       {
         "nom": "Ushiro ryo kata dori",
+        "order": 11,
         "techniques": [
           {
             "nom": "Ikkyo",
