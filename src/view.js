@@ -42,11 +42,11 @@ const draw = (m) => {
     video: c.t.video || "",
   };
   return h("section", { id: "draw" },
+    h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${m.waza} : ${m.total - m.pool.length} / ${m.total}`),
     m.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}),
     h("div", { className: "buttons actions" },
       !m.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
-      h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
       h("button", { id: "prog-btn", className: "secondary", onClick: { type: "OpenProgram" } }, "Voir le programme")));
 };
 
@@ -59,7 +59,8 @@ const levels = {
     const attaques = listAttaques(m.data, m.waza);
     return {
       back: "← Tirage",
-      title: m.waza,
+      head: card("prog", { waza: m.waza }, "prog-card"),
+      title: "Attaques",
       sub: `${attaques.length} attaques`,
       items: attaques.map((a) => item(a.nom, { niveau: 2, attaque: a.nom })),
     };
@@ -90,6 +91,7 @@ const levels = {
 const program = (m) => {
   const { back, head, title, sub, items } = levels[m.program.niveau](m, m.program);
   return h("section", { id: "program" },
+    h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
     h("button", { id: "prog-back", className: "secondary back", onClick: { type: "Back" } }, back),
     head,
     h("div", { className: "group" },
