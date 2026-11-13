@@ -35,6 +35,8 @@ Chaque tirage affiche une carte complète :
 | Note (si elle existe)  | « Naname »           |
 | Vidéo (si elle existe) | ▶ Voir la vidéo      |
 
+Le lien « ▶ Voir la vidéo » demande d'abord une confirmation (la technique filmée peut différer de celle attendue au passage de grade) ; une case permet de ne plus afficher ce message.
+
 Le compteur « 3 / 115 » indique ta progression dans le waza.
 
 - **Technique suivante** : tire la suivante.

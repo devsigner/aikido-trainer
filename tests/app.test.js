@@ -491,6 +491,60 @@ describe("program buttons", () => {
   });
 });
 
+describe("video confirmation", () => {
+  const data = { waza: { "Tachi waza": [{ name: "A", order: 1, techniques: [{ name: "Ikkyo", order: 1, forms: [], video: "https://v" }] }] } };
+  const setup = async (options = {}) => {
+    const opened = [];
+    const saved = [];
+    const app = await createApp({ random: () => 0, open: (...args) => opened.push(args), storage: { setItem: (...args) => saved.push(args) }, ...options });
+    app.load(data);
+    app.click("Tachi waza");
+    return { app, opened, saved };
+  };
+  const clickVideo = (app) => {
+    let prevented = false;
+    app.fire({ props: { onClick: app.card().video.props.onClick } }, { preventDefault: () => (prevented = true) });
+    return prevented;
+  };
+
+  test("the link asks for confirmation instead of opening the video", async () => {
+    const { app, opened } = await setup();
+    assert.equal(clickVideo(app), true);
+    assert.match(app.text("video-modal-text"), /pas exactement celle attendue/);
+    assert.equal(opened.length, 0);
+  });
+
+  test("cancel closes the modal without opening", async () => {
+    const { app, opened } = await setup();
+    clickVideo(app);
+    app.click("video-cancel");
+    assert.equal(app.byId("video-modal"), undefined);
+    assert.equal(opened.length, 0);
+  });
+
+  test("confirm opens the video, and the preference is saved only when checked", async () => {
+    const first = await setup();
+    clickVideo(first.app);
+    first.app.click("video-confirm");
+    assert.deepEqual(first.opened, [["https://v", "_blank", "noopener"]]);
+    assert.equal(first.saved.length, 0);
+    assert.equal(first.app.byId("video-modal"), undefined);
+
+    const second = await setup();
+    clickVideo(second.app);
+    second.app.setFilter("video-dont-ask", true);
+    second.app.click("video-confirm");
+    assert.deepEqual(second.saved, [["aikido.skipVideoWarning", "1"]]);
+    assert.equal(second.app.card().video.props.onClick, undefined);
+  });
+
+  test("with the preference set, the link is a plain link", async () => {
+    const { app } = await setup({ skipVideoWarning: true });
+    assert.equal(app.card().video.props.onClick, undefined);
+    assert.equal(app.card().video.props.href, "https://v");
+  });
+});
+
 describe("swipe", () => {
   const swipe = (dx, dy = 0, { x = 200, ms = 200 } = {}) => swipeDirection({ x, y: 300, time: 0 }, { x: x + dx, y: 300 + dy, time: ms }, 400);
 

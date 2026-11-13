@@ -17,11 +17,13 @@ export const initialModel = () => ({
   slide: { direction: "", count: 0 }, // transition between program levels
   position: 0, // index of the current history entry (tells back from forward)
   pending: null, // route from the URL, applied once the data is loaded
+  skipVideoWarning: false, // persisted preference: open videos without the confirmation
+  videoPrompt: null, // { url, dontAsk } while the confirmation modal is open
 });
 
-export const init = ({ hash = "", position = 0 } = {}) => {
+export const init = ({ hash = "", position = 0, skipVideoWarning = false } = {}) => {
   const pending = parseHash(hash);
-  return [{ ...initialModel(), pending, position }, [{ type: "LoadGrades", gradeId: pending.grade }]];
+  return [{ ...initialModel(), pending, position, skipVideoWarning }, [{ type: "LoadGrades", gradeId: pending.grade }]];
 };
 
 const session = (model, waza) => {
@@ -132,6 +134,17 @@ function step(model, msg) {
     case "CloseProgram": {
       const next = { ...model, screen: "draw", program: null };
       return [next, [url(next, "push")]];
+    }
+    case "AskVideo":
+      return [{ ...model, videoPrompt: { url: msg.url, dontAsk: false } }, []];
+    case "SetDontAsk":
+      return [{ ...model, videoPrompt: { ...model.videoPrompt, dontAsk: msg.checked } }, []];
+    case "CancelVideo":
+      return [{ ...model, videoPrompt: null }, []];
+    case "ConfirmVideo": {
+      const { url, dontAsk } = model.videoPrompt;
+      const save = dontAsk ? [{ type: "SaveSkipVideoWarning" }] : [];
+      return [{ ...model, videoPrompt: null, skipVideoWarning: model.skipVideoWarning || dontAsk }, [...save, { type: "OpenUrl", url }]];
     }
     case "Popped":
       // Browser navigation: the URL is the source of truth.

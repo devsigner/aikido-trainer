@@ -41,7 +41,7 @@ export const text = (node) => (node === undefined ? undefined : typeof node === 
 // ---------- Full app (real runtime, real data, simulated history) ----------
 export const settle = () => new Promise((resolve) => setImmediate(resolve));
 
-export async function createApp({ random = Math.random, hash = "" } = {}) {
+export async function createApp({ random = Math.random, hash = "", open, storage, skipVideoWarning = false } = {}) {
   let tree;
   let model;
   let popstate;
@@ -72,9 +72,9 @@ export async function createApp({ random = Math.random, hash = "" } = {}) {
       return result;
     },
     view,
-    flags: { hash },
+    flags: { hash, skipVideoWarning },
     render: (vnode) => (tree = vnode),
-    effects: createEffects({ fetchJson: async (url) => readJson(url), random, history }),
+    effects: createEffects({ fetchJson: async (url) => readJson(url), random, history, open, storage }),
     subscribe: (listener) => (popstate = listener),
   });
   await settle();

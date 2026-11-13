@@ -5,7 +5,13 @@ import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttacks, listTe
 // Key and class of the animated card: a new key replaces the element and restarts the animation.
 const slideProps = ({ direction, count }) => ({ key: count, className: direction ? `card slide-${direction}` : "card" });
 
-const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "" }, id = prefix, extra = {}) =>
+// Intercepts the link to ask for confirmation first.
+const askVideo = (url) => (event) => {
+  event.preventDefault?.();
+  return { type: "AskVideo", url };
+};
+
+const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "", warnVideo = false }, id = prefix, extra = {}) =>
   h("div", { id, className: "card", ...extra },
     h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
     h("div", { id: `${prefix}-attack`, className: "attack" }, attack),
@@ -13,7 +19,7 @@ const card = (prefix, { waza = "", attack = "", technique = "", form = "", badge
     h("div", { id: `${prefix}-form`, className: "form" }, form),
     h("div", { id: `${prefix}-badges`, className: "badges" }, badges),
     h("div", { id: `${prefix}-note`, className: "note" }, note),
-    video ? h("a", { id: `${prefix}-video`, className: "video", href: video, target: "_blank", rel: "noopener" }, "▶ Voir la vidéo") : null,
+    video ? h("a", { id: `${prefix}-video`, className: "video", href: video, target: "_blank", rel: "noopener", onClick: warnVideo ? askVideo(video) : null }, "▶ Voir la vidéo") : null,
   );
 
 const home = (model) => {
@@ -43,6 +49,7 @@ const draw = (model) => {
     badges: badgesOf(current.technique),
     note: current.technique.note || "",
     video: current.technique.video || "",
+    warnVideo: !model.skipVideoWarning,
   };
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
@@ -93,7 +100,7 @@ const levels = {
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
-      fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "" },
+      fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "", warnVideo: !model.skipVideoWarning },
       // Last row of the first screen (see `.screen.full`).
       actions: h("div", { className: "pager" },
         h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
@@ -129,6 +136,18 @@ const footer = () => h("footer", {},
   h("p", {}, "Développé par amour de l'Aïkido 🙏"),
   h("p", {}, h("a", { href: "manual.html" }, "Manuel d'utilisation")));
 
+const videoModal = (prompt) => prompt && h("div", { id: "video-modal", className: "modal-backdrop" },
+  h("div", { className: "modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "video-modal-text" },
+    h("p", { id: "video-modal-text" }, "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?"),
+    h("label", { className: "field" },
+      h("input", { type: "checkbox", id: "video-dont-ask", checked: prompt.dontAsk, onChange: (event) => ({ type: "SetDontAsk", checked: event.target.checked }) }),
+      " Ne plus afficher ce message"),
+    h("div", { className: "buttons" },
+      h("button", { id: "video-confirm", onClick: { type: "ConfirmVideo" } }, "Voir la vidéo"),
+      h("button", { id: "video-cancel", className: "secondary", onClick: { type: "CancelVideo" } }, "Annuler"))));
+
+const page = (model, ...children) => h("main", {}, ...children, footer(), videoModal(model.videoPrompt));
+
 const loadingView = () => h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
 
 const errorView = (model) => h("p", { className: "hint" }, model.error);
@@ -141,16 +160,16 @@ const fullHeightScreens = { draw };
 export function view(model) {
   const header = title();
   if (model.status === "ready" && model.screen === "program") {
-    return h("main", {}, program(model, header), footer());
+    return page(model, program(model, header));
   }
 
   if (model.status !== "ready") {
-    return h("main", {}, header, model.status === "loading" ? loadingView() : errorView(model), footer());
+    return page(model, header, model.status === "loading" ? loadingView() : errorView(model));
   }
 
   const body = { home, draw }[model.screen](model);
   if (model.screen in fullHeightScreens) {
-    return h("main", {}, h("div", { className: "screen full" }, header, body), footer());
+    return page(model, h("div", { className: "screen full" }, header, body));
   }
-  return h("main", {}, header, body, footer());
+  return page(model, header, body);
 }

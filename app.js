@@ -1,5 +1,5 @@
 // Entry point: wires the model, the view and the effects together (see src/).
-import { createEffects } from "./src/effects.js";
+import { SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
 import { swipeDirection } from "./src/gesture.js";
 import { createRenderer } from "./src/vdom.js";
 import { run } from "./src/runtime.js";
@@ -13,15 +13,24 @@ const renderer = createRenderer(root);
 
 let last = "";
 const render = (vnode, dispatch) => {
-  const snapshot = JSON.stringify(vnode);
+  // The modal is an overlay: opening or closing it must not scroll the page.
+  const snapshot = JSON.stringify(vnode, (key, value) => (value?.props?.id === "video-modal" ? undefined : value));
   renderer(vnode, dispatch);
   if (snapshot !== last) window.scrollTo(0, 0);
   last = snapshot;
 };
 
+function readFlag(key) {
+  try {
+    return localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
 run({
   init,
-  flags: { hash: location.hash, position: history.state?.position ?? 0 },
+  flags: { hash: location.hash, position: history.state?.position ?? 0, skipVideoWarning: readFlag(SKIP_VIDEO_WARNING_KEY) },
   update,
   view,
   render,
