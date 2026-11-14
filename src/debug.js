@@ -95,7 +95,7 @@ export function panelView(panel, model) {
 const STYLE = `
 #debug { position: fixed; right: 0; bottom: 0; left: 0; z-index: 20; font: 12px/1.4 ui-monospace, Menlo, monospace; pointer-events: none; }
 #debug > * { pointer-events: auto; }
-#debug button { all: unset; box-sizing: border-box; cursor: pointer; padding: .4rem .7rem; border-radius: 6px; background: #3a4150; color: #eceff4; font: inherit; }
+#debug button { all: unset; box-sizing: border-box; cursor: pointer; padding: .4rem .7rem; border-radius: 6px; background: #3a4150; color: #eceff4; font: inherit; pointer-events: auto; }
 #debug button.on { background: #c0392b; }
 #debug .dbg-toggle { position: absolute; right: .5rem; bottom: .5rem; background: #000c; border: 1px solid #555; }
 #debug .dbg-panel { height: 55dvh; overflow: auto; padding: .5rem; background: #0d1117f2; color: #c9d1d9; border-top: 2px solid #c0392b; }
