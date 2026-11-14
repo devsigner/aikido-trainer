@@ -11,6 +11,8 @@ const askVideo = (url) => (event) => {
   return { type: "AskVideo", url };
 };
 
+// Card of a technique, used in the draw and program screens.
+// The `prefix` is used to generate the element ids.
 const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "", warnVideo = false }, id = prefix, extra = {}) =>
   h("div", { id, className: "card", ...extra },
     h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
@@ -22,6 +24,7 @@ const card = (prefix, { waza = "", attack = "", technique = "", form = "", badge
     video ? h("a", { id: `${prefix}-video`, className: "video", href: video, target: "_blank", rel: "noopener", onClick: warnVideo ? askVideo(video) : null }, "▶ Voir la vidéo") : null,
   );
 
+// Home screen: choose a waza and start a session.
 const home = (model) => {
   const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(model.data, waza, model.filters).length === 0]));
   return h("section", { id: "home" },
@@ -39,6 +42,7 @@ const home = (model) => {
       h("p", { id: "home-msg", className: "hint" }, Object.values(empty).some(Boolean) ? "Un waza grisé n'a aucune technique pour ces filtres." : "")));
 };
 
+// Draw screen: show a technique and ask if the user knows it.
 const draw = (model) => {
   const { current } = model;
   const shown = current && {
@@ -65,6 +69,10 @@ const item = (label, to) => h("button", { className: "item", onClick: { type: "N
 
 const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim();
 
+// Program screen:
+// 1/ choose an attack,
+// 2/ then a technique,
+// 3/ then see other attacks with the same technique.
 const levels = {
   1(model) {
     const attacks = listAttacks(model.data, model.waza);
@@ -159,12 +167,15 @@ const fullHeightScreens = { draw };
 
 export function view(model) {
   const header = title();
-  if (model.status === "ready" && model.screen === "program") {
-    return page(model, program(model, header));
-  }
 
+  // The other screens are stacked vertically, with the footer below the fold.
   if (model.status !== "ready") {
     return page(model, header, model.status === "loading" ? loadingView() : errorView(model));
+  }
+
+  // The program screen is a special case: the first page fills the viewport, the list is below.
+  if (model.screen === "program") {
+    return page(model, program(model, header));
   }
 
   const body = { home, draw }[model.screen](model);

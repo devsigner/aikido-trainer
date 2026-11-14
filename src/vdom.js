@@ -1,3 +1,5 @@
+const PROPS_DOM = new Set(["hidden", "disabled", "checked", "selected", "value"]);
+
 // Mini virtual DOM: h() describes the tree, createRenderer() updates the real DOM by diffing.
 // A handler (onclick, onchange…) is a message, or a function (event → message).
 export function h(tag, props, ...children) {
@@ -6,8 +8,23 @@ export function h(tag, props, ...children) {
   return { tag, props: clean, children: kids.map((child) => (typeof child === "object" ? child : String(child))) };
 }
 
-const PROPS_DOM = new Set(["hidden", "disabled", "checked", "selected", "value"]);
+// The renderer is a function that takes a virtual node and a dispatch function,
+// and renders the virtual node into the root element.
+// It keeps track of the previous virtual node to compute the diff.
+export function createRenderer(root, doc = root.ownerDocument) {
+  let previous = null;
+  return (vnode, dispatch) => {
+    const context = { doc, dispatch };
+    if (!previous) root.appendChild(create(vnode, context));
+    else {
+      const patched = patchNode(root.firstChild, previous, vnode, context);
+      if (patched !== root.firstChild) root.replaceChild(patched, root.firstChild);
+    }
+    previous = vnode;
+  };
+}
 
+// Set a property of a real DOM node, with special handling for event handlers and className.
 function setProp(element, key, value, context) {
   if (key.startsWith("on")) element[key.toLowerCase()] = (event) => context.dispatch(typeof value === "function" ? value(event) : value);
   else if (key === "className") element.className = value;
@@ -15,6 +32,7 @@ function setProp(element, key, value, context) {
   else element.setAttribute(key, value);
 }
 
+// Unset a property of a real DOM node, restoring its default value.
 function unsetProp(element, key) {
   if (key.startsWith("on")) element[key.toLowerCase()] = null;
   else if (key === "className") element.className = "";
@@ -22,6 +40,7 @@ function unsetProp(element, key) {
   else element.removeAttribute(key);
 }
 
+// Update the properties of a real DOM node to match the next virtual node.
 function setProps(element, old, next, context) {
   for (const key of Object.keys(old)) if (!(key in next)) unsetProp(element, key);
   for (const [key, value] of Object.entries(next)) {
@@ -30,6 +49,7 @@ function setProps(element, old, next, context) {
   }
 }
 
+// Create a real DOM node from a virtual node, recursively creating its children.
 function create(vnode, context) {
   if (typeof vnode === "string") return context.doc.createTextNode(vnode);
   const element = context.doc.createElement(vnode.tag);
@@ -62,17 +82,4 @@ function patchNode(node, old, next, context) {
   patchChildren(node, old.children, next.children, context);
   setProps(node, old.props, next.props, context);
   return node;
-}
-
-export function createRenderer(root, doc = root.ownerDocument) {
-  let previous = null;
-  return (vnode, dispatch) => {
-    const context = { doc, dispatch };
-    if (!previous) root.appendChild(create(vnode, context));
-    else {
-      const patched = patchNode(root.firstChild, previous, vnode, context);
-      if (patched !== root.firstChild) root.replaceChild(patched, root.firstChild);
-    }
-    previous = vnode;
-  };
 }
