@@ -29,7 +29,21 @@ const json = (value) => JSON.stringify(value, null, 2) ?? "undefined";
 const short = (value) => (typeof value === "string" ? value : JSON.stringify(value) ?? "undefined");
 
 // ---------- Panel state (pure) ----------
-export const initialPanel = () => ({ open: false, tab: "state", selected: null, entries: [], counter: 0 });
+const MIN_WIDTH = 200;
+const MIN_HEIGHT = 140;
+const clamp = (value, min, max) => Math.max(min, Math.min(value, Math.max(min, max)));
+
+// `box` = position and size of the panel in px; `drag` = pointer gesture in progress ({ mode: "move" | "resize", x, y, box }).
+export const initialPanel = () => ({ open: false, tab: "state", selected: null, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
+
+// Keeps at least a grabbable part of the panel inside the viewport.
+function dragged({ drag }, { x, y, viewport }) {
+  const dx = x - drag.x;
+  const dy = y - drag.y;
+  const { box } = drag;
+  if (drag.mode === "move") return { ...box, x: clamp(box.x + dx, 0, viewport.width - 60), y: clamp(box.y + dy, 0, viewport.height - 40) };
+  return { ...box, w: clamp(box.w + dx, MIN_WIDTH, viewport.width - box.x), h: clamp(box.h + dy, MIN_HEIGHT, viewport.height - box.y) };
+}
 
 export function panelUpdate(panel, msg) {
   switch (msg.type) {
@@ -45,12 +59,24 @@ export function panelUpdate(panel, msg) {
       return { ...panel, selected: panel.selected === msg.id ? null : msg.id };
     case "Clear":
       return { ...panel, entries: [], selected: null };
+    case "DragStart":
+      return { ...panel, drag: { mode: msg.mode, x: msg.x, y: msg.y, box: panel.box } };
+    case "Drag":
+      return panel.drag ? { ...panel, box: dragged(panel, msg) } : panel;
+    case "DragEnd":
+      return { ...panel, drag: null };
     default:
       return panel;
   }
 }
 
 // ---------- Panel view ----------
+// Starts a move or a resize; the pointer is then followed on the document (see `mountDebugger`).
+const grab = (mode) => (event) => {
+  event.preventDefault?.();
+  return { type: "DragStart", mode, x: event.clientX, y: event.clientY };
+};
+
 const tab = (panel, id, label) => h("button", { className: panel.tab === id ? "on" : "", onClick: { type: "Tab", tab: id } }, label);
 
 const detail = (entry) => h("div", { className: "dbg-detail" },
@@ -87,9 +113,11 @@ const stateTab = (model) => [
 export function panelView(panel, model) {
   return h("div", { id: "debug" },
     h("button", { className: "dbg-toggle", onClick: { type: "Toggle" } }, panel.open ? "✕" : `🐞 ${panel.counter}`),
-    panel.open && h("div", { className: "dbg-panel" },
+    panel.open && h("div", { className: "dbg-panel", style: `left:${panel.box.x}px;top:${panel.box.y}px;width:${panel.box.w}px;height:${panel.box.h}px` },
+      h("div", { className: "dbg-bar", onPointerDown: grab("move") }, "🐞 Debug · glisser pour déplacer"),
       h("div", { className: "dbg-tabs" }, tab(panel, "state", "État"), tab(panel, "log", `Messages (${panel.entries.length})`)),
-      panel.tab === "state" ? stateTab(model) : logTab(panel)));
+      h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(model) : logTab(panel)),
+      h("div", { className: "dbg-resize", onPointerDown: grab("resize") })));
 }
 
 const STYLE = `
@@ -98,8 +126,12 @@ const STYLE = `
 #debug button { all: unset; box-sizing: border-box; cursor: pointer; padding: .4rem .7rem; border-radius: 6px; background: #3a4150; color: #eceff4; font: inherit; pointer-events: auto; }
 #debug button.on { background: #c0392b; }
 #debug .dbg-toggle { position: absolute; right: .5rem; bottom: .5rem; background: #000c; border: 1px solid #555; }
-#debug .dbg-panel { height: 55dvh; overflow: auto; padding: .5rem; background: #0d1117f2; color: #c9d1d9; border-top: 2px solid #c0392b; }
-#debug .dbg-tabs, #debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
+#debug .dbg-panel { position: fixed; display: flex; flex-direction: column; background: #0d1117f2; color: #c9d1d9; border: 2px solid #c0392b; border-radius: 8px; overflow: hidden; }
+#debug .dbg-bar { padding: .35rem .5rem; background: #c0392b; color: #fff; cursor: move; user-select: none; -webkit-user-select: none; touch-action: none; }
+#debug .dbg-tabs { display: flex; gap: .4rem; padding: .5rem .5rem 0; }
+#debug .dbg-body { flex: 1; min-height: 0; overflow: auto; padding: .5rem; }
+#debug .dbg-resize { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #c0392b 50%); }
+#debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
 #debug pre { margin: 0 0 .5rem; white-space: pre-wrap; word-break: break-all; }
 #debug .dbg-entry { display: flex; gap: .5rem; width: 100%; margin-bottom: .2rem; background: #161b22; }
 #debug .dbg-entry.on { background: #30363d; }
@@ -119,7 +151,8 @@ export function mountDebugger(doc = document) {
   doc.body.appendChild(root);
   const render = createRenderer(root);
 
-  let panel = initialPanel();
+  const start = initialPanel();
+  let panel = { ...start, box: { ...start.box, w: Math.min(start.box.w, innerWidth - 16), h: Math.min(start.box.h, innerHeight - 96) } };
   let control = null;
   const paint = () => render(panelView(panel, control?.getModel()), dispatch);
   const clock = () => new Date().toLocaleTimeString("fr-FR");
@@ -127,8 +160,25 @@ export function mountDebugger(doc = document) {
   function dispatch(msg) {
     if (msg.type === "Restore") control.restore(panel.entries.find((entry) => entry.id === msg.id).after);
     else if (msg.type === "Copy") globalThis.navigator?.clipboard?.writeText(msg.text);
-    else panel = panelUpdate(panel, msg);
+    else {
+      panel = panelUpdate(panel, msg);
+      if (msg.type === "DragStart") follow();
+    }
     paint();
+  }
+
+  // Follows the pointer on the whole document until it is released.
+  function follow() {
+    const move = (event) => dispatch({ type: "Drag", x: event.clientX, y: event.clientY, viewport: { width: innerWidth, height: innerHeight } });
+    const stop = () => {
+      doc.removeEventListener("pointermove", move);
+      doc.removeEventListener("pointerup", stop);
+      doc.removeEventListener("pointercancel", stop);
+      dispatch({ type: "DragEnd" });
+    };
+    doc.addEventListener("pointermove", move);
+    doc.addEventListener("pointerup", stop);
+    doc.addEventListener("pointercancel", stop);
   }
 
   return {

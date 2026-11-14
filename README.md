@@ -237,7 +237,7 @@ Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). Le 
 
 #### Mode debug
 
-Ajoute `?debug` à l'URL (ex. `http://localhost:8000/?debug`) : un bouton 🐞 ouvre un panneau, à la manière du debugger d'Elm.
+Ajoute `?debug` à l'URL (ex. `http://localhost:8000/?debug`) : un bouton 🐞 ouvre un panneau flottant, à la manière du debugger d'Elm. Il s'ouvre à gauche de l'écran ; on le **déplace** en glissant sa barre rouge et on le **redimensionne** avec le coin en bas à droite (souris ou doigt).
 
 - **État** : le modèle courant en JSON (les données des grades et le pool de tirage sont résumés).
 - **Messages** : le journal de tous les messages (200 derniers). Un clic affiche le message, les **commandes** qu'il a produites et les **champs du modèle modifiés**.

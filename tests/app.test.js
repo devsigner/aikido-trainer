@@ -584,6 +584,18 @@ describe("debug mode", () => {
     assert.equal(rendered.at(-1), 0);
   });
 
+  test("the panel can be moved and resized with the pointer, kept inside the viewport", () => {
+    const viewport = { width: 500, height: 800 };
+    const base = initialPanel();
+    const moved = panelUpdate(panelUpdate(base, { type: "DragStart", mode: "move", x: 100, y: 100 }), { type: "Drag", x: 160, y: 130, viewport });
+    assert.deepEqual([moved.box.x, moved.box.y, moved.box.w, moved.box.h], [base.box.x + 60, base.box.y + 30, base.box.w, base.box.h]);
+    const away = panelUpdate(moved, { type: "Drag", x: 9999, y: -9999, viewport });
+    assert.deepEqual([away.box.x, away.box.y], [440, 0]);
+    const resized = panelUpdate(panelUpdate(base, { type: "DragStart", mode: "resize", x: 0, y: 0 }), { type: "Drag", x: 50, y: -9999, viewport });
+    assert.deepEqual([resized.box.x, resized.box.w, resized.box.h], [base.box.x, base.box.w + 50, 140]);
+    assert.equal(panelUpdate(panelUpdate(moved, { type: "DragEnd" }), { type: "Drag", x: 300, y: 300, viewport }).box.x, moved.box.x);
+  });
+
   test("the panel keeps a numbered log, shows the selected entry and toggles", () => {
     const entry = { msg: { type: "Next" }, before: { a: 1 }, after: { a: 2 }, cmds: [{ type: "Random" }] };
     let panel = panelUpdate(initialPanel(), { type: "Recorded", entry, time: "10:00:00" });
