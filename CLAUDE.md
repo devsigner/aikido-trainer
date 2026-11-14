@@ -113,6 +113,7 @@ No test dependencies: Node's built-in runner (≥ 20).
 
 ```
 yarn test
+yarn lint     # ESLint (eslint.config.js)
 ```
 
 - `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache, `src/` modules).
@@ -157,7 +158,7 @@ data/3eme-kyo.json    3rd Kyo program (complete, without `includes`)
 data/2eme-kyo.json    2nd Kyo additions and overrides (inherits from the 3rd)
 data/1er-kyo.json     1st Kyo additions and overrides (inherits from the 2nd and the 3rd)
 tests/*.test.js       Tests (node:test), `tests/helpers.js`: utilities
-package.json          `yarn server` and `yarn test` scripts, package manager (`packageManager`)
+package.json          `yarn server`, `yarn test` and `yarn lint` scripts, package manager (`packageManager`)
 yarn.lock             Locked dependency versions
 ```
 

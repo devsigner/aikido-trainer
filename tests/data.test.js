@@ -4,7 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { ROOT, read, readJson, resolveGrade, parentsOf, keysOf, WAZA } from "./helpers.js";
-import { mergeGrades } from "../src/logic.js";
 
 describe("JSON data", () => {
   const grades = readJson("data/grades.json");
