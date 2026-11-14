@@ -603,7 +603,14 @@ describe("debug mode", () => {
     assert.deepEqual(panel.entries.map((recorded) => recorded.id), [1, 2]);
     assert.equal(panel.entries[0].changes[0].key, "a");
     assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-panel").length, 0);
-    panel = panelUpdate(panelUpdate(panel, { type: "Toggle" }), { type: "Tab", tab: "log" });
+    panel = panelUpdate(panel, { type: "Toggle" });
+    const close = find(panelView(panel, {}), (node) => node.props.className === "dbg-close")[0];
+    assert.equal(panelUpdate(panel, close.props.onClick).open, false);
+    const bar = find(panelView(panel, {}), (node) => node.props.className === "dbg-bar")[0];
+    const onButton = { target: { closest: () => ({}) }, clientX: 1, clientY: 1 };
+    assert.equal(bar.props.onPointerDown(onButton).type, "Noop");
+    assert.equal(bar.props.onPointerDown({ target: { closest: () => null }, clientX: 1, clientY: 1 }).type, "DragStart");
+    panel = panelUpdate(panel, { type: "Tab", tab: "log" });
     panel = panelUpdate(panel, { type: "Select", id: 2 });
     assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-detail").length, 1);
     assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-copy").length, 0);

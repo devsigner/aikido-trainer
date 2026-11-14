@@ -73,6 +73,7 @@ export function panelUpdate(panel, msg) {
 // ---------- Panel view ----------
 // Starts a move or a resize; the pointer is then followed on the document (see `mountDebugger`).
 const grab = (mode) => (event) => {
+  if (event.target.closest?.("button")) return { type: "Noop" };
   event.preventDefault?.();
   return { type: "DragStart", mode, x: event.clientX, y: event.clientY };
 };
@@ -114,7 +115,9 @@ export function panelView(panel, model) {
   return h("div", { id: "debug" },
     h("button", { className: "dbg-toggle", onClick: { type: "Toggle" } }, panel.open ? "✕" : `🐞 ${panel.counter}`),
     panel.open && h("div", { className: "dbg-panel", style: `left:${panel.box.x}px;top:${panel.box.y}px;width:${panel.box.w}px;height:${panel.box.h}px` },
-      h("div", { className: "dbg-bar", onPointerDown: grab("move") }, "🐞 Debug · glisser pour déplacer"),
+      h("div", { className: "dbg-bar", onPointerDown: grab("move") },
+        h("span", {}, "🐞 Debug · glisser pour déplacer"),
+        h("button", { className: "dbg-close", title: "Fermer le panneau", "aria-label": "Fermer le panneau", onClick: { type: "Toggle" } }, "✕")),
       h("div", { className: "dbg-tabs" }, tab(panel, "state", "État"), tab(panel, "log", `Messages (${panel.entries.length})`)),
       h("div", { className: "dbg-content" },
         h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(model) : logTab(panel)),
@@ -129,7 +132,8 @@ const STYLE = `
 #debug button.on { background: #c0392b; }
 #debug .dbg-toggle { position: absolute; right: .5rem; bottom: .5rem; background: #000c; border: 1px solid #555; }
 #debug .dbg-panel { position: fixed; display: flex; flex-direction: column; background: #0d1117f2; color: #c9d1d9; border: 2px solid #c0392b; border-radius: 8px; overflow: hidden; }
-#debug .dbg-bar { padding: .35rem .5rem; background: #c0392b; color: #fff; cursor: move; user-select: none; -webkit-user-select: none; touch-action: none; }
+#debug .dbg-bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .35rem .5rem; background: #c0392b; color: #fff; cursor: move; user-select: none; -webkit-user-select: none; touch-action: none; }
+#debug .dbg-close { padding: .1rem .5rem; background: #0004; }
 #debug .dbg-tabs { display: flex; gap: .4rem; padding: .5rem .5rem 0; }
 #debug .dbg-content { position: relative; flex: 1; min-height: 0; display: flex; }
 #debug .dbg-body { flex: 1; min-height: 0; overflow: auto; padding: .5rem; }
