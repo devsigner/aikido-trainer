@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.28`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.29`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -148,7 +148,8 @@ sw.js                 Service worker (offline)
 icons/                App icons (192, 512, apple-touch-icon)
 app.js                Entry point (assembles init/update/view/effects)
 src/logic.js          Pure functions (merge, pool, weighting, sorting)
-src/update.js         Model, Msg, update
+src/update.js         initialModel, init, update (dispatch by msg.type)
+src/update-*.js       one module per feature (grade, draw, program, navigation, video, history): initialModel + updateHandler
 src/route.js          URL (hash) ⇄ model
 src/debug.js          Debug mode panel (state, message log, time travel)
 src/view.js           view(model) → vnodes

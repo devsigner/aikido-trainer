@@ -1,0 +1,36 @@
+// Feature "navigation": the URL is the source of truth (reload, browser back/forward).
+// Owns: pending. Orchestrates the draw and program features to put the model in the state of a route.
+import { WAZA_ORDER } from "./logic.js";
+import { parseHash } from "./route.js";
+import { noSession, session } from "./update-draw.js";
+import { validProgram } from "./update-program.js";
+
+export const initialModel = {
+  pending: null, // route from the URL, applied once the data is loaded
+};
+
+// Puts the model in the state described by the route (the grade data must be loaded).
+export function applyRoute(model, route) {
+  // Unknown waza → home, unknown program → level above.
+  if (!WAZA_ORDER.includes(route.waza)) return [{ ...model, ...noSession() }, []];
+
+  const base = model.screen !== "home" && model.waza === route.waza ? model : session(model, route.waza);
+  const program = validProgram(base.data, route);
+
+  const next = program ? { ...base, screen: "program", program } : { ...base, screen: "draw", program: null };
+  const needsDraw = next.screen === "draw" && !next.current && !next.done && next.pool.length > 0;
+
+  return [next, needsDraw ? [{ type: "Random" }] : []];
+}
+
+// A route of another grade first loads that grade (the route waits in `pending`).
+function goTo(model, route) {
+  const grade = model.grades.find((candidate) => candidate.id === route.grade);
+  if (grade && grade.id !== model.gradeId) return [{ ...model, gradeId: grade.id, pending: route }, [{ type: "LoadGrade", grade }]];
+  return applyRoute(model, route);
+}
+
+export const updateHandler = {
+  // Browser navigation: the URL is the source of truth.
+  Popped: (model, msg) => (model.status === "ready" ? goTo(model, parseHash(msg.hash)) : [model, []]),
+};
