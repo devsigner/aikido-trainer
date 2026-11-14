@@ -14,13 +14,15 @@ root.replaceChildren(); // remove the static splash from index.html
 // and renders the virtual node into the root element.
 const renderer = createRenderer(root);
 
-let last = "";
+let lastSnapshot = "";
+// custom render function that compares the current virtual node with the last one,
+// and scrolls to the top if they are different.
 const render = (vnode, dispatch) => {
   // The modal is an overlay: opening or closing it must not scroll the page.
   const snapshot = JSON.stringify(vnode, (_key, value) => (value?.props?.id === "video-modal" ? undefined : value));
   renderer(vnode, dispatch);
-  if (snapshot !== last) window.scrollTo(0, 0);
-  last = snapshot;
+  if (snapshot !== lastSnapshot) window.scrollTo(0, 0);
+  lastSnapshot = snapshot;
 };
 
 // launch the app with the initial flags (hash, history position, skip video warning).
@@ -29,9 +31,13 @@ run({
   update,
   view,
   render,
-  effects: createEffects(),
   subscribe: subscriber,
-  flags: { hash: location.hash, position: history.state?.position ?? 0, skipVideoWarning: readFlag(SKIP_VIDEO_WARNING_KEY) },
+  effects: createEffects(),
+  flags: {
+    hash: location.hash,
+    position: history.state?.position ?? 0,
+    skipVideoWarning: readFlag(SKIP_VIDEO_WARNING_KEY)
+  },
 });
 
 function subscriber(dispatch) {
