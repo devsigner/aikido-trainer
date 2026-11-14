@@ -6,6 +6,8 @@ import { h } from "../src/vdom.js";
 import { parseHash, toHash } from "../src/route.js";
 import { update, init, initialModel } from "../src/update.js";
 import { view } from "../src/view.js";
+import { summarize, diffModels, panelUpdate, panelView, initialPanel } from "../src/debug.js";
+import { run } from "../src/runtime.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
 const DATA = {
@@ -541,5 +543,57 @@ describe("video confirmation", () => {
     const { app } = await setup({ skipVideoWarning: true });
     assert.equal(app.card().video.props.onClick, undefined);
     assert.equal(app.card().video.props.href, "https://v");
+  });
+});
+
+describe("debug mode", () => {
+  test("summarize hides the bulky parts of the model", () => {
+    const model = { ...initialModel(), data: readJson("data/2eme-kyo.json"), pool: [1, 2, 3] };
+    const summary = summarize(model);
+    assert.match(summary.data, /techniques/);
+    assert.equal(summary.pool, "[3 éléments]");
+    assert.equal(summary.status, "loading");
+  });
+
+  test("diffModels lists only the changed fields", () => {
+    const before = { ...initialModel(), waza: "", pool: [1, 2] };
+    const after = { ...before, waza: "Tachi waza", pool: [1] };
+    assert.deepEqual(diffModels(before, after).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[2 éléments]", "[1 éléments]"]]);
+    assert.deepEqual(diffModels(before, before), []);
+    assert.ok(diffModels(null, before).length > 0);
+  });
+
+  test("the runtime reports each step, effects after the message that caused them, and can restore a past model", () => {
+    const records = [];
+    let handle;
+    const rendered = [];
+    const dispatch = run({
+      init: () => [{ n: 0 }, []],
+      update: (model, msg) => (msg.type === "Inc" ? [{ n: model.n + 1 }, [{ type: "Echo" }]] : [model, []]),
+      view: (model) => model.n,
+      render: (tree) => rendered.push(tree),
+      effects: { Echo: (_, send) => send({ type: "Noop" }) },
+      debug: { attach: (control) => (handle = control), record: (entry) => records.push(entry) },
+    });
+    dispatch({ type: "Inc" });
+    assert.deepEqual(records.map((entry) => entry.msg.type), ["@init", "Inc", "Noop"]);
+    assert.deepEqual(records[1].cmds, [{ type: "Echo" }]);
+    assert.deepEqual([records[1].before, records[1].after], [{ n: 0 }, { n: 1 }]);
+    handle.restore(records[0].after);
+    assert.deepEqual(handle.getModel(), { n: 0 });
+    assert.equal(rendered.at(-1), 0);
+  });
+
+  test("the panel keeps a numbered log, shows the selected entry and toggles", () => {
+    const entry = { msg: { type: "Next" }, before: { a: 1 }, after: { a: 2 }, cmds: [{ type: "Random" }] };
+    let panel = panelUpdate(initialPanel(), { type: "Recorded", entry, time: "10:00:00" });
+    panel = panelUpdate(panel, { type: "Recorded", entry, time: "10:00:01" });
+    assert.deepEqual(panel.entries.map((recorded) => recorded.id), [1, 2]);
+    assert.equal(panel.entries[0].changes[0].key, "a");
+    assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-panel").length, 0);
+    panel = panelUpdate(panelUpdate(panel, { type: "Toggle" }), { type: "Tab", tab: "log" });
+    panel = panelUpdate(panel, { type: "Select", id: 2 });
+    assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-detail").length, 1);
+    assert.equal(panelUpdate(panelUpdate(panel, { type: "Select", id: 2 }), { type: "Clear" }).entries.length, 0);
   });
 });

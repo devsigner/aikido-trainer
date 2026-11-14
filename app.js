@@ -3,7 +3,7 @@ import { createRenderer } from "./src/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
 import { init, update } from "./src/update.js";
 import { run } from "./src/runtime.js";
-import { SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
+import { DEBUG_KEY, SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
 import { view } from "./src/view.js";
 
 // Render, and scroll back to the top when the displayed tree actually changed.
@@ -25,6 +25,12 @@ const render = (vnode, dispatch) => {
   lastSnapshot = snapshot;
 };
 
+// Debug mode: `?debug` turns it on (and remembers it), `?debug=0` turns it off. The module is loaded only when on.
+const debugParam = new URLSearchParams(location.search).get("debug");
+if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
+const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
+const debugObserver = debug ? (await import("./src/debug.js")).mountDebugger() : undefined;
+
 // launch the app with the initial flags (hash, history position, skip video warning).
 run({
   init,
@@ -32,6 +38,7 @@ run({
   view,
   render,
   subscribe: subscriber,
+  debug: debugObserver,
   effects: createEffects(),
   flags: {
     hash: location.hash,
@@ -48,6 +55,15 @@ function subscriber(dispatch) {
       position: history.state?.position ?? 0
     })
   });
+}
+
+function writeFlag(key, value) {
+  try {
+    if (value) localStorage.setItem(key, "1");
+    else localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable (private mode): the flag only lasts for this visit.
+  }
 }
 
 // Read a boolean flag from localStorage, returning false if unavailable (private mode).

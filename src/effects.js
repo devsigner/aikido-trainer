@@ -2,6 +2,7 @@
 import { countTechniques, mergeGrades } from "./logic.js";
 
 export const SKIP_VIDEO_WARNING_KEY = "aikido.skipVideoWarning";
+export const DEBUG_KEY = "aikido.debug";
 
 export async function resolveGrade(grade, fetchJson) {
   const files = [...(grade.includes || []), grade.file];

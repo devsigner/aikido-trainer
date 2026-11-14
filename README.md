@@ -235,6 +235,17 @@ flowchart LR
 
 Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). Le modèle retient sa position dans l'historique, ce qui permet de savoir si un `popstate` est un retour ou une avance et d'orienter l'animation en conséquence.
 
+#### Mode debug
+
+Ajoute `?debug` à l'URL (ex. `http://localhost:8000/?debug`) : un bouton 🐞 ouvre un panneau, à la manière du debugger d'Elm.
+
+- **État** : le modèle courant en JSON (les données des grades et le pool de tirage sont résumés).
+- **Messages** : le journal de tous les messages (200 derniers). Un clic affiche le message, les **commandes** qu'il a produites et les **champs du modèle modifiés**.
+- **Voyage dans le temps** : « Revenir à l'état après ce message » remet le modèle d'alors (les effets ne sont pas rejoués ; l'URL n'est pas modifiée).
+- **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__aikido.model`, `__aikido.log`, `__aikido.restore(id)`.
+
+Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module `src/debug.js` n'est chargé que s'il est actif : aucun coût en usage normal. Il s'appuie sur un simple observateur (`debug`) de `run`, qui reçoit chaque `{ msg, before, after, cmds }`.
+
 #### Ajouter une fonctionnalité
 
 1. Ajouter les champs nécessaires au **Model** (`initialModel` dans `src/update.js`).
