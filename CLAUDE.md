@@ -116,6 +116,8 @@ yarn test
 yarn lint     # ESLint (eslint.config.js)
 ```
 
+A `pre-commit` hook (`.githooks/`, enabled by `yarn install` through the `prepare` script) runs the lint and the tests before each commit and blocks the commit on failure.
+
 - `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache, `src/` modules).
 - `tests/app.test.js`: pure logic (pool, weighting, sorting, merging), `update`, `h()`, `resolveGrade`, and a full walkthrough using the real runtime with `tests/helpers.js` (virtual tree, simulated history: home, draw without repetition, progress, program, back).
 

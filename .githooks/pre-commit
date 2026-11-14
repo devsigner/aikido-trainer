@@ -1,0 +1,9 @@
+#!/bin/sh
+# Blocks the commit if lint or tests fail. Enabled by `git config core.hooksPath .githooks` (see `yarn prepare`).
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+echo "pre-commit: lint…"
+corepack yarn --silent lint || { echo "pre-commit: lint failed, commit aborted." >&2; exit 1; }
+
+echo "pre-commit: tests…"
+corepack yarn --silent test >/dev/null || { corepack yarn --silent test >&2; echo "pre-commit: tests failed, commit aborted." >&2; exit 1; }
