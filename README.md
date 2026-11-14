@@ -67,7 +67,6 @@ Les boutons « ← … » en haut remontent d'un niveau. Les filtres 🆕/⚠️
 
 ### 4. Navigation
 
-- **Glisser vers la droite / la gauche** sur l'écran : revenir en arrière / avancer dans l'historique (comme les flèches du navigateur).
 - **Boutons précédent / suivant du navigateur** : ils fonctionnent, et la carte glisse dans le sens correspondant.
 - **Chaque écran a sa propre URL** (`#/2eme-kyo/Tachi%20waza/program/Katate%20dori/Sankyo`) : tu peux recharger la page ou partager un lien, l'app revient au même endroit. Un waza dans l'URL relance un tirage.
 
@@ -102,7 +101,7 @@ git commit --no-verify
 
 ```mermaid
 flowchart LR
-    U([Utilisateur / navigateur]) -- "clic, swipe, popstate" --> M["Msg<br/>{ type, … }"]
+    U([Utilisateur / navigateur]) -- "clic, popstate" --> M["Msg<br/>{ type, … }"]
     M --> UP["update(model, msg)<br/>fonction pure"]
     UP -- "nouveau Model" --> V["view(model)<br/>fonction pure"]
     V -- "vnodes" --> R["rendu<br/>(diff du DOM)"]
@@ -123,7 +122,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph entry["Point d'entrée"]
-        APP["app.js<br/>assemble tout, branche popstate et swipe"]
+        APP["app.js<br/>assemble tout, branche popstate"]
     end
     subgraph pure["Cœur pur (testable sans navigateur)"]
         UPD["src/update.js<br/>Model + Msg + update"]
@@ -135,7 +134,6 @@ flowchart TB
         RUN["src/runtime.js<br/>boucle update → view → render"]
         EFF["src/effects.js<br/>fetch, hasard, historique, localStorage"]
         VDOM["src/vdom.js<br/>h() + diff du DOM"]
-        GES["src/gesture.js<br/>détection du swipe"]
     end
     APP --> RUN
     RUN --> UPD
@@ -145,7 +143,6 @@ flowchart TB
     UPD --> LOG
     UPD --> ROUTE
     VIEW --> LOG
-    APP --> GES
 ```
 
 Les modules du cœur pur n'ont aucun effet de bord : ils sont testés directement avec `node:test`. Les tests d'intégration (`tests/helpers.js`) font tourner la **vraie** boucle avec le vrai JSON et un historique simulé.
@@ -210,7 +207,7 @@ Les trois niveaux du programme sont stockés dans `model.program = { level, atta
 | `Rolled` | retour de l'effet `Random` | — |
 | `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `Url` |
 | `GoHome` | « Retour à l'accueil », titre | `Url` |
-| `Popped` | précédent/suivant du navigateur, swipe | — (l'URL fait foi) |
+| `Popped` | précédent/suivant du navigateur | — (l'URL fait foi) |
 | `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |
 | `ConfirmVideo` | « Voir la vidéo » dans la modale | `OpenUrl`, `SaveSkipVideoWarning` |
 
