@@ -105,10 +105,10 @@ const logTab = (panel) => [
   ]),
 ];
 
-const stateTab = (model) => [
-  h("div", { className: "dbg-actions" }, h("button", { onClick: { type: "Copy", text: json(summarize(model)) } }, "Copier l'état")),
-  h("pre", {}, json(summarize(model))),
-];
+const stateTab = (model) => h("pre", {}, json(summarize(model)));
+
+// Icon button pinned to the top right of the content: it stays visible while the state scrolls.
+const copyButton = (model) => h("button", { className: "dbg-copy", title: "Copier l'état", "aria-label": "Copier l'état", onClick: { type: "Copy", text: json(summarize(model)) } }, "📋");
 
 export function panelView(panel, model) {
   return h("div", { id: "debug" },
@@ -116,7 +116,9 @@ export function panelView(panel, model) {
     panel.open && h("div", { className: "dbg-panel", style: `left:${panel.box.x}px;top:${panel.box.y}px;width:${panel.box.w}px;height:${panel.box.h}px` },
       h("div", { className: "dbg-bar", onPointerDown: grab("move") }, "🐞 Debug · glisser pour déplacer"),
       h("div", { className: "dbg-tabs" }, tab(panel, "state", "État"), tab(panel, "log", `Messages (${panel.entries.length})`)),
-      h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(model) : logTab(panel)),
+      h("div", { className: "dbg-content" },
+        h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(model) : logTab(panel)),
+        panel.tab === "state" ? copyButton(model) : null),
       h("div", { className: "dbg-resize", onPointerDown: grab("resize") })));
 }
 
@@ -129,7 +131,9 @@ const STYLE = `
 #debug .dbg-panel { position: fixed; display: flex; flex-direction: column; background: #0d1117f2; color: #c9d1d9; border: 2px solid #c0392b; border-radius: 8px; overflow: hidden; }
 #debug .dbg-bar { padding: .35rem .5rem; background: #c0392b; color: #fff; cursor: move; user-select: none; -webkit-user-select: none; touch-action: none; }
 #debug .dbg-tabs { display: flex; gap: .4rem; padding: .5rem .5rem 0; }
+#debug .dbg-content { position: relative; flex: 1; min-height: 0; display: flex; }
 #debug .dbg-body { flex: 1; min-height: 0; overflow: auto; padding: .5rem; }
+#debug .dbg-copy { position: absolute; top: .4rem; right: 1.2rem; padding: .3rem .45rem; background: #30363d; }
 #debug .dbg-resize { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #c0392b 50%); }
 #debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
 #debug pre { margin: 0 0 .5rem; white-space: pre-wrap; word-break: break-all; }

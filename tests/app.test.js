@@ -606,6 +606,11 @@ describe("debug mode", () => {
     panel = panelUpdate(panelUpdate(panel, { type: "Toggle" }), { type: "Tab", tab: "log" });
     panel = panelUpdate(panel, { type: "Select", id: 2 });
     assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-detail").length, 1);
+    assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-copy").length, 0);
+    const onState = panelView(panelUpdate(panel, { type: "Tab", tab: "state" }), { screen: "home" });
+    const copy = find(onState, (node) => node.props.className === "dbg-copy")[0];
+    assert.equal(text(copy), "📋");
+    assert.match(copy.props.onClick.text, /"screen": "home"/);
     assert.equal(panelUpdate(panelUpdate(panel, { type: "Select", id: 2 }), { type: "Clear" }).entries.length, 0);
   });
 });
