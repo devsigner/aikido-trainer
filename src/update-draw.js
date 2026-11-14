@@ -45,3 +45,8 @@ export const updateHandler = {
     return [next, [url(next, "push")]];
   },
 };
+
+// Effects of the feature: randomness is an effect, so `update` stays pure.
+export const effectHandler = ({ random }) => ({
+  Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
+});

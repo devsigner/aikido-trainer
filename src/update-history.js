@@ -46,3 +46,8 @@ export function withSlide(before, after, msg) {
   if (before.status !== "ready" || sameView(before, after)) return after;
   return { ...after, slide: { direction: slideDirection(before, after, msg), count: after.slide.count + 1 } };
 }
+
+// Effects of the feature: writing the URL in the browser history.
+export const effectHandler = ({ history }) => ({
+  Url: ({ mode, hash, position }) => (mode === "push" ? history.pushState({ position }, "", hash) : history.replaceState({ position }, "", hash)),
+});
