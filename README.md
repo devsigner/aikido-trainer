@@ -88,6 +88,12 @@ yarn test                     # tests (runner natif de Node ≥ 20)
 yarn lint                     # ESLint
 ```
 
+Un hook Git `pre-commit` (dossier `.githooks/`, activé automatiquement par `yarn install`) lance le lint puis les tests avant chaque commit, et bloque le commit en cas d'échec. Pour le contourner exceptionnellement :
+
+```
+git commit --no-verify
+```
+
 ### L'architecture Elm
 
 [Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, en ~700 lignes.
