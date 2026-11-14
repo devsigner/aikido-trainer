@@ -85,6 +85,159 @@ Application 100 % statique, **sans dépendance ni build** : HTML, CSS et JavaScr
 ```
 python3 -m http.server 8000   # puis http://localhost:8000
 yarn test                     # tests (runner natif de Node ≥ 20)
+yarn lint                     # ESLint
 ```
 
-Le détail de l'architecture, du format des données JSON, de l'héritage entre grades, de l'ordre d'affichage et de la procédure de version est dans [`CLAUDE.md`](CLAUDE.md).
+### L'architecture Elm
+
+[Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, en ~700 lignes.
+
+#### La boucle
+
+```mermaid
+flowchart LR
+    U([Utilisateur / navigateur]) -- "clic, swipe, popstate" --> M["Msg<br/>{ type, … }"]
+    M --> UP["update(model, msg)<br/>fonction pure"]
+    UP -- "nouveau Model" --> V["view(model)<br/>fonction pure"]
+    V -- "vnodes" --> R["rendu<br/>(diff du DOM)"]
+    R --> D[(DOM)]
+    D -. "événements" .-> U
+    UP -- "Cmd[ ]" --> E["effets<br/>(réseau, hasard, historique…)"]
+    E -- "résultat = nouveau Msg" --> M
+```
+
+- **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
+- **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…).
+- **`update(model, msg) → [model, cmds]`** : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
+- **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par `src/effects.js`, qui renvoie son résultat sous la forme d'un nouveau message.
+- **`view(model) → vnode`** : fonction **pure** qui produit un arbre de données. Les gestionnaires d'événements sont eux aussi des messages, pas des fonctions qui modifient l'état.
+
+#### Qui fait quoi
+
+```mermaid
+flowchart TB
+    subgraph entry["Point d'entrée"]
+        APP["app.js<br/>assemble tout, branche popstate et swipe"]
+    end
+    subgraph pure["Cœur pur (testable sans navigateur)"]
+        UPD["src/update.js<br/>Model + Msg + update"]
+        VIEW["src/view.js<br/>view → vnodes"]
+        LOG["src/logic.js<br/>fusion des grades, pool, pondération"]
+        ROUTE["src/route.js<br/>URL ⇄ modèle"]
+    end
+    subgraph impure["Frontière avec le monde extérieur"]
+        RUN["src/runtime.js<br/>boucle update → view → render"]
+        EFF["src/effects.js<br/>fetch, hasard, historique, localStorage"]
+        VDOM["src/vdom.js<br/>h() + diff du DOM"]
+        GES["src/gesture.js<br/>détection du swipe"]
+    end
+    APP --> RUN
+    RUN --> UPD
+    RUN --> VIEW
+    RUN --> EFF
+    RUN --> VDOM
+    UPD --> LOG
+    UPD --> ROUTE
+    VIEW --> LOG
+    APP --> GES
+```
+
+Les modules du cœur pur n'ont aucun effet de bord : ils sont testés directement avec `node:test`. Les tests d'intégration (`tests/helpers.js`) font tourner la **vraie** boucle avec le vrai JSON et un historique simulé.
+
+#### Un aller-retour complet : « Technique suivante »
+
+Le hasard est lui-même un effet : `update` ne tire jamais au sort, ce qui rend les tirages **reproductibles dans les tests** (on injecte un `random` fixe).
+
+```mermaid
+sequenceDiagram
+    actor U as Utilisateur
+    participant V as Vue (DOM)
+    participant R as Runtime
+    participant UP as update
+    participant E as Effets
+    U->>V: touche « Technique suivante »
+    V->>R: dispatch({ type: "Next" })
+    R->>UP: update(model, Next)
+    UP-->>R: [model, [{ type: "Random" }]]
+    R->>V: view(model) puis diff du DOM
+    R->>E: exécute Random
+    E->>R: dispatch({ type: "Rolled", value: 0.42 })
+    R->>UP: update(model, Rolled)
+    UP-->>R: [model avec current et pool mis à jour, []]
+    R->>V: view(model) puis diff du DOM
+```
+
+#### Les écrans et leurs transitions
+
+```mermaid
+stateDiagram-v2
+    [*] --> chargement
+    chargement --> accueil: GradesLoaded
+    chargement --> erreur: Failed
+    accueil --> tirage: StartSession
+    tirage --> tirage: Next / Rolled
+    tirage --> accueil: GoHome
+    tirage --> programme: OpenProgram
+    programme --> tirage: CloseProgram
+    programme --> accueil: GoHome
+    state programme {
+        [*] --> attaques
+        attaques --> techniques: Navigate
+        techniques --> fiche: Navigate
+        fiche --> fiche: Précédente / Suivante
+        fiche --> techniques: Navigate (retour)
+        techniques --> attaques: Navigate (retour)
+    }
+```
+
+Les trois niveaux du programme sont stockés dans `model.program = { level, attack?, technique? }`.
+
+#### Principaux messages et effets
+
+| Message | Déclenché par | Effet produit (`cmds`) |
+|---------|---------------|------------------------|
+| `GradesLoaded` / `GradeLoaded` | fin du chargement des JSON | `Url` (remplace l'URL) |
+| `SelectGrade` | liste des grades | `LoadGrade`, `Url` |
+| `SetFilter` | cases 🆕 / ⚠️ | — |
+| `StartSession` | bouton d'un waza | `Url`, `Random` |
+| `Next` | « Technique suivante » | `Random` |
+| `Rolled` | retour de l'effet `Random` | — |
+| `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `Url` |
+| `GoHome` | « Retour à l'accueil », titre | `Url` |
+| `Popped` | précédent/suivant du navigateur, swipe | — (l'URL fait foi) |
+| `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |
+| `ConfirmVideo` | « Voir la vidéo » dans la modale | `OpenUrl`, `SaveSkipVideoWarning` |
+
+#### Le rendu : un mini DOM virtuel
+
+`view` produit des `vnode` (objets simples) avec `h(tag, props, ...enfants)`. `src/vdom.js` compare l'arbre précédent au nouveau et ne modifie dans le DOM réel que ce qui a changé :
+
+```mermaid
+flowchart LR
+    A["vnode précédent"] --> D{"diff"}
+    B["vnode nouveau"] --> D
+    D -- "même balise, même key" --> P["met à jour les propriétés<br/>et les enfants"]
+    D -- "balise ou key différente" --> N["remplace l'élément"]
+```
+
+Une `key` différente force le remplacement de l'élément : c'est ce qui relance l'animation de glissement de la carte à chaque changement de technique.
+
+#### L'URL, source de vérité de la navigation
+
+```mermaid
+flowchart LR
+    MOD["Model"] -- "toHash" --> URL["#/2eme-kyo/Tachi waza/program/<br/>Katate dori/Sankyo"]
+    URL -- "parseHash (chargement, popstate)" --> MOD
+```
+
+Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). Le modèle retient sa position dans l'historique, ce qui permet de savoir si un `popstate` est un retour ou une avance et d'orienter l'animation en conséquence.
+
+#### Ajouter une fonctionnalité
+
+1. Ajouter les champs nécessaires au **Model** (`initialModel` dans `src/update.js`).
+2. Définir le **Msg** et son cas dans `step` (`update`) : renvoyer le nouveau modèle et, si besoin, des `cmds`.
+3. Si un effet est nécessaire, l'ajouter dans `src/effects.js` (il renvoie son résultat par un nouveau message).
+4. Afficher le résultat dans `view` (`src/view.js`) et, si besoin, le style dans `style.css`.
+5. Écrire le test, puis incrémenter la version (voir `CLAUDE.md`).
+
+Le détail du format des données JSON, de l'héritage entre grades, de l'ordre d'affichage et de la procédure de version est dans [`CLAUDE.md`](CLAUDE.md).
