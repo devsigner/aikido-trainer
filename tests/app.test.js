@@ -678,6 +678,9 @@ describe("debug mode", () => {
     assert.equal(text(copy), "📋");
     assert.match(copy.props.onClick.text, /"screen": "home"/);
     assert.equal(panelUpdate(panelUpdate(panel, { type: "Select", id: 2 }), { type: "Clear" }).entries.length, 0);
+    const restores = find(panelView(panel, {}), (node) => node.props.className === "dbg-restore");
+    assert.deepEqual(restores.map((node) => node.props.onClick), [{ type: "Restore", id: 2 }, { type: "Restore", id: 1 }], "one restore button per log line, no need to unfold it");
+    assert.match(restores[0].props.title, /Revenir à l'état après ce message/);
     const back = panelUpdate(panel, { type: "Restored", id: 1 });
     assert.deepEqual(back.entries.map((recorded) => recorded.id), [1], "the steps after the restored one are forgotten");
     assert.equal(back.selected, null);
