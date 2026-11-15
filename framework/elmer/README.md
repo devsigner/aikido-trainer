@@ -107,7 +107,7 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 
 ## La feature `elmer`
 
-`combine` ajoute d'office une feature nommée `elmer` (nom réservé, dernière tranche du modèle) : elle porte les réglages du framework, `model.elmer = { debug: "on" | "off", historySize: 200 }`. Au démarrage, `run` lui donne `flags.elmer` (choix mémorisé, sinon `"on"` en local). Changer un réglage = envoyer un message (`to("elmer", { type: "DebugOn" })`) ; la commande `SaveSetting` le mémorise. Le voyage dans le temps (`restore`) **préserve** `model.elmer`.
+`combine` ajoute d'office une feature nommée `elmer` (nom réservé, dernière tranche du modèle) : elle porte les réglages du framework, `model.elmer = { debug: "on" | "off", persist: true, historySize: 200 }`. Au démarrage, `run` lui donne `flags.elmer` (choix mémorisé, sinon `"on"` en local). Changer un réglage = envoyer un message (`to("elmer", { type: "DebugOn" })`) ; la commande `SaveSetting` le mémorise tant que `persist` est vrai (`__elmer.debug.unpersist()` l'oublie via `ForgetSetting` ; `persist` n'est pas mémorisé lui-même : vrai à chaque démarrage). Le voyage dans le temps (`restore`) **préserve** `model.elmer`.
 
 ## Le debugger
 
@@ -141,6 +141,9 @@ flowchart LR
 | `__elmer.model` | toujours | modèle courant (la racine : une tranche par feature) |
 | `__elmer.debug.on()` | toujours | monte le panneau (et le mémorise) ; renvoie une promesse de `true` |
 | `__elmer.debug.off()` | toujours | le démonte (et désactive le montage automatique, même en local) ; renvoie une promesse de `false` |
+| `__elmer.debug.persist()` | toujours | mémorise le choix on/off dans `localStorage` (par défaut) |
+| `__elmer.debug.unpersist()` | toujours | oublie le choix mémorisé et cesse de le mémoriser : au rechargement, retour au défaut (monté en local) |
+| `__elmer.debug.persisted` | toujours | `true` ou `false` |
 | `__elmer.debug.status` | toujours | `"on"` si le panneau est monté (ou en cours de montage), `"off"` sinon |
 | `__elmer.debug.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
 | `__elmer.debug.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |

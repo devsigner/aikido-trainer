@@ -7,7 +7,7 @@ import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/f
 import { settingsFromEnvironment } from "../framework/elmer/elmer.js";
 import { run } from "../framework/elmer/runtime.js";
 
-const SETTINGS = { debug: "off", historySize: 200 };
+const SETTINGS = { debug: "off", persist: true, historySize: 200 };
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
@@ -72,12 +72,21 @@ describe("elmer combine", () => {
   test("the feature `elmer` is added to every application: settings in model.elmer, saved when they change, name reserved", () => {
     const saved = [];
     const [model] = app.init({ elmer: { debug: "on" } });
-    assert.deepEqual(model.elmer, { debug: "on", historySize: 200 }, "the flags of the environment override the defaults");
+    assert.deepEqual(model.elmer, { debug: "on", persist: true, historySize: 200 }, "the flags of the environment override the defaults");
     const [next, cmds] = app.update(model, to("elmer", { type: "DebugOff" }));
     assert.equal(next.elmer.debug, "off");
     assert.deepEqual(cmds, [{ type: "SaveSetting", key: "debug", value: "off", feature: "elmer" }]);
     app.effects({ storage: { setItem: (key, value) => saved.push([key, value]) } }).SaveSetting(cmds[0], () => {});
     assert.deepEqual(saved, [["elmer.debug", "off"]]);
+    const [quiet, none] = app.update(app.update(next, to("elmer", { type: "PersistOff" }))[0], to("elmer", { type: "DebugOn" }));
+    assert.deepEqual(none, [], "nothing is saved while persist is off");
+    const [, forget] = app.update(model, to("elmer", { type: "PersistOff" }));
+    const removed = [];
+    app.effects({ storage: { removeItem: (key) => removed.push(key) } }).ForgetSetting(forget[0], () => {});
+    assert.deepEqual(removed, ["elmer.debug"]);
+    assert.equal(quiet.elmer.persist, false);
+    const [, again] = app.update(quiet, to("elmer", { type: "PersistOn" }));
+    assert.equal(again[0].value, "on");
     assert.throws(() => combine({ elmer: counter }), /reserved/);
   });
 

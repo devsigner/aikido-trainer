@@ -12,6 +12,9 @@ const HELP = [
   "__elmer.model              current model (one slice per feature, the settings of the framework in `elmer`)",
   "__elmer.debug.on()         mounts the debugger panel (sets model.elmer.debug to \"on\")",
   "__elmer.debug.off()        unmounts it",
+  "__elmer.debug.persist()    saves the choice on/off in the localStorage (default), so it survives a reload",
+  "__elmer.debug.unpersist()  forgets the saved choice and stops saving (a reload goes back to the default: on for a local host)",
+  "__elmer.debug.persisted    true or false (model.elmer.persist)",
   "__elmer.debug.status       \"on\" or \"off\" (model.elmer.debug)",
   "__elmer.debug.log          (panel mounted) log entries { id, msg, before, after, cmds, events, changes, time }",
   "__elmer.debug.restore(id)  (panel mounted) time travel to the state after entry `id`; returns the model, or null",
@@ -66,7 +69,14 @@ export function createDevtools({ config, control, observer }) {
     };
     globalThis.__elmer = {
       get model() { return control.getModel(); },
-      debug: { on: () => set("on"), off: () => set("off"), get status() { return status(); } },
+      debug: {
+        on: () => set("on"),
+        off: () => set("off"),
+        persist: () => control.dispatch(to("elmer", { type: "PersistOn" })),
+        unpersist: () => control.dispatch(to("elmer", { type: "PersistOff" })),
+        get persisted() { return control.getModel().elmer.persist; },
+        get status() { return status(); },
+      },
       get help() { console.log(HELP); return HELP; },
     };
   }
