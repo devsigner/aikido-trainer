@@ -14,13 +14,20 @@ import { feature as slide } from "./features/slide.js";
 import { combine } from "./framework/combine.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
-export const features = { catalog, quiz, program, video, navigation, slide };
+export const features = {
+  catalog,
+  quiz,
+  program,
+  video,
+  navigation,
+  slide
+};
 const standalone = combine(features);
 
 // Bulky fields of the model shown as a summary in the debug panel.
 export const debugHide = {
-  data: (data) => (data ? `[données : ${countTechniques(data)} techniques]` : data),
-  pool: (pool) => (Array.isArray(pool) ? `[${pool.length} éléments]` : pool),
+  data: (data) => (data ? `[...données : ${countTechniques(data)} techniques]` : data),
+  pool: (pool) => (Array.isArray(pool) ? `[...${pool.length} éléments]` : pool),
 };
 
 // Initial model: the slices of every feature (see each module for the field details).

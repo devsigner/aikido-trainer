@@ -6,8 +6,7 @@
 import { defineFeature } from "../framework/combine.js";
 import { h } from "../framework/vdom.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
-import { parseHash } from "../route.js";
-import { feature as navigation } from "./navigation.js";
+import { feature as navigation, parseHash } from "./navigation.js";
 
 const { navigated } = navigation.events;
 

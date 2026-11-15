@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
 import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/shared/logic.js";
 import { h } from "../src/framework/vdom.js";
-import { parseHash, toHash } from "../src/route.js";
+import { parseHash, toHash } from "../src/features/navigation.js";
 import { update, init, initialModel, debugHide } from "../src/update.js";
 import { view } from "../src/view.js";
 import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/framework/debug.js";
@@ -588,14 +588,14 @@ describe("debug mode", () => {
     model.catalog = { ...model.catalog, data: readJson("data/2eme-kyo.json") };
     const summary = summarize(model, debugHide);
     assert.match(summary.catalog.data, /techniques/);
-    assert.equal(summary.pool, "[3 éléments]");
+    assert.equal(summary.pool, "[...3 éléments]");
     assert.equal(summary.catalog.status, "loading");
   });
 
   test("diffModels lists only the changed fields", () => {
     const before = { ...initialModel(), waza: "", pool: [1, 2] };
     const after = { ...before, waza: "Tachi waza", pool: [1] };
-    assert.deepEqual(diffModels(before, after, [], debugHide).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[2 éléments]", "[1 éléments]"]]);
+    assert.deepEqual(diffModels(before, after, [], debugHide).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[...2 éléments]", "[...1 éléments]"]]);
     assert.deepEqual(diffModels(before, before), []);
     assert.ok(diffModels(null, before).length > 0);
   });

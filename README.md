@@ -131,7 +131,6 @@ flowchart TB
         FEAT["src/features/*.js<br/>model, messages, on, view, effects"]
         VIEW["src/view.js + src/layout/*<br/>view → vnodes"]
         LOG["src/shared/logic.js<br/>fusion des grades, pool, pondération"]
-        ROUTE["src/route.js<br/>URL ⇄ modèle"]
     end
     subgraph impure["Frontière avec le monde extérieur"]
         RUN["src/framework/runtime.js<br/>boucle update → view → render"]
@@ -145,7 +144,6 @@ flowchart TB
     RUN --> VDOM
     UPD --> FEAT
     FEAT --> LOG
-    FEAT --> ROUTE
     VIEW --> FEAT
 ```
 
