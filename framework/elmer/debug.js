@@ -184,9 +184,9 @@ const STYLE = `
 #debug .dbg-fold { display: block; width: 100%; margin-bottom: .2rem; background: #161b22; color: #e8a39b; }
 #debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
 #debug pre { margin: 0 0 .5rem; white-space: pre-wrap; word-break: break-all; }
-#debug .dbg-row { display: flex; width: 100%;  align-items: flex-start; gap: .2rem; margin-bottom: .2rem; }
+#debug .dbg-row { display: flex; width: 100%; align-items: stretch; gap: .2rem; margin-bottom: .2rem; }
 #debug .dbg-entry { background: #161b22; flex-grow: 1; }
-#debug .dbg-restore { flex: none; background: #161b22; }
+#debug .dbg-restore { flex: none; display: flex; align-items: center; background: #161b22; }
 #debug .dbg-entry.on { background: #30363d; }
 #debug .dbg-id { color: #8b95a5; }
 #debug .dbg-entry .dbg-title { display: flex; gap: .5rem; margin: 0; color: inherit; }
