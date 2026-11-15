@@ -108,6 +108,7 @@ const detail = (entry) => h("div", { className: "dbg-detail" },
     ? entry.changes.map((change) => h("div", { className: "dbg-change" }, h("b", {}, change.key), ` : ${short(change.from)} → ${short(change.to)}`))
     : h("pre", {}, "aucun"),
   h("div", { className: "dbg-actions" },
+    h("button", { onClick: { type: "Restore", id: entry.id } }, "⏪ Revenir à l'état après ce message"),
     h("button", { onClick: { type: "Copy", text: json({ msg: entry.msg, cmds: entry.cmds, events: entry.events, changes: entry.changes }) } }, "Copier")));
 
 // The nodes separated by " - ".
@@ -178,11 +179,11 @@ const STYLE = `
 #debug .dbg-close { padding: .1rem .5rem; background: #0004; }
 #debug .dbg-tabs { display: flex; gap: .4rem; padding: .5rem .5rem 0; }
 #debug .dbg-content { position: relative; flex: 1; min-height: 0; display: flex; }
-#debug .dbg-body { flex: 1; min-height: 0; overflow: auto; padding: .5rem; }
+#debug .dbg-body { flex: 1; min-height: 0; overflow: overlay; padding: .5rem; }
 #debug .dbg-copy { position: absolute; top: .4rem; right: 1.2rem; padding: .3rem .45rem; background: #30363d; }
 #debug .dbg-resize { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #c0392b 50%); }
 #debug .dbg-fold { display: block; width: 100%; margin-bottom: .2rem; background: #161b22; color: #e8a39b; }
-#debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
+#debug .dbg-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem; }
 #debug pre { margin: 0 0 .5rem; white-space: pre-wrap; word-break: break-all; }
 #debug .dbg-row { display: flex; width: 100%; align-items: stretch; gap: .2rem; margin-bottom: .2rem; }
 #debug .dbg-entry { background: #161b22; flex-grow: 1; }
@@ -238,6 +239,11 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
         control.restore(entry.after);
         // The steps after it are gone: the log shows the history up to the restored state, and the next step follows it.
         panel = panelUpdate(panel, { type: "Restored", id: entry.id });
+        paint();
+        // The newest entry is at the top of the list.
+        const body = root.querySelector(".dbg-body");
+        if (body) body.scrollTop = 0;
+        return;
       }
     }
     else if (msg.type === "Copy") globalThis.navigator?.clipboard?.writeText(msg.text);
