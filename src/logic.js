@@ -46,6 +46,8 @@ export function buildPool(data, waza, { isNew = false, isWarning = false } = {})
 }
 
 // Weighted draw: `random` ∈ [0, 1[ comes from an effect (Random), so the function stays pure.
+// The pool is an array of { waza, attack, technique, form, weight }.
+// The function returns the index of the drawn technique in the pool.
 export function pickIndex(pool, random) {
   let left = random * pool.reduce((sum, entry) => sum + entry.weight, 0);
   for (let index = 0; index < pool.length; index++) {

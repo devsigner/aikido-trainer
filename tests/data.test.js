@@ -133,7 +133,7 @@ describe("version", () => {
     assert.equal(sw, css, "sw.js: different VERSION");
     assert.equal(css, documented);
     assert.match(css, /^\d{8}(\.\d+)?$/);
-    const mapped = [...html.matchAll(/"\.\/src\/[\w-]+\.js": "\.\/src\/[\w-]+\.js\?v=([\w.]+)"/g)].map((match) => match[1]);
+    const mapped = [...html.matchAll(/"\.\/src\/[\w/-]+\.js": "\.\/src\/[\w/-]+\.js\?v=([\w.]+)"/g)].map((match) => match[1]);
     assert.ok(mapped.length > 0 && mapped.every((version) => version === css), "import map: different version");
   });
 });
@@ -180,7 +180,7 @@ describe("mobile app", () => {
   });
 
   test("every src/ module is in the import map and the precache", () => {
-    for (const file of fs.readdirSync(path.join(ROOT, "src"))) {
+    for (const file of fs.readdirSync(path.join(ROOT, "src"), { recursive: true }).filter((entry) => entry.endsWith(".js"))) {
       assert.ok(html.includes(`"./src/${file}": "./src/${file}?v=`), `${file} missing from the import map`);
       assert.ok(sw.includes(`src/${file}?v=`), `${file} missing from the precache`);
     }
