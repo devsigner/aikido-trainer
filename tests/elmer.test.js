@@ -6,6 +6,7 @@ import fs from "node:fs";
 import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/feature.js";
 import { settingsFromEnvironment } from "../framework/elmer/elmer.js";
 import { run } from "../framework/elmer/runtime.js";
+import { createDevtools } from "../framework/elmer/devtools.js";
 
 const SETTINGS = { debug: "off", persist: false, historySize: 200 };
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
@@ -99,6 +100,18 @@ describe("elmer combine", () => {
     } finally {
       delete globalThis.localStorage;
     }
+  });
+
+  test("the debug observer controls the loop through the devtools: a restore reaches the loop", () => {
+    const restored = [];
+    let handle;
+    createDevtools({
+      control: { getModel: () => ({}), restore: (past) => restored.push(past), dispatch: () => {} },
+      observer: { attach: (control) => (handle = control), record: () => {} },
+    });
+    const past = { n: 1 };
+    handle.restore(past);
+    assert.deepEqual(restored, [past]);
   });
 
   test("time travel keeps the settings of the framework", () => {
