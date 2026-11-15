@@ -1,5 +1,5 @@
 // Debug mode (`?debug` in the URL): a panel with the current model, the message log,
-// the commands each message produced, a diff of the model, and time travel.
+// the commands and events each message produced, a diff of the model (per feature slice), and time travel.
 // Loaded only when the mode is on. The panel is its own tiny Elm app, rendered outside the app tree.
 import { countTechniques } from "./logic.js";
 import { createRenderer, h } from "./vdom.js";
@@ -16,14 +16,22 @@ export function summarize(model) {
   };
 }
 
-// Top-level model fields that differ between two models: [{ key, from, to }].
-export function diffModels(before, after) {
+// Fields that differ between two models: [{ key, from, to }].
+// `slices` = names of the features that own a slice of the model: their fields are diffed one by one (key "video.prompt").
+export function diffModels(before, after, slices = []) {
   const a = summarize(before) ?? {};
   const b = summarize(after) ?? {};
-  return [...new Set([...Object.keys(a), ...Object.keys(b)])]
-    .filter((key) => JSON.stringify(a[key]) !== JSON.stringify(b[key]))
-    .map((key) => ({ key, from: a[key], to: b[key] }));
+  const differ = (from, to) => JSON.stringify(from) !== JSON.stringify(to);
+  const fields = (from, to, prefix, keys) => keys.filter((key) => differ(from[key], to[key])).map((key) => ({ key: prefix + key, from: from[key], to: to[key] }));
+  const keysOf = (from, to) => [...new Set([...Object.keys(from ?? {}), ...Object.keys(to ?? {})])];
+
+  const flat = fields(a, b, "", keysOf(a, b).filter((key) => !slices.includes(key)));
+  const inSlices = slices.flatMap((name) => fields(a[name] ?? {}, b[name] ?? {}, `${name}.`, keysOf(a[name], b[name])));
+  return [...flat, ...inSlices];
 }
+
+// Label of a message in the log: `feature/Type` for an enveloped message.
+export const labelOf = (msg) => (msg.feature ? `${msg.feature}/${msg.msg.type}` : msg.type);
 
 const json = (value) => JSON.stringify(value, null, 2) ?? "undefined";
 const short = (value) => (typeof value === "string" ? value : JSON.stringify(value) ?? "undefined");
@@ -34,7 +42,7 @@ const MIN_HEIGHT = 140;
 const clamp = (value, min, max) => Math.max(min, Math.min(value, Math.max(min, max)));
 
 // `box` = position and size of the panel in px; `drag` = pointer gesture in progress ({ mode: "move" | "resize", x, y, box }).
-export const initialPanel = () => ({ open: false, tab: "state", selected: null, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
+export const initialPanel = (slices = []) => ({ open: false, tab: "state", selected: null, folded: [], slices, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
 
 // Keeps at least a grabbable part of the panel inside the viewport.
 function dragged({ drag }, { x, y, viewport }) {
@@ -48,13 +56,15 @@ function dragged({ drag }, { x, y, viewport }) {
 export function panelUpdate(panel, msg) {
   switch (msg.type) {
     case "Recorded": {
-      const entry = { ...msg.entry, id: panel.counter + 1, time: msg.time, changes: diffModels(msg.entry.before, msg.entry.after) };
+      const entry = { ...msg.entry, id: panel.counter + 1, time: msg.time, changes: diffModels(msg.entry.before, msg.entry.after, panel.slices) };
       return { ...panel, counter: entry.id, entries: [...panel.entries, entry].slice(-MAX_ENTRIES) };
     }
     case "Toggle":
       return { ...panel, open: !panel.open };
     case "Tab":
       return { ...panel, tab: msg.tab };
+    case "Fold":
+      return { ...panel, folded: panel.folded.includes(msg.name) ? panel.folded.filter((name) => name !== msg.name) : [...panel.folded, msg.name] };
     case "Select":
       return { ...panel, selected: panel.selected === msg.id ? null : msg.id };
     case "Clear":
@@ -85,28 +95,45 @@ const detail = (entry) => h("div", { className: "dbg-detail" },
   h("pre", {}, json(entry.msg)),
   h("div", { className: "dbg-title" }, `Commandes (${entry.cmds.length})`),
   h("pre", {}, entry.cmds.length ? json(entry.cmds) : "aucune"),
+  h("div", { className: "dbg-title" }, `Événements (${(entry.events ?? []).length})`),
+  (entry.events ?? []).length
+    ? entry.events.map(({ event, from, handledBy }) => h("div", { className: "dbg-change" }, h("b", {}, `${from} → ${event.type}`), ` : reçu par ${handledBy.join(", ") || "personne"}`))
+    : h("pre", {}, "aucun"),
   h("div", { className: "dbg-title" }, `Changements du modèle (${entry.changes.length})`),
   entry.changes.length
     ? entry.changes.map((change) => h("div", { className: "dbg-change" }, h("b", {}, change.key), ` : ${short(change.from)} → ${short(change.to)}`))
     : h("pre", {}, "aucun"),
   h("div", { className: "dbg-actions" },
     h("button", { onClick: { type: "Restore", id: entry.id } }, "⏪ Revenir à l'état après ce message"),
-    h("button", { onClick: { type: "Copy", text: json({ msg: entry.msg, cmds: entry.cmds, changes: entry.changes }) } }, "Copier")));
+    h("button", { onClick: { type: "Copy", text: json({ msg: entry.msg, cmds: entry.cmds, events: entry.events, changes: entry.changes }) } }, "Copier")));
 
 const logTab = (panel) => [
   h("div", { className: "dbg-actions" },
     h("button", { onClick: { type: "Clear" } }, "Vider"),
-    h("button", { onClick: { type: "Copy", text: json(panel.entries.map(({ id, time, msg, cmds, changes }) => ({ id, time, msg, cmds, changes }))) } }, "Copier le journal")),
+    h("button", { onClick: { type: "Copy", text: json(panel.entries.map(({ id, time, msg, cmds, events, changes }) => ({ id, time, msg, cmds, events, changes }))) } }, "Copier le journal")),
   [...panel.entries].reverse().map((entry) => [
     h("button", { className: `dbg-entry${panel.selected === entry.id ? " on" : ""}`, onClick: { type: "Select", id: entry.id } },
       h("span", { className: "dbg-id" }, `#${entry.id}`),
-      h("b", {}, entry.msg.type),
-      h("span", { className: "dbg-meta" }, `${entry.time} · ${entry.cmds.length} cmd · ${entry.changes.map((change) => change.key).join(", ") || "—"}`)),
+      h("b", {}, labelOf(entry.msg)),
+      h("span", { className: "dbg-meta" }, `${entry.time} · ${entry.cmds.length} cmd · ${(entry.events ?? []).length} evt · ${entry.changes.map((change) => change.key).join(", ") || "—"}`)),
     panel.selected === entry.id ? detail(entry) : null,
   ]),
 ];
 
-const stateTab = (model) => h("pre", {}, json(summarize(model)));
+// One foldable section per feature slice, then the fields of the model not owned by a feature yet.
+const section = (panel, name, content) => [
+  h("button", { className: "dbg-fold", onClick: { type: "Fold", name } }, `${panel.folded.includes(name) ? "▸" : "▾"} ${name}`),
+  panel.folded.includes(name) ? null : h("pre", {}, json(content)),
+];
+
+const stateTab = (panel, model) => {
+  const summary = summarize(model) ?? {};
+  const rest = Object.fromEntries(Object.entries(summary).filter(([key]) => !panel.slices.includes(key)));
+  return [
+    panel.slices.map((name) => section(panel, name, summary[name])),
+    section(panel, "(modèle plat)", rest),
+  ];
+};
 
 // Icon button pinned to the top right of the content: it stays visible while the state scrolls.
 const copyButton = (model) => h("button", { className: "dbg-copy", title: "Copier l'état", "aria-label": "Copier l'état", onClick: { type: "Copy", text: json(summarize(model)) } }, "📋");
@@ -120,7 +147,7 @@ export function panelView(panel, model) {
         h("button", { className: "dbg-close", title: "Fermer le panneau", "aria-label": "Fermer le panneau", onClick: { type: "Toggle" } }, "✕")),
       h("div", { className: "dbg-tabs" }, tab(panel, "state", "État"), tab(panel, "log", `Messages (${panel.entries.length})`)),
       h("div", { className: "dbg-content" },
-        h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(model) : logTab(panel)),
+        h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(panel, model) : logTab(panel)),
         panel.tab === "state" ? copyButton(model) : null),
       h("div", { className: "dbg-resize", onPointerDown: grab("resize") })));
 }
@@ -139,6 +166,7 @@ const STYLE = `
 #debug .dbg-body { flex: 1; min-height: 0; overflow: auto; padding: .5rem; }
 #debug .dbg-copy { position: absolute; top: .4rem; right: 1.2rem; padding: .3rem .45rem; background: #30363d; }
 #debug .dbg-resize { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #c0392b 50%); }
+#debug .dbg-fold { display: block; width: 100%; margin-bottom: .2rem; background: #161b22; color: #e8a39b; }
 #debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
 #debug pre { margin: 0 0 .5rem; white-space: pre-wrap; word-break: break-all; }
 #debug .dbg-entry { display: flex; gap: .5rem; width: 100%; margin-bottom: .2rem; background: #161b22; }
@@ -151,7 +179,8 @@ const STYLE = `
 `;
 
 // Mounts the panel and returns the observer expected by `run({ debug })`.
-export function mountDebugger(doc = document) {
+// `slices` = names of the features that own a slice of the model (see src/framework/combine.js).
+export function mountDebugger(slices = [], doc = document) {
   const style = doc.createElement("style");
   style.textContent = STYLE;
   doc.head.appendChild(style);
@@ -159,7 +188,7 @@ export function mountDebugger(doc = document) {
   doc.body.appendChild(root);
   const render = createRenderer(root);
 
-  const start = initialPanel();
+  const start = initialPanel(slices);
   let panel = { ...start, box: { ...start.box, w: Math.min(start.box.w, innerWidth - 16), h: Math.min(start.box.h, innerHeight - 96) } };
   let control = null;
   const paint = () => render(panelView(panel, control?.getModel()), dispatch);

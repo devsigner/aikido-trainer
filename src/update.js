@@ -33,14 +33,15 @@ export function initialModel() {
 // Initializes the model from the URL hash and history position, and starts loading the grades.
 export function init({ hash = "", position = 0, skipVideoWarning = false } = {}) {
   const pending = parseHash(hash);
-  const [slices, commands] = standalone.init({ skipVideoWarning });
-  return [{ ...initialModel(), ...slices, pending, position }, [{ type: "LoadGrades", gradeId: pending.grade }, ...commands]];
+  const [slices, commands, events] = standalone.init({ skipVideoWarning });
+  return [{ ...initialModel(), ...slices, pending, position }, [{ type: "LoadGrades", gradeId: pending.grade }, ...commands], events];
 }
 
 // Main update function: dispatches to the feature handler, then applies the history concerns.
 export function update(model, msg) {
-  const [next, commands] = withPosition(model, step(model, msg), msg);
-  return [withSlide(model, next, msg), commands];
+  const [stepped, commands, events = []] = step(model, msg);
+  const [next, stamped] = withPosition(model, [stepped, commands], msg);
+  return [withSlide(model, next, msg), stamped, events];
 }
 
 function step(model, msg) {

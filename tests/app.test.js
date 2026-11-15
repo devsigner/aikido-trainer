@@ -6,7 +6,7 @@ import { h } from "../src/vdom.js";
 import { parseHash, toHash } from "../src/route.js";
 import { update, init, initialModel } from "../src/update.js";
 import { view } from "../src/view.js";
-import { summarize, diffModels, panelUpdate, panelView, initialPanel } from "../src/debug.js";
+import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/debug.js";
 import { run } from "../src/runtime.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
@@ -563,6 +563,27 @@ describe("debug mode", () => {
     assert.ok(diffModels(null, before).length > 0);
   });
 
+  test("diffModels goes inside the feature slices, and the log labels enveloped messages", () => {
+    const before = { screen: "home", video: { skipWarning: false, prompt: null } };
+    const after = { screen: "home", video: { skipWarning: false, prompt: { url: "u" } } };
+    assert.deepEqual(diffModels(before, after, ["video"]).map(({ key }) => key), ["video.prompt"]);
+    assert.deepEqual(diffModels(before, after).map(({ key }) => key), ["video"]);
+    assert.equal(labelOf({ feature: "video", msg: { type: "AskVideo" } }), "video/AskVideo");
+    assert.equal(labelOf({ type: "Next" }), "Next");
+  });
+
+  test("the state tab shows one foldable section per slice, and the events of a message in its detail", () => {
+    let panel = panelUpdate(initialPanel(["video"]), { type: "Tab", tab: "state" });
+    const model = { screen: "home", video: { skipWarning: false, prompt: null } };
+    const folds = (current) => find(panelView(current, model), (node) => node.props.className === "dbg-fold").map(text);
+    assert.deepEqual(folds(panelUpdate(panel, { type: "Toggle" })), ["▾ video", "▾ (modèle plat)"]);
+    panel = panelUpdate(panelUpdate(panel, { type: "Toggle" }), { type: "Fold", name: "video" });
+    assert.deepEqual(folds(panel), ["▸ video", "▾ (modèle plat)"]);
+    const entry = { msg: { feature: "a", msg: { type: "X" } }, before: {}, after: {}, cmds: [], events: [{ event: { type: "Changed" }, from: "a", handledBy: ["b"] }] };
+    panel = panelUpdate(panelUpdate(panelUpdate(panel, { type: "Recorded", entry, time: "t" }), { type: "Tab", tab: "log" }), { type: "Select", id: 1 });
+    assert.match(find(panelView(panel, model), (node) => node.props.className === "dbg-detail").map(text)[0], /a → Changed : reçu par b/);
+  });
+
   test("the runtime reports each step, effects after the message that caused them, and can restore a past model", () => {
     const records = [];
     let handle;
@@ -578,6 +599,7 @@ describe("debug mode", () => {
     dispatch({ type: "Inc" });
     assert.deepEqual(records.map((entry) => entry.msg.type), ["@init", "Inc", "Noop"]);
     assert.deepEqual(records[1].cmds, [{ type: "Echo" }]);
+    assert.deepEqual(records[1].events, []);
     assert.deepEqual([records[1].before, records[1].after], [{ n: 0 }, { n: 1 }]);
     handle.restore(records[0].after);
     assert.deepEqual(handle.getModel(), { n: 0 });

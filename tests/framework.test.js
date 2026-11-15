@@ -34,6 +34,12 @@ describe("framework combine", () => {
     assert.equal(model.counter.n, 0, "the previous model is not mutated");
   });
 
+  test("the delivered events are reported with their publisher and their receivers", () => {
+    const [model] = app.init();
+    const [, , delivered] = app.update(model, to("counter", { type: "Inc" }));
+    assert.deepEqual(delivered, [{ event: { type: "Changed", n: 1 }, from: "counter", handledBy: ["log"] }]);
+  });
+
   test("events published by a reaction are delivered too; an endless loop fails loudly", () => {
     const ping = { name: "ping", init: () => [{}], update: () => [{}, [], [{ type: "A" }]], on: { A: () => [{}, [], [{ type: "B" }]], B: () => [{}, [], [{ type: "A" }]] } };
     const looping = combine([ping]);

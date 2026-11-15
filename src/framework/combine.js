@@ -13,6 +13,7 @@
 // Root messages are envelopes `{ feature, msg }` (see `to`); commands are tagged with the `feature` that emitted them.
 // A feature publishes events (`{ type, … }`) in the third item of its result: they are delivered, in order,
 // to every feature that subscribed to them in `on`, and may publish events in turn.
+// `init` and `update` return `[model, cmds, delivered]`; `delivered` lists the events for debugging: `{ event, from, handledBy }`.
 
 const MAX_EVENTS = 1000; // an event loop is a bug: fail loudly rather than freeze the page
 
@@ -27,23 +28,27 @@ export function combine(features) {
   const apply = (state, name, [slice, cmds = [], events = []]) => {
     state.model = { ...state.model, [name]: slice };
     state.cmds.push(...cmds.map((cmd) => ({ ...cmd, feature: name })));
-    state.events.push(...events);
+    state.events.push(...events.map((event) => ({ event, from: name })));
   };
 
   // Delivers the queued events until none is left.
   const settle = (state) => {
     for (let count = 0; state.events.length > 0; count++) {
-      if (count >= MAX_EVENTS) throw new Error(`Event loop: more than ${MAX_EVENTS} events (last: ${state.events[0].type})`);
-      const event = state.events.shift();
+      if (count >= MAX_EVENTS) throw new Error(`Event loop: more than ${MAX_EVENTS} events (last: ${state.events[0].event.type})`);
+      const { event, from } = state.events.shift();
+      const handledBy = [];
       for (const feature of features) {
         const reaction = feature.on?.[event.type];
-        if (reaction) apply(state, feature.name, reaction(state.model[feature.name], event, state.model));
+        if (!reaction) continue;
+        handledBy.push(feature.name);
+        apply(state, feature.name, reaction(state.model[feature.name], event, state.model));
       }
+      state.delivered.push({ event, from, handledBy });
     }
-    return [state.model, state.cmds];
+    return [state.model, state.cmds, state.delivered];
   };
 
-  const start = (model) => ({ model, cmds: [], events: [] });
+  const start = (model) => ({ model, cmds: [], events: [], delivered: [] });
 
   return {
     init(flags) {
