@@ -1,11 +1,9 @@
 // app.js
 
 // Entry point: wires the model, the view and the effects together (see src/).
-import { createRenderer } from "./framework/elmer/vdom.js";
+import { createEffects, createRenderer, createSubscriptions, run } from "./framework/elmer/index.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
 import { application, debugHide, init, update } from "./src/update.js";
-import { run } from "./framework/elmer/runtime.js";
-import { createEffects, createSubscriptions } from "./framework/elmer/effects.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
 import { view } from "./src/view.js";
 import { readFlag } from "./src/shared/logic.js";

@@ -1,8 +1,7 @@
 // examples/counter/features.js
 
 // Two features composed with the framework: a counter, and a log that reacts to the counter's events.
-import { h } from "../../framework/elmer/vdom.js";
-import { UNMOUNT, defineFeature, embed, to } from "../../framework/elmer/feature.js";
+import { defineFeature, embed, h, to, UNMOUNT } from "../../framework/elmer/index.js";
 
 export const counter = defineFeature({
   model: { count: 0 },

@@ -5,12 +5,11 @@
 // Reads the grade data through the root model (read-only); keeps its own waza (the quiz session is over while the program is open).
 // Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: quiz starts a new session), `Navigated` (the URL must follow), `ViewChanged` (the card slides).
 // Closes when `HomeRequested`.
-import { h } from "../../framework/elmer/vdom.js";
+import { defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card } from "../layout/card.js";
 import { feature as navigation } from "./navigation.js";
 import { feature as slide } from "./slide.js";
-import { UNMOUNT, defineFeature, to } from "../../framework/elmer/feature.js";
 
 const { navigated } = navigation.events;
 const { viewChanged } = slide.events;

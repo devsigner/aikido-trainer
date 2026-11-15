@@ -6,7 +6,7 @@
 // Does not write other slices: it publishes events.
 // Publishes `HomeRequested` (quiz and program close), `RouteChanged` ({ route }: quiz and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
 // Reacts to `Navigated` (a feature changed what the URL shows) by writing the URL, stamped with the position (+1 on a push).
-import { defineFeature } from "../../framework/elmer/feature.js";
+import { defineFeature } from "../../framework/elmer/index.js";
 import { screenOf } from "../shared/screen.js";
 
 // Event published by a feature when the URL must follow its change (`mode`: "push" | "replace").

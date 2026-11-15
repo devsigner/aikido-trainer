@@ -3,8 +3,7 @@
 // Feature "catalog": the list of grades, the data of the selected grade, and the filters.
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
-import { defineFeature } from "../../framework/elmer/feature.js";
-import { h } from "../../framework/elmer/vdom.js";
+import { defineFeature, h } from "../../framework/elmer/index.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 

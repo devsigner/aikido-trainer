@@ -1,6 +1,6 @@
 // src/layout/footer.js
 
-import { h } from "../../framework/elmer/vdom.js";
+import { h } from "../../framework/elmer/index.js";
 
 export const footer = () => h("footer", {},
   h("p", {}, "© 2026 Aïkido Trainer. Tous droits réservés."),

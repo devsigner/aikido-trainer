@@ -4,13 +4,12 @@
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
-import { h } from "../../framework/elmer/vdom.js";
+import { defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
 import { WAZA_ORDER, buildPool, pickIndex } from "../shared/logic.js";
 import { card } from "../layout/card.js";
 import { feature as navigation } from "./navigation.js";
 import { feature as slide } from "./slide.js";
 import { screenOf } from "../shared/screen.js";
-import { UNMOUNT, defineFeature, to } from "../../framework/elmer/feature.js";
 
 const { navigated } = navigation.events;
 const { viewChanged } = slide.events;

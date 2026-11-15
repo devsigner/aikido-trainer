@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.94`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.95`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -156,7 +156,7 @@ src/update.js         features object, initialModel, init, update (= combine)
 src/features/*.js    one standalone feature per module (catalog, quiz, program, navigation, video, slide)
 src/shared/screen.js         `screenOf` (screen derived from the slices)
 src/layout/card.js           technique card shared by quiz and program (reads `root.video` and `root.slide`)
-framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `feature.js`, `effects.js`, `vdom.js`, `runtime.js`, `elmer.js`, `devtools.js`, `debug/`
+framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `index.js` (public API, what an app imports), `feature.js`, `effects.js`, `vdom.js`, `runtime.js`, `elmer.js`, `devtools.js`, `debug/`
 src/view.js           view(model) → vnodes (chooses the screen)
 src/layout/          page pieces: `page`, `title`, `footer`, `home`
 data/grades.json      List of available grades

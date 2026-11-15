@@ -8,10 +8,7 @@
   <div id="app"></div>
   <!-- Serve the repository root (e.g. `python3 -m http.server`) and open /examples/counter/ -->
   <script type="module">
-    import { combine } from "../../framework/elmer/feature.js";
-    import { createEffects } from "../../framework/elmer/effects.js";
-    import { createRenderer } from "../../framework/elmer/vdom.js";
-    import { run } from "../../framework/elmer/runtime.js";
+    import { combine, createEffects, createRenderer, run } from "../../framework/elmer/index.js";
     import { features, view } from "./features.js";
 
     const app = combine(features);

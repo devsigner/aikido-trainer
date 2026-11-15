@@ -10,11 +10,19 @@ import { keepSettings } from "./elmer.js";
 export function run({ init, update, view, render, effects, subscribe, flags, debug, devtools }) {
   let model;
 
-  const exec = (cmds) =>
+  // Every command is run even if one fails; the first failure is then reported with its command and its feature.
+  const exec = (cmds) => {
+    const failures = [];
     cmds.forEach((cmd) => {
-      if (!effects[cmd.type]) throw new Error(`Unknown effect : ${cmd.type}`);
-      effects[cmd.type](cmd, dispatch);
+      try {
+        if (!effects[cmd.type]) throw new Error(`Unknown effect : ${cmd.type}`);
+        effects[cmd.type](cmd, dispatch);
+      } catch (cause) {
+        failures.push(new Error(`Effect ${cmd.type}${cmd.feature ? ` (feature ${cmd.feature})` : ""} failed : ${cause.message}`, { cause }));
+      }
     });
+    if (failures.length) throw failures[0];
+  };
 
   // Apply the next model and commands, then render the view and execute the commands.
   const apply = ([next, cmds, events = []], msg) => {

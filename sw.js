@@ -3,7 +3,7 @@
 "use strict";
 
 // Same number as the ?v= in index.html (see CLAUDE.md): renews the cache on every version.
-const VERSION = "20261114.94";
+const VERSION = "20261114.95";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -17,6 +17,7 @@ const PRECACHE = [
   "docs/screenshots/5-technique.png",
   `style.css?v=${VERSION}`,
   `app.js?v=${VERSION}`,
+  `framework/elmer/index.js?v=${VERSION}`,
   `framework/elmer/runtime.js?v=${VERSION}`,
   `framework/elmer/elmer.js?v=${VERSION}`,
   `framework/elmer/devtools.js?v=${VERSION}`,

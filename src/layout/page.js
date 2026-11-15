@@ -1,7 +1,6 @@
 // src/layout/page.js
 
-import { h } from "../../framework/elmer/vdom.js";
-import { embed } from "../../framework/elmer/feature.js";
+import { embed, h } from "../../framework/elmer/index.js";
 import { feature as video } from "../features/video.js";
 import { footer } from "./footer.js";
 

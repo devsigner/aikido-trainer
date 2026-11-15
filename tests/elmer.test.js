@@ -114,6 +114,14 @@ describe("elmer combine", () => {
     assert.deepEqual(restored, [past]);
   });
 
+  test("a failing effect does not stop the next ones, and is reported with its command and feature", () => {
+    const ran = [];
+    const application = combine({ plain: defineFeature({ model: {}, messages: { Go: (model) => [model, [{ type: "Boom" }, { type: "Echo" }]] }, effects: () => ({ Boom: () => { throw new Error("bad"); }, Echo: () => ran.push("echo") }) }) });
+    const dispatch = run({ init: application.init, update: application.update, view: () => "", render: () => {}, effects: application.effects({}) });
+    assert.throws(() => dispatch(to("plain", { type: "Go" })), /Effect Boom \(feature plain\) failed : bad/);
+    assert.deepEqual(ran, ["echo"]);
+  });
+
   test("time travel keeps the settings of the framework", () => {
     let handle;
     const application = combine({ plain: defineFeature({ model: {} }) });

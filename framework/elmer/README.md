@@ -73,7 +73,8 @@ En trois règles :
 | `feature.js` | `defineFeature(spec)`, `combine({ nom: feature })`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
 | `effects.js` | `createEffects` / `createSubscriptions(program, overrides)` (`program` = résultat de `combine`) : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
-| `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
+| `index.js`   | l'API publique : `h`, `createRenderer`, `defineFeature`, `combine`, `to`, `embed`, `UNMOUNT`, `run`, `createEffects`, `createSubscriptions` (une application n'importe que ça) |
+| `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm ; un effet qui échoue n'arrête pas les suivants, l'erreur indique la commande et la feature |
 | `elmer.js`   | la feature `elmer` (réglages du framework, ajoutée d'office par `combine`) : `model.elmer = { debug: "on"\|"off", historySize }` |
 | `devtools.js` | historique des messages, API console `__elmer`, montage à la demande du panneau (appelé par `run`) |
 | `debug/mount.js` | `mountDebugger(hide)` : monte le panneau, API console `log` / `restore` (voir « Le debugger ») |

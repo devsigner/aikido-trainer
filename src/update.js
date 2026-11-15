@@ -11,7 +11,7 @@ import { feature as program } from "./features/program.js";
 import { feature as navigation } from "./features/navigation.js";
 import { feature as video } from "./features/video.js";
 import { feature as slide } from "./features/slide.js";
-import { combine } from "../framework/elmer/feature.js";
+import { combine } from "../framework/elmer/index.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
 export const features = {
