@@ -3,11 +3,13 @@
 // Feature "draw": a session of random techniques for one waza (pool without repetition).
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the data and filters of the grade feature through the root model (read-only).
-// Publishes `Navigated` (the URL must follow). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
+// Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
 import { h } from "../framework/vdom.js";
 import { badgesOf, buildPool, pickIndex } from "../shared/logic.js";
 import { card, slideProps } from "../shared/card.js";
-import { navigated, screenOf } from "../update-history.js";
+import { navigated } from "./navigation.js";
+import { viewChanged } from "./slide.js";
+import { screenOf } from "../shared/screen.js";
 import { WAZA_ORDER } from "../shared/logic.js";
 import { UNMOUNT, to } from "../framework/combine.js";
 
@@ -29,16 +31,16 @@ export function startSession(root, waza) {
 export const roll = { type: "Random", feature: "draw" };
 
 const messages = {
-  StartSession: (_, msg, root) => [startSession(root, msg.waza), [{ type: "Random" }], [navigated("push")]],
+  StartSession: (_, msg, root) => [startSession(root, msg.waza), [{ type: "Random" }], [navigated("push"), viewChanged("forward")]],
 
-  Next: (model) => (model.pool.length === 0 ? [{ ...model, current: null, done: true }, []] : [model, [{ type: "Random" }]]),
+  Next: (model) => (model.pool.length === 0 ? [{ ...model, current: null, done: true }, [], [viewChanged("forward")]] : [model, [{ type: "Random" }]]),
 
   // Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
   Rolled(model, msg, root) {
     if (!model.waza) return [UNMOUNT, []]; // answer of a session that is over
     if (screenOf(root) !== "draw" || model.pool.length === 0) return [model, []];
     const index = pickIndex(model.pool, msg.value);
-    return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, []];
+    return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, [], [viewChanged("forward")]];
   },
 };
 
@@ -76,12 +78,12 @@ function picker(root) {
 }
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
-function routeChanged(model, { route }, root) {
-  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, []]; // the program replaces the session
+function routeChanged(model, { route, direction }, root) {
+  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? [viewChanged(direction)] : []]; // the program replaces the session
 
   const next = model.waza === route.waza ? model : startSession(root, route.waza);
   const needsDraw = !next.current && !next.done && next.pool.length > 0;
-  return [next, needsDraw ? [{ type: "Random" }] : []];
+  return [next, needsDraw ? [{ type: "Random" }] : [], next !== model && direction ? [viewChanged(direction)] : []];
 }
 
 export const draw = {
@@ -95,7 +97,7 @@ export const draw = {
   on: {
     RouteChanged: routeChanged,
     ProgramOpened: () => [UNMOUNT, []],
-    HomeRequested: () => [UNMOUNT, []],
+    HomeRequested: () => [UNMOUNT, [], [viewChanged("forward")]],
     // Back from the program: a fresh session of the same waza.
     ProgramClosed: (_, { waza }, root) => [startSession(root, waza), [{ type: "Random" }]],
   },

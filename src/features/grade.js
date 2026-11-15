@@ -6,7 +6,7 @@
 import { h } from "../framework/vdom.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { parseHash } from "../route.js";
-import { url } from "../update-history.js";
+import { navigated } from "./navigation.js";
 
 export const initialModel = {
   status: "loading", // loading | ready | error
@@ -22,10 +22,10 @@ const messages = {
 
   Failed: (model, msg) => [{ ...model, status: "error", error: msg.message }, []],
 
-  SelectGrade(model, msg, root) {
+  SelectGrade(model, msg) {
     const grade = model.list.find((candidate) => candidate.id === msg.id);
     const next = { ...model, id: msg.id };
-    return [next, [{ type: "LoadGrade", grade }, url({ ...root, grade: next }, "replace")]];
+    return [next, [{ type: "LoadGrade", grade }], [navigated("replace")]];
   },
 
   GradeLoaded(model, msg) {

@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.53`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.54`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -127,7 +127,7 @@ Run the tests before every commit and add some for any new rule.
 
 Unidirectional flow, no dependencies and no build (native ES modules + versioned import map):
 
-- **Features** (`src/features/*.js`, composed by `combine` in `src/framework/combine.js`): each one has its own model slice (`model.grade`, `draw`, `program`, `video`, `navigation`), `init`, `update(slice, msg, root)`, `view`, `effects`, `subscribe` (browser events, e.g. `popstate` in navigation). `draw` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ grade, draw, program, video, navigation, position, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
+- **Features** (`src/features/*.js`, composed by `combine` in `src/framework/combine.js`): each one has its own model slice (`model.grade`, `draw`, `program`, `video`, `navigation`, `slide`), `init`, `update(slice, msg, root)`, `view`, `effects`, `subscribe` (browser events, e.g. `popstate` in navigation). `draw` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ grade, draw, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
 - `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
 - `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `src/framework/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
@@ -148,9 +148,9 @@ sw.js                 Service worker (offline)
 icons/                App icons (192, 512, apple-touch-icon)
 app.js                Entry point (assembles init/update/view/effects)
 src/shared/logic.js           Pure functions (merge, pool, weighting, sorting)
-src/update.js         features list, initialModel, init, update (combine + position/slide)
-src/features/*.js    one standalone feature per module (grade, draw, program, navigation, video)
-src/update-history.js  cross-cutting (not a feature): position, slide, `screenOf`
+src/update.js         features list, initialModel, init, update (= combine)
+src/features/*.js    one standalone feature per module (grade, draw, program, navigation, video, slide)
+src/shared/screen.js         `screenOf` (screen derived from the slices)
 src/shared/card.js           card view shared by draw and program
 src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/route.js          URL (hash) ⇄ model

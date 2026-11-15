@@ -233,7 +233,7 @@ flowchart LR
     URL -- "parseHash (chargement, popstate)" --> MOD
 ```
 
-Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). Le modèle retient sa position dans l'historique, ce qui permet de savoir si un `popstate` est un retour ou une avance et d'orienter l'animation en conséquence.
+Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). La feature `navigation` retient la position dans l'historique (`model.navigation.position`), ce qui permet de savoir si un `popstate` est un retour ou une avance ; la direction est transmise dans `RouteChanged`. Les features `draw` et `program` publient `ViewChanged` quand la carte change, et la feature `slide` en tire l'animation.
 
 #### Mode debug
 

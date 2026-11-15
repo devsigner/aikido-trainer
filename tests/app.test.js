@@ -11,7 +11,7 @@ import { view } from "../src/view.js";
 import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/framework/debug.js";
 import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
-import { screenOf } from "../src/update-history.js";
+import { screenOf } from "../src/shared/screen.js";
 import { resolveGrade as resolveGradeFx } from "../src/features/grade.js";
 
 const DATA = {
@@ -458,27 +458,27 @@ describe("history position", () => {
   test("push increments the position, replace keeps it, a pop restores it", async () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
-    assert.equal(app.model.position, 0);
+    assert.equal(app.model.navigation.position, 0);
     app.click("Tachi waza");
     app.click("prog-btn");
-    assert.equal(app.model.position, 2);
+    assert.equal(app.model.navigation.position, 2);
     app.history.back();
-    assert.equal(app.model.position, 1);
+    assert.equal(app.model.navigation.position, 1);
     app.history.forward();
-    assert.equal(app.model.position, 2);
+    assert.equal(app.model.navigation.position, 2);
   });
 
   test("Url commands carry the position; init restores it after a reload", () => {
     const [model] = init({ position: 3 });
-    assert.equal(model.position, 3);
+    assert.equal(model.navigation.position, 3);
     const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA, list: [], id: "t" } };
     const [pushed, pushes] = update(ready, to("draw", { type: "StartSession", waza: "Tachi waza" }));
     const push = pushes.find((command) => command.type === "Url");
-    assert.equal(pushed.position, 4);
+    assert.equal(pushed.navigation.position, 4);
     assert.deepEqual([push.type, push.mode, push.position], ["Url", "push", 4]);
     const [selected, commands] = update({ ...ready, grade: { ...ready.grade, list: [{ id: "t" }] } }, to("grade", { type: "SelectGrade", id: "t" }));
     const replace = commands.find((command) => command.type === "Url");
-    assert.deepEqual([replace.mode, replace.position, selected.position], ["replace", 3, 3]);
+    assert.deepEqual([replace.mode, replace.position, selected.navigation.position], ["replace", 3, 3]);
   });
 });
 

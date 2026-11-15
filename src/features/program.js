@@ -3,12 +3,13 @@
 // Feature "program": browsing attacks → techniques → card, in three levels.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the grade data through the root model (read-only); keeps its own waza (the draw session is over while the program is open).
-// Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: draw starts a new session), `Navigated` (the URL must follow).
+// Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: draw starts a new session), `Navigated` (the URL must follow), `ViewChanged` (the card slides).
 // Closes when `HomeRequested`.
 import { h } from "../framework/vdom.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card, slideProps } from "../shared/card.js";
-import { navigated } from "../update-history.js";
+import { navigated } from "./navigation.js";
+import { viewChanged } from "./slide.js";
 import { UNMOUNT, to } from "../framework/combine.js";
 
 // `waza` = the waza being browsed; `at` = { level, attack?, technique? }, or null when the program is not open.
@@ -24,11 +25,12 @@ export function validProgram(data, { waza, program }) {
 }
 
 const messages = {
-  OpenProgram: (_, msg) => [{ waza: msg.waza, at: { level: 1 } }, [], [{ type: "ProgramOpened" }, navigated("push")]],
+  OpenProgram: (_, msg) => [{ waza: msg.waza, at: { level: 1 } }, [], [{ type: "ProgramOpened" }, navigated("push"), viewChanged("forward")]],
 
-  Navigate: (model, msg) => [{ ...model, at: msg.to }, [], [navigated("push")]],
+  // Going up a level slides back, unless the message forces the direction.
+  Navigate: (model, msg) => [{ ...model, at: msg.to }, [], [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.at.level ? "back" : "forward"))]],
 
-  CloseProgram: (model) => [UNMOUNT, [], [{ type: "ProgramClosed", waza: model.waza }, navigated("push")]],
+  CloseProgram: (model) => [UNMOUNT, [], [{ type: "ProgramClosed", waza: model.waza }, navigated("push"), viewChanged("back")]],
 };
 
 const item = (label, target) => h("button", { className: "item", onClick: { type: "Navigate", to: target } }, label);
@@ -106,9 +108,11 @@ function view(model, root, header) {
 }
 
 // The URL changed: the program of the route, narrowed to what the data contains.
-function routeChanged(_, { route }, root) {
+function routeChanged(model, { route, direction }, root) {
   const at = WAZA_ORDER.includes(route.waza) ? validProgram(root.grade.data, route) : null;
-  return at ? [{ waza: route.waza, at }, []] : [UNMOUNT, []];
+  if (!at) return [UNMOUNT, [], model.at && direction ? [viewChanged(direction)] : []];
+  const changed = model.waza !== route.waza || JSON.stringify(model.at) !== JSON.stringify(at);
+  return [{ waza: route.waza, at }, [], changed && direction ? [viewChanged(direction)] : []];
 }
 
 export const program = {
@@ -119,6 +123,6 @@ export const program = {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
   },
-  on: { HomeRequested: () => [UNMOUNT, []], RouteChanged: routeChanged },
+  on: { HomeRequested: () => [UNMOUNT, [], [viewChanged("back")]], RouteChanged: routeChanged },
   view,
 };

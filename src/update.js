@@ -10,12 +10,11 @@ import { draw } from "./features/draw.js";
 import { program } from "./features/program.js";
 import { navigation } from "./features/navigation.js";
 import { video } from "./features/video.js";
+import { slide } from "./features/slide.js";
 import { combine } from "./framework/combine.js";
-import { initialModel as history, withPosition, withSlide } from "./update-history.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
-// Position in the history and card animation (`update-history.js`) still wrap the result of every update.
-export const features = [grade, draw, program, video, navigation];
+export const features = [grade, draw, program, video, navigation, slide];
 const standalone = combine(features);
 
 // Bulky fields of the model shown as a summary in the debug panel.
@@ -26,22 +25,13 @@ export const debugHide = {
 
 // Initial model: the slices of every feature (see each module for the field details).
 export function initialModel() {
-  return {
-    ...history,
-    ...standalone.init({})[0],
-  };
+  return standalone.init({})[0];
 }
 
 // Initializes the model from the URL hash and history position, and starts loading the grades.
 export function init({ hash = "", position = 0, skipVideoWarning = false } = {}) {
-  const [slices, commands, events] = standalone.init({ skipVideoWarning, hash });
-  return [{ ...initialModel(), ...slices, position }, commands, events];
+  return standalone.init({ skipVideoWarning, hash, position });
 }
 
-// Main update function: dispatches to the feature, then applies the history concerns.
-export function update(model, msg) {
-  const [stepped, commands, events = []] = standalone.update(model, msg);
-  const plain = msg.feature ? msg.msg : msg; // the history concerns read the message of the feature
-  const [next, stamped] = withPosition(model, [stepped, commands], plain);
-  return [withSlide(model, next, plain), stamped, events];
-}
+// Main update function: dispatches to the feature.
+export const update = standalone.update;

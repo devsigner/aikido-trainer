@@ -7,7 +7,7 @@ import { embed } from "./framework/combine.js";
 import { grade } from "./features/grade.js";
 import { draw } from "./features/draw.js";
 import { program } from "./features/program.js";
-import { screenOf } from "./update-history.js";
+import { screenOf } from "./shared/screen.js";
 
 // Layout
 import { home } from "./layout/home.js";
