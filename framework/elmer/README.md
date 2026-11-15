@@ -125,6 +125,34 @@ flowchart LR
 - **Diff** : les champs modifiés par un message, tranche par tranche (`video.prompt`).
 - **Voyage dans le temps** : `restore(after)` remet un ancien modèle et redessine la vue. Les effets ne sont **pas** rejoués. Possible car le modèle est une simple donnée immuable et la vue une fonction pure de celui-ci.
 - **Console** : `__elmer.model`, `__elmer.debug(on?)` ; une fois monté, `__elmer.log` et `__elmer.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
+
+### L'API `__elmer` (console du navigateur)
+
+`run` publie `globalThis.__elmer` dès le démarrage (si `devtools` est fourni) :
+
+| Appel | Disponible | Effet |
+|-------|------------|-------|
+| `__elmer.model` | toujours | modèle courant (la racine : une tranche par feature) |
+| `__elmer.debug()` | toujours | monte le panneau s'il est démonté, le démonte sinon ; renvoie une promesse de `true` (monté) / `false` |
+| `__elmer.debug(true)` / `__elmer.debug(false)` | toujours | force le montage / le démontage |
+| `__elmer.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
+| `__elmer.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |
+
+```js
+await __elmer.debug();            // ouvre le panneau (déjà fait sur localhost)
+__elmer.model.quiz;               // une tranche
+__elmer.log.at(-1).changes;       // ce que le dernier message a modifié
+__elmer.restore(3);               // revient à l'état après l'entrée 3
+```
+
+### Fonctionnement
+
+1. `run` appelle `update` puis `view`, puis **avant** d'exécuter les commandes crée une entrée `{ msg, before, after, cmds, events, time }` : les messages issus des effets viennent donc après celui qui les a causés.
+2. L'entrée est ajoutée à un historique en mémoire (200 max) et transmise aux observateurs (le panneau, s'il est monté). Garder les modèles est peu coûteux : ils sont immuables et partagent leur structure.
+3. Au montage, `debug.js` est importé à la demande, `attach({ getModel, restore })` lui donne la main sur la boucle, et l'historique y est rejoué ; le panneau calcule le diff (`changes`) par tranche.
+4. `restore` remet un ancien modèle et redessine ; les commandes ne sont pas rejouées. Au démontage, le panneau, son style et `log` / `restore` disparaissent ; `model` et `debug` restent.
+5. Le panneau est une mini-app Elm indépendante (son propre model / update / view), rendue hors de l'arbre de l'app.
+
 - `run` accepte aussi un observateur `debug` explicite (`attach`, `record`), utile pour les tests ; `mountDebugger(slices, hide)` en construit un avec le panneau.
 
 ## Exemple
