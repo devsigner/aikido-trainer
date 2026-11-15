@@ -180,22 +180,20 @@ const STYLE = `
 #debug .dbg-change { word-break: break-all; }
 `;
 
-// Browser console helper (`__debug`): `model` (current), `log` (message entries), `restore(id)` (time travel; returns the restored model, or null for an unknown id).
+// Console helpers added to `__elmer` while the panel is mounted: `log` (message entries), `restore(id)` (time travel; returns the restored model, or null for an unknown id).
 function consoleApi(getControl, getEntries, restore) {
   return {
-    get model() {
-      return getControl().getModel();
-    },
-    get log() {
-      return getEntries();
-    },
-    restore(id) {
-      if (!getEntries().some((entry) => entry.id === id)) {
-        console.warn(`__debug.restore: unknown id ${id} (see __debug.log)`);
-        return null;
-      }
-      restore(id);
-      return getControl().getModel();
+    log: { configurable: true, get: () => getEntries() },
+    restore: {
+      configurable: true,
+      value(id) {
+        if (!getEntries().some((entry) => entry.id === id)) {
+          console.warn(`__elmer.restore: unknown id ${id} (see __elmer.log)`);
+          return null;
+        }
+        restore(id);
+        return getControl().getModel();
+      },
     },
   };
 }
@@ -246,11 +244,20 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
   return {
     attach(handle) {
       control = handle;
-      globalThis.__debug = consoleApi(() => control, () => panel.entries, (id) => dispatch({ type: "Restore", id }));
+      if (globalThis.__elmer) Object.defineProperties(globalThis.__elmer, consoleApi(() => control, () => panel.entries, (id) => dispatch({ type: "Restore", id })));
     },
     record(entry) {
-      panel = panelUpdate(panel, { type: "Recorded", entry, time: clock() });
+      panel = panelUpdate(panel, { type: "Recorded", entry, time: entry.time ?? clock() });
       paint();
+    },
+    // Removes the panel and the console helpers.
+    unmount() {
+      style.remove();
+      root.remove();
+      if (globalThis.__elmer) {
+        delete globalThis.__elmer.log;
+        delete globalThis.__elmer.restore;
+      }
     },
   };
 }

@@ -105,7 +105,10 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 
 ## Le debugger
 
-`mountDebugger(slices, hide)` (`debug.js`) renvoie un **observateur** à passer à `run({ debug })`. Le debugger n'est pas dans la boucle : il l'écoute, et n'est chargé que si on le demande (pour Aikido Trainer : `?debug`).
+Le debugger est **inclus d'office** : `run({ …, devtools: { slices, hide } })` suffit (`slices` = noms des features, `hide` = résumés des champs volumineux). Il n'est pas dans la boucle : il l'écoute.
+
+- **Local** (`localhost`, `127.x`, `*.local`) : monté automatiquement.
+- **Ailleurs** : dans la console, `__elmer.debug()` le monte ou le démonte (`debug(true)` / `debug(false)`). Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
 
 ```mermaid
 flowchart LR

@@ -8,7 +8,7 @@ import { run } from "./framework/elmer/runtime.js";
 import { createEffects, createSubscriptions } from "./framework/elmer/effects.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
 import { view } from "./src/view.js";
-import { readFlag, writeFlag } from "./src/shared/logic.js";
+import { readFlag } from "./src/shared/logic.js";
 
 // Render, and scroll back to the top when the displayed tree actually changed.
 const root = document.getElementById("app");
@@ -29,13 +29,6 @@ const render = (vnode, dispatch) => {
   lastSnapshot = snapshot;
 };
 
-// Debug mode: `?debug` turns it on (and remembers it), `?debug=0` turns it off. The module is loaded only when on.
-const DEBUG_KEY = "aikido.debug";
-const debugParam = new URLSearchParams(location.search).get("debug");
-if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
-const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
-const debugObserver = debug ? (await import("./framework/elmer/debug.js")).mountDebugger(Object.keys(features), debugHide) : undefined;
-
 // launch the app with the initial flags (hash, history position, skip video warning).
 run({
   init,
@@ -43,7 +36,7 @@ run({
   view,
   render,
   subscribe: createSubscriptions(features),
-  debug: debugObserver,
+  devtools: { slices: Object.keys(features), hide: debugHide },
   effects: createEffects(features),
   flags: {
     hash: location.hash,
