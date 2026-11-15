@@ -120,9 +120,9 @@ const logTab = (panel) => [
   [...panel.entries].reverse().map((entry) => [
     h("div", { className: "dbg-row" },
       h("button", { className: `dbg-entry${panel.selected === entry.id ? " on" : ""}`, onClick: { type: "Select", id: entry.id } },
-        h("p", {},
+        h("p", { className: "dbg-title" },
           h("span", { className: "dbg-id" }, `#${entry.id}`),
-          h("b", {}, labelOf(entry.msg)),
+          h("b", { className: "dbg-message" }, labelOf(entry.msg)),
           h("span", { className: "dbg-time" }, entry.time)
         ),
         h("span", { className: "dbg-meta" }, joined([
@@ -189,7 +189,8 @@ const STYLE = `
 #debug .dbg-restore { flex: none; background: #161b22; }
 #debug .dbg-entry.on { background: #30363d; }
 #debug .dbg-id { color: #8b95a5; }
-#debug .dbg-time { color: #8b95a5; }
+#debug .dbg-entry .dbg-title { display: flex; gap: .5rem; margin: 0; color: inherit; }
+#debug .dbg-time { margin-left: auto; color: #8b95a5; }
 #debug .dbg-meta { min-width: 0; margin-left: auto; color: #8b95a5; text-align: right; overflow-wrap: anywhere; }
 #debug .dbg-detail { margin: 0 0 .6rem; padding: .5rem; border-left: 2px solid #c0392b; }
 #debug .dbg-title { margin: .3rem 0; color: #e8a39b; }
