@@ -610,15 +610,24 @@ describe("debug mode", () => {
   });
 
   test("the state tab shows one foldable section per slice, and the events of a message in its detail", () => {
-    let panel = panelUpdate(initialPanel(["video"]), { type: "Tab", tab: "state" });
     const model = { screen: "home", video: { skipWarning: false, prompt: null } };
+    let panel = panelUpdate(panelUpdate(initialPanel(), { type: "Recorded", entry: { msg: { type: "@init" }, before: undefined, after: model, cmds: [] }, time: "t" }), { type: "Tab", tab: "state" });
     const folds = (current) => find(panelView(current, model), (node) => node.props.className === "dbg-fold").map(text);
     assert.deepEqual(folds(panelUpdate(panel, { type: "Toggle" })), ["▾ video", "▾ (...)"]);
     panel = panelUpdate(panelUpdate(panel, { type: "Toggle" }), { type: "Fold", name: "video" });
     assert.deepEqual(folds(panel), ["▸ video", "▾ (...)"]);
     const entry = { msg: { feature: "a", msg: { type: "X" } }, before: {}, after: {}, cmds: [], events: [{ event: { type: "Changed" }, from: "a", handledBy: ["b"] }] };
-    panel = panelUpdate(panelUpdate(panelUpdate(panel, { type: "Recorded", entry, time: "t" }), { type: "Tab", tab: "log" }), { type: "Select", id: 1 });
+    panel = panelUpdate(panelUpdate(panelUpdate(panel, { type: "Recorded", entry, time: "t" }), { type: "Tab", tab: "log" }), { type: "Select", id: 2 });
     assert.match(find(panelView(panel, model), (node) => node.props.className === "dbg-detail").map(text)[0], /a → Changed : reçu par b/);
+  });
+
+  test("the slices are learned from the recorded models, and a lazy one stays listed once unmounted", () => {
+    const record = (panel, before, after) => panelUpdate(panel, { type: "Recorded", entry: { msg: { type: "X" }, before, after, cmds: [] }, time: "t" });
+    let panel = record(initialPanel(), undefined, { screen: "home", a: { n: 0 } });
+    panel = record(panel, { a: { n: 0 } }, { a: { n: 0 }, lazy: { seen: 1 } });
+    panel = record(panel, { a: { n: 0 }, lazy: { seen: 1 } }, { a: { n: 0 } });
+    assert.deepEqual(panel.slices, ["a", "lazy"]);
+    assert.deepEqual(panel.entries[1].changes.map((change) => change.key), ["lazy.seen"]);
   });
 
   test("the runtime reports each step, effects after the message that caused them, and can restore a past model", () => {

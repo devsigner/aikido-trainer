@@ -247,7 +247,7 @@ En local (`localhost`), le debugger est monté automatiquement ; ailleurs, tape 
 - **Voyage dans le temps** : « Revenir à l'état après ce message » remet le modèle d'alors (les effets ne sont pas rejoués ; l'URL n'est pas modifiée).
 - **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__elmer.model`, `__elmer.debug.log`, `__elmer.debug.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
 
-Le module `framework/elmer/debug.js` n'est chargé que lorsqu'il est monté ; `run` garde seulement les 200 derniers messages en mémoire et les rejoue dans le panneau au montage. L'app le configure par `devtools: { slices, hide }` (voir `framework/elmer/README.md`).
+Le module `framework/elmer/debug.js` n'est chargé que lorsqu'il est monté ; `run` garde seulement les 200 derniers messages en mémoire et les rejoue dans le panneau au montage. L'app le configure par `devtools: { hide }` (voir `framework/elmer/README.md`).
 
 #### Ajouter une fonctionnalité
 

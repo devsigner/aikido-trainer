@@ -2,7 +2,7 @@
 
 // Elm loop: message → update → view → render, then run the commands.
 // The `run` function returns the `dispatch` function, which can be used to send messages to the loop.
-// Debugging is delegated to devtools.js: `devtools` = { slices, hide } mounts the panel and the `__elmer` console API;
+// Debugging is delegated to devtools.js: `devtools` = { hide } mounts the panel and the `__elmer` console API;
 // `debug` = optional explicit observer: `record({ msg, before, after, cmds, events })` after each step, and `attach({ getModel, restore })` once.
 import { createDevtools } from "./devtools.js";
 import { keepSettings } from "./elmer.js";

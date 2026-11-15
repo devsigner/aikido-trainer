@@ -10,10 +10,14 @@ const MAX_ENTRIES = 200;
 // `hide` = { field: (value) => short text }: the bulky fields of the model (at the root or in a slice) shown as a summary.
 const bulky = (fields, hide) => Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, key in hide ? hide[key](value) : value]));
 
+const plain = (value) => value && typeof value === "object" && !Array.isArray(value);
+
+// The feature slices of a model: its fields that are objects.
+const sliceNames = (model) => Object.keys(model ?? {}).filter((key) => plain(model[key]));
+
 // The model without its bulky parts, readable in a panel.
 export function summarize(model, hide = {}) {
   if (!model) return model;
-  const plain = (value) => value && typeof value === "object" && !Array.isArray(value);
   const slices = Object.entries(model).filter(([, value]) => plain(value)).map(([key, value]) => [key, bulky(value, hide)]);
   return { ...bulky(model, hide), ...Object.fromEntries(slices) };
 }
@@ -44,7 +48,7 @@ const MIN_HEIGHT = 140;
 const clamp = (value, min, max) => Math.max(min, Math.min(value, Math.max(min, max)));
 
 // `box` = position and size of the panel in px; `drag` = pointer gesture in progress ({ mode: "move" | "resize", x, y, box }).
-export const initialPanel = (slices = [], hide = {}) => ({ open: false, tab: "state", selected: null, folded: [], slices, hide, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
+export const initialPanel = (hide = {}) => ({ open: false, tab: "state", selected: null, folded: [], slices: [], hide, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
 
 // Keeps at least a grabbable part of the panel inside the viewport.
 function dragged({ drag }, { x, y, viewport }) {
@@ -58,8 +62,10 @@ function dragged({ drag }, { x, y, viewport }) {
 export function panelUpdate(panel, msg) {
   switch (msg.type) {
     case "Recorded": {
-      const entry = { ...msg.entry, id: panel.counter + 1, time: msg.time, changes: diffModels(msg.entry.before, msg.entry.after, panel.slices, panel.hide) };
-      return { ...panel, counter: entry.id, entries: [...panel.entries, entry].slice(-MAX_ENTRIES) };
+      // The slices are learned from the models seen (a lazy feature appears when it is mounted, and stays listed).
+      const slices = [...new Set([...panel.slices, ...sliceNames(msg.entry.before), ...sliceNames(msg.entry.after)])];
+      const entry = { ...msg.entry, id: panel.counter + 1, time: msg.time, changes: diffModels(msg.entry.before, msg.entry.after, slices, panel.hide) };
+      return { ...panel, slices, counter: entry.id, entries: [...panel.entries, entry].slice(-MAX_ENTRIES) };
     }
     case "Toggle":
       return { ...panel, open: !panel.open };
@@ -218,8 +224,8 @@ function consoleApi(getControl, getEntries, restore) {
 }
 
 // Mounts the panel and returns the observer expected by `run({ debug })`.
-// `slices` = names of the features that own a slice of the model (see framework/elmer/feature.js); `hide` = see `summarize`.
-export function mountDebugger(slices = [], hide = {}, doc = document) {
+// `hide` = see `summarize`. The feature slices are learned from the recorded models.
+export function mountDebugger(hide = {}, doc = document) {
   const style = doc.createElement("style");
   style.textContent = STYLE;
   doc.head.appendChild(style);
@@ -227,7 +233,7 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
   doc.body.appendChild(root);
   const render = createRenderer(root);
 
-  const start = initialPanel(slices, hide);
+  const start = initialPanel(hide);
   let panel = { ...start, box: { ...start.box, w: Math.min(start.box.w, innerWidth - 16), h: Math.min(start.box.h, innerHeight - 96) } };
   let control = null;
   const paint = () => render(panelView(panel, control?.getModel()), dispatch);

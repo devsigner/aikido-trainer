@@ -4,7 +4,7 @@
 // - The state of the debugger is `model.elmer.debug` ("on" | "off", see elmer.js): the panel follows it after each step,
 //   and `__elmer.debug.on()` / `.off()` only send `DebugOn` / `DebugOff` to the feature `elmer`.
 // - The last `model.elmer.historySize` steps are always kept, so that the panel can replay them when it is mounted later.
-// - `config` = { slices, hide } (see debug.js); without it (or without a browser) no panel is mounted.
+// - `config` = { hide } (see debug.js); without it (or without a browser) no panel is mounted.
 // - `observer` = explicit debug observer (`attach`, `record`), e.g. for tests.
 import { to } from "./feature.js";
 
@@ -45,7 +45,7 @@ export function createDevtools({ config, control, observer }) {
     const wanted = model.elmer?.debug === "on";
     if (wanted && !panel && !loading) {
       loading = (async () => {
-        const mounted = (await import("./debug.js")).mountDebugger([...config.slices, "elmer"], config.hide);
+        const mounted = (await import("./debug.js")).mountDebugger(config.hide);
         mounted.attach(travel);
         history.forEach((entry) => mounted.record(entry));
         observers.push(mounted);

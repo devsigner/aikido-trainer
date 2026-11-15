@@ -36,7 +36,7 @@ run({
   view,
   render,
   subscribe: createSubscriptions(features),
-  devtools: { slices: Object.keys(features), hide: debugHide },
+  devtools: { hide: debugHide },
   effects: createEffects(features),
   flags: {
     hash: location.hash,
