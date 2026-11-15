@@ -2,7 +2,7 @@
 // Effects (network, randomness, history) are described as commands run by the runtime.
 // Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):
 // its init, update, view and effects, composed by `combine` (src/framework/combine.js).
-import { countTechniques } from "./logic.js";
+import { countTechniques } from "./shared/logic.js";
 import { grade } from "./features/grade.js";
 import { draw } from "./features/draw.js";
 import { program } from "./features/program.js";

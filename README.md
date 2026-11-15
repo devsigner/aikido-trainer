@@ -127,7 +127,7 @@ flowchart TB
     subgraph pure["Cœur pur (testable sans navigateur)"]
         UPD["src/update.js<br/>Model + Msg + update"]
         VIEW["src/view.js<br/>view → vnodes"]
-        LOG["src/logic.js<br/>fusion des grades, pool, pondération"]
+        LOG["src/shared/logic.js<br/>fusion des grades, pool, pondération"]
         ROUTE["src/route.js<br/>URL ⇄ modèle"]
     end
     subgraph impure["Frontière avec le monde extérieur"]

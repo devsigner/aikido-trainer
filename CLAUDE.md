@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.41`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.42`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -147,11 +147,11 @@ manifest.webmanifest   PWA manifest
 sw.js                 Service worker (offline)
 icons/                App icons (192, 512, apple-touch-icon)
 app.js                Entry point (assembles init/update/view/effects)
-src/logic.js          Pure functions (merge, pool, weighting, sorting)
+src/shared/logic.js           Pure functions (merge, pool, weighting, sorting)
 src/update.js         features list, initialModel, init, update (combine + position/slide)
 src/features/*.js    one standalone feature per module (grade, draw, program, navigation, video)
 src/update-history.js  cross-cutting (not a feature): position, slide, `screenOf`
-src/card.js           card view shared by draw and program
+src/shared/card.js           card view shared by draw and program
 src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/route.js          URL (hash) ⇄ model
 src/view.js           view(model) → vnodes
@@ -205,7 +205,7 @@ One file per grade:
 Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits from 3rd.
 
 - `grades.json`: `includes` is the list of files loaded, in order, before the grade's own file. 3rd Kyo: no `includes`; 2nd Kyo: `["3eme-kyo.json"]`; 1st Kyo: `["3eme-kyo.json", "2eme-kyo.json"]`.
-- `mergeGrades` (in `src/logic.js`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
+- `mergeGrades` (in `src/shared/logic.js`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
 - A grade file therefore only contains its additions and minimal overrides (`name`, `order` and the fields that change, e.g. `isNew`, `isWarning`, `forms`, `note`). Do not copy a parent's data (a test detects needless copies).
 - Consequence: any technique added to the 3rd Kyo also appears in the 2nd and 1st Kyo, and any 2nd Kyo technique appears in the 1st.
 - For an intended `null` value (e.g. clearing an inherited note), write it explicitly in the override.
@@ -214,7 +214,7 @@ Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits fro
 
 - **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then one button per waza (order defined by `WAZA_ORDER`).
 - **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. A waza with no matching technique is disabled.
-- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `WEIGHT_NEW` and `WEIGHT_WARNING` at the top of `src/logic.js`.
+- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `WEIGHT_NEW` and `WEIGHT_WARNING` at the top of `src/shared/logic.js`.
 - **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Waza terminé 🎉" (Waza finished).
 - **Session**: reset by "Retour à l'accueil" (Back to home). Filters are taken into account when the waza is chosen.
 - **Display**: waza, attack, technique, form, 🆕/⚠️ badges, note, video link, progress counter ("n / total", per combination).

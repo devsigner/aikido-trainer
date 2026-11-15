@@ -1,6 +1,6 @@
 // Card of a technique, shared by the draw and program views.
-import { h } from "./framework/vdom.js";
-import { askVideo } from "./features/video.js";
+import { h } from "../framework/vdom.js";
+import { askVideo } from "../features/video.js";
 
 // Key and class of the animated card: a new key replaces the element and restarts the animation.
 export const slideProps = ({ direction, count }) => ({ key: count, className: direction ? `card slide-${direction}` : "card" });

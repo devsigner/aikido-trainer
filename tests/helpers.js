@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEffects } from "../src/framework/effects.js";
-import { mergeGrades } from "../src/logic.js";
+import { mergeGrades } from "../src/shared/logic.js";
 import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
 import { features, init, update } from "../src/update.js";
