@@ -11,11 +11,14 @@
     import { combine } from "../../framework/elmer/feature.js";
     import { createRenderer } from "../../framework/elmer/vdom.js";
     import { run } from "../../framework/elmer/runtime.js";
+    import { mountDebugger } from "../../framework/elmer/debug.js";
     import { features, view } from "./features.js";
 
     const app = combine(features);
     const renderer = createRenderer(document.getElementById("app"));
-    run({ init: app.init, update: app.update, view, render: renderer, effects: app.effects({}) });
+    // Debugger: the 🐞 button opens the state, the message log and the time travel.
+    const debug = mountDebugger(Object.keys(features));
+    run({ init: app.init, update: app.update, view, render: renderer, effects: app.effects({}), debug });
   </script>
 </body>
 </html>
