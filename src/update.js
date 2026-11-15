@@ -6,7 +6,7 @@
 // its init, update, view and effects, composed by `combine` (src/framework/combine.js).
 import { countTechniques } from "./shared/logic.js";
 import { grade } from "./features/grade.js";
-import { draw } from "./features/draw.js";
+import { quiz } from "./features/quiz.js";
 import { program } from "./features/program.js";
 import { navigation } from "./features/navigation.js";
 import { video } from "./features/video.js";
@@ -14,7 +14,14 @@ import { slide } from "./features/slide.js";
 import { combine } from "./framework/combine.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
-export const features = [grade, draw, program, video, navigation, slide];
+export const features = [
+  grade,
+  quiz,
+  program,
+  video,
+  navigation,
+  slide
+];
 const standalone = combine(features);
 
 // Bulky fields of the model shown as a summary in the debug panel.

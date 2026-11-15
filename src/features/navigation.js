@@ -3,7 +3,7 @@
 // Feature "navigation": the URL is the source of truth (reload, browser back/forward).
 // Owns: pending (the route waiting for the data) and position (index of the current history entry, tells back from forward).
 // Does not write other slices: it publishes events.
-// Publishes `HomeRequested` (draw and program close), `RouteChanged` ({ route }: draw and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
+// Publishes `HomeRequested` (quiz and program close), `RouteChanged` ({ route }: quiz and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
 // Reacts to `Navigated` (a feature changed what the URL shows) by writing the URL, stamped with the position (+1 on a push).
 import { parseHash, toHash } from "../route.js";
 import { screenOf } from "../shared/screen.js";

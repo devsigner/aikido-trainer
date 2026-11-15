@@ -193,7 +193,7 @@ stateDiagram-v2
     }
 ```
 
-Les trois niveaux du programme sont stockés dans `model.program = { waza, at: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `draw` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
+Les trois niveaux du programme sont stockés dans `model.program = { waza, at: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `quiz` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
 
 #### Principaux messages et effets
 
@@ -233,7 +233,7 @@ flowchart LR
     URL -- "parseHash (chargement, popstate)" --> MOD
 ```
 
-Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). La feature `navigation` retient la position dans l'historique (`model.navigation.position`), ce qui permet de savoir si un `popstate` est un retour ou une avance ; la direction est transmise dans `RouteChanged`. Les features `draw` et `program` publient `ViewChanged` quand la carte change, et la feature `slide` en tire l'animation.
+Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). La feature `navigation` retient la position dans l'historique (`model.navigation.position`), ce qui permet de savoir si un `popstate` est un retour ou une avance ; la direction est transmise dans `RouteChanged`. Les features `quiz` et `program` publient `ViewChanged` quand la carte change, et la feature `slide` en tire l'animation.
 
 #### Mode debug
 

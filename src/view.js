@@ -5,7 +5,7 @@
 import { h } from "./framework/vdom.js";
 import { embed } from "./framework/combine.js";
 import { grade } from "./features/grade.js";
-import { draw } from "./features/draw.js";
+import { quiz } from "./features/quiz.js";
 import { program } from "./features/program.js";
 import { screenOf } from "./shared/screen.js";
 
@@ -28,9 +28,9 @@ export function view(model) {
     return page(model, embed("program", program.view(model.program, model, header)));
   }
 
-  // The draw screen's first page fills the viewport height; the footer sits below the fold.
-  if (screen === "draw") {
-    return page(model, h("div", { className: "screen full" }, header, embed("draw", draw.view(model.draw, model))));
+  // The quiz screen's first page fills the viewport height; the footer sits below the fold.
+  if (screen === "quiz") {
+    return page(model, h("div", { className: "screen full" }, header, embed("quiz", quiz.view(model.quiz, model))));
   }
   return page(model, header, home(model));
 }

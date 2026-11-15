@@ -3,7 +3,7 @@
 // URL ⇄ model: #/grade[/waza[/program[/attack[/technique]]]] (hash routing works on GitHub Pages).
 export function toHash(model) {
   const parts = [model.grade.id];
-  const waza = model.program?.waza || model.draw?.waza;
+  const waza = model.program?.waza || model.quiz?.waza;
   if (waza) parts.push(waza);
   if (model.program?.at) {
     const { level, attack, technique } = model.program.at;

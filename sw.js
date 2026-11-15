@@ -3,7 +3,7 @@
 "use strict";
 
 // Same number as the ?v= in index.html (see CLAUDE.md): renews the cache on every version.
-const VERSION = "20261114.54";
+const VERSION = "20261114.55";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -27,7 +27,7 @@ const PRECACHE = [
   `src/shared/screen.js?v=${VERSION}`,
   `src/features/slide.js?v=${VERSION}`,
   `src/features/grade.js?v=${VERSION}`,
-  `src/features/draw.js?v=${VERSION}`,
+  `src/features/quiz.js?v=${VERSION}`,
   `src/framework/combine.js?v=${VERSION}`,
   `src/shared/card.js?v=${VERSION}`,
   `src/view.js?v=${VERSION}`,

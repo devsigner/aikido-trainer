@@ -1,6 +1,6 @@
 // src/shared/card.js
 
-// Card of a technique, shared by the draw and program views.
+// Card of a technique, shared by the quiz and program views.
 import { h } from "../framework/vdom.js";
 import { askVideo } from "../features/video.js";
 

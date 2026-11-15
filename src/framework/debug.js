@@ -133,7 +133,7 @@ const stateTab = (panel, model) => {
   const rest = Object.fromEntries(Object.entries(summary).filter(([key]) => !panel.slices.includes(key)));
   return [
     panel.slices.map((name) => section(panel, name, summary[name])),
-    section(panel, "(racine)", rest),
+    section(panel, "(...)", rest),
   ];
 };
 

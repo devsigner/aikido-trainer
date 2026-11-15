@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.54`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.55`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -65,13 +65,13 @@ Same rules as for techniques: a new attack gets the value of its name if it is i
 
 ## Program
 
-The "Voir le programme" (View the program) button (draw screen, under "Retour à l'accueil" (Back to home)) opens the full listing of the selected waza and grade, without touching the session (already-drawn techniques are kept). The 🆕/⚠️ filters do not apply there.
+The "Voir le programme" (View the program) button (quiz screen, under "Retour à l'accueil" (Back to home)) opens the full listing of the selected waza and grade; the draw session ends (back to the quiz starts a new one at 0). The 🆕/⚠️ filters do not apply there.
 
 1. List of all attacks (sorted by `order`, then alphabetically).
 2. Click on an attack: its card and the list of its techniques (sorted by `order`, then alphabetically).
 3. Click on a technique: its card (forms, badges, note, video) and, below it, the other attacks of the same waza that have the same technique (name compared ignoring case and accents). Clicking one of them opens its card.
 
-The ← button and the browser back action (`history`) go up one level, then return to the draw.
+The ← button and the browser back action (`history`) go up one level, then return to the quiz.
 
 ## Mobile app (PWA)
 
@@ -119,7 +119,7 @@ yarn lint     # ESLint (eslint.config.js)
 A `pre-commit` hook (`.githooks/`, enabled by `yarn install` through the `prepare` script) runs the lint and the tests before each commit and blocks the commit on failure.
 
 - `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache, `src/` modules).
-- `tests/app.test.js`: pure logic (pool, weighting, sorting, merging), `update`, `h()`, `resolveGrade`, and a full walkthrough using the real runtime with `tests/helpers.js` (virtual tree, simulated history: home, draw without repetition, progress, program, back).
+- `tests/app.test.js`: pure logic (pool, weighting, sorting, merging), `update`, `h()`, `resolveGrade`, and a full walkthrough using the real runtime with `tests/helpers.js` (virtual tree, simulated history: home, quiz without repetition, progress, program, back).
 
 Run the tests before every commit and add some for any new rule.
 
@@ -127,20 +127,20 @@ Run the tests before every commit and add some for any new rule.
 
 Unidirectional flow, no dependencies and no build (native ES modules + versioned import map):
 
-- **Features** (`src/features/*.js`, composed by `combine` in `src/framework/combine.js`): each one has its own model slice (`model.grade`, `draw`, `program`, `video`, `navigation`, `slide`), `init`, `update(slice, msg, root)`, `view`, `effects`, `subscribe` (browser events, e.g. `popstate` in navigation). `draw` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ grade, draw, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
+- **Features** (`src/features/*.js`, composed by `combine` in `src/framework/combine.js`): each one has its own model slice (`model.grade`, `quiz`, `program`, `video`, `navigation`, `slide`), `init`, `update(slice, msg, root)`, `view`, `effects`, `subscribe` (browser events, e.g. `popstate` in navigation). `quiz` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ grade, quiz, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
 - `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
 - `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `src/framework/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
 - `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `src/framework/vdom.js` provides `h()` and diff-based rendering; `src/framework/runtime.js` loops `update → effects → view → render`.
 - **Debug mode** (`src/framework/debug.js`): `?debug` in the URL (remembered in `localStorage` under `aikido.debug`, `?debug=0` turns it off) mounts a panel (its own tiny Elm app, outside the app tree) with the current model, the message log, the commands and model changes of each message, and time travel (`restore`). The panel floats (`position: fixed`), starts on the left, and is moved/resized with pointer events (state `box` and `drag`, listeners on the document while dragging). `run` takes an optional `debug` observer (`attach({ getModel, restore })`, `record({ msg, before, after, cmds })`); the module is dynamically imported by `app.js` only when the mode is on. Console helper: `__debug`.
-- **URL** (`src/route.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new draw (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
+- **URL** (`src/route.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new quiz (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
 - The ids and CSS classes of the views are stable (used by `style.css` and the tests).
 
 ## Structure
 
 ```
 README.md             User manual (French) with screenshots from `docs/screenshots/`
-index.html            Single page (home + draw screen)
+index.html            Single page (home + quiz screen)
 favicon.ico           Site icon (character 道, embedded 16/32/48/64 px PNGs)
 style.css
 manifest.webmanifest   PWA manifest
@@ -149,9 +149,9 @@ icons/                App icons (192, 512, apple-touch-icon)
 app.js                Entry point (assembles init/update/view/effects)
 src/shared/logic.js           Pure functions (merge, pool, weighting, sorting)
 src/update.js         features list, initialModel, init, update (= combine)
-src/features/*.js    one standalone feature per module (grade, draw, program, navigation, video, slide)
+src/features/*.js    one standalone feature per module (grade, quiz, program, navigation, video, slide)
 src/shared/screen.js         `screenOf` (screen derived from the slices)
-src/shared/card.js           card view shared by draw and program
+src/shared/card.js           card view shared by quiz and program
 src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/route.js          URL (hash) ⇄ model
 src/view.js           view(model) → vnodes (chooses the screen)
