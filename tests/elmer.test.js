@@ -4,6 +4,10 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/feature.js";
+import { settingsFromEnvironment } from "../framework/elmer/elmer.js";
+import { run } from "../framework/elmer/runtime.js";
+
+const SETTINGS = { debug: "off", historySize: 200 };
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
@@ -24,14 +28,14 @@ describe("elmer combine", () => {
 
   test("init builds one slice per feature and tags the commands with their feature", () => {
     const [model, cmds] = app.init();
-    assert.deepEqual(model, { counter: { n: 0 }, log: { seen: [] } });
+    assert.deepEqual(model, { counter: { n: 0 }, log: { seen: [] }, elmer: SETTINGS });
     assert.deepEqual(cmds, [{ type: "Hello", feature: "counter" }]);
   });
 
   test("a message only touches its feature; its events reach the subscribers, which can read the root model", () => {
     const [model] = app.init();
     const [next, cmds] = app.update(model, to("counter", { type: "Inc" }));
-    assert.deepEqual(next, { counter: { n: 1 }, log: { seen: ["1/1"] } });
+    assert.deepEqual(next, { counter: { n: 1 }, log: { seen: ["1/1"] }, elmer: SETTINGS });
     assert.deepEqual(cmds, [{ type: "Echo", feature: "counter" }]);
     assert.equal(model.counter.n, 0, "the previous model is not mutated");
   });
@@ -65,6 +69,41 @@ describe("elmer combine", () => {
     assert.throws(() => defineFeature({ messages: {} }), /model/);
   });
 
+  test("the feature `elmer` is added to every application: settings in model.elmer, saved when they change, name reserved", () => {
+    const saved = [];
+    const [model] = app.init({ elmer: { debug: "on" } });
+    assert.deepEqual(model.elmer, { debug: "on", historySize: 200 }, "the flags of the environment override the defaults");
+    const [next, cmds] = app.update(model, to("elmer", { type: "DebugOff" }));
+    assert.equal(next.elmer.debug, "off");
+    assert.deepEqual(cmds, [{ type: "SaveSetting", key: "debug", value: "off", feature: "elmer" }]);
+    app.effects({ storage: { setItem: (key, value) => saved.push([key, value]) } }).SaveSetting(cmds[0], () => {});
+    assert.deepEqual(saved, [["elmer.debug", "off"]]);
+    assert.throws(() => combine({ elmer: counter }), /reserved/);
+  });
+
+  test("the settings from the environment: the saved choice wins, no browser means off", () => {
+    assert.deepEqual(settingsFromEnvironment(), { debug: "off" });
+    globalThis.localStorage = { getItem: () => "on" };
+    try {
+      assert.deepEqual(settingsFromEnvironment(), { debug: "on" });
+    } finally {
+      delete globalThis.localStorage;
+    }
+  });
+
+  test("time travel keeps the settings of the framework", () => {
+    let handle;
+    const application = combine({ plain: defineFeature({ model: {} }) });
+    const dispatch = run({
+      init: application.init, update: application.update, view: () => "", render: () => {}, effects: application.effects({}),
+      debug: { attach: (control) => (handle = control), record: () => {} },
+    });
+    const past = handle.getModel();
+    dispatch(to("elmer", { type: "DebugOn" }));
+    handle.restore(past);
+    assert.equal(handle.getModel().elmer.debug, "on");
+  });
+
   test("embed envelops the handlers of a feature view, messages and functions alike", () => {
     const vnode = { tag: "div", props: { id: "x", onClick: { type: "A" }, onChange: (event) => ({ type: "B", value: event.v }) }, children: [{ tag: "b", props: { onClick: { type: "C" } }, children: ["text"] }] };
     const mapped = embed("counter", vnode);
@@ -85,11 +124,11 @@ describe("elmer combine", () => {
     const eager = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "Free" }]] } });
     const lazyApp = combine({ eager, lazy });
     const [model] = lazyApp.init({ start: 10 });
-    assert.deepEqual(Object.keys(model), ["eager"]);
+    assert.deepEqual(Object.keys(model), ["eager", "elmer"]);
     const [mounted] = lazyApp.update(model, to("lazy", { type: "Go" }));
     assert.deepEqual(mounted.lazy, { n: 11 });
     const [freed, cmds] = lazyApp.update(mounted, to("eager", { type: "Go" }));
-    assert.deepEqual(Object.keys(freed), ["eager"]);
+    assert.deepEqual(Object.keys(freed), ["eager", "elmer"]);
     assert.deepEqual(cmds, [{ type: "Cleanup", feature: "lazy" }]);
     assert.deepEqual(lazyApp.update(freed, to("lazy", { type: "Go" }))[0].lazy, { n: 11 }, "mounted again from init");
   });

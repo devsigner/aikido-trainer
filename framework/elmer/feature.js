@@ -23,6 +23,8 @@
 // to every feature that subscribed to them in `on`, and may publish events in turn.
 // `init` and `update` return `[model, cmds, delivered]`; `delivered` lists the events for debugging: `{ event, from, handledBy }`.
 
+import { feature as elmer } from "./elmer.js";
+
 const KEYS = ["model", "lazy", "init", "messages", "on", "effects", "subscribe", "view", "views", "events"];
 
 // Declares a feature: checks the shape (a typo in a key would otherwise be silently ignored) and returns it.
@@ -46,9 +48,12 @@ export const UNMOUNT = Symbol("unmount");
 // Composes several features, an object `{ name: feature }`, into one root program: the slices of every feature are merged
 // in the root model (`model[name]`, in the order of the object), and the messages of every feature are enveloped in `{ feature, msg }`.
 //
+// The feature `elmer` (the settings of the framework, see elmer.js) is added to the application features.
+//
 // The root program is used by the runtime (framework/elmer/runtime.js) to run the Elm loop.
 export function combine(definitions) {
-  const features = Object.entries(definitions).map(([name, spec]) => ({
+  if ("elmer" in definitions) throw new Error("The feature name `elmer` is reserved by the framework");
+  const features = Object.entries({ ...definitions, elmer }).map(([name, spec]) => ({
     ...defineFeature(spec),
     name,
     init: (flags) => (spec.init ? spec.init(flags, spec.model) : [spec.model, []]),

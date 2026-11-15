@@ -36,8 +36,8 @@ export function initialModel() {
 }
 
 // Initializes the model from the URL hash and history position, and starts loading the grades.
-export function init({ hash = "", position = 0, skipVideoWarning = false } = {}) {
-  return standalone.init({ skipVideoWarning, hash, position });
+export function init({ hash = "", position = 0, skipVideoWarning = false, elmer } = {}) {
+  return standalone.init({ skipVideoWarning, hash, position, elmer });
 }
 
 // Main update function: dispatches to the feature.

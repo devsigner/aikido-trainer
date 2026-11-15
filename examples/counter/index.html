@@ -9,6 +9,7 @@
   <!-- Serve the repository root (e.g. `python3 -m http.server`) and open /examples/counter/ -->
   <script type="module">
     import { combine } from "../../framework/elmer/feature.js";
+    import { createEffects } from "../../framework/elmer/effects.js";
     import { createRenderer } from "../../framework/elmer/vdom.js";
     import { run } from "../../framework/elmer/runtime.js";
     import { features, view } from "./features.js";
@@ -16,7 +17,7 @@
     const app = combine(features);
     const renderer = createRenderer(document.getElementById("app"));
     // Debugger (🐞): on by default on localhost; elsewhere, `__elmer.debug.on()` / `.off()` in the console mount or unmount it.
-    run({ init: app.init, update: app.update, view, render: renderer, effects: app.effects({}), devtools: { slices: Object.keys(features) } });
+    run({ init: app.init, update: app.update, view, render: renderer, effects: createEffects(features), devtools: { slices: Object.keys(features) } });
   </script>
 </body>
 </html>

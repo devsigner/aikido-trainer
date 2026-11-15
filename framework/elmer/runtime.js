@@ -5,6 +5,7 @@
 // Debugging is delegated to devtools.js: `devtools` = { slices, hide } mounts the panel and the `__elmer` console API;
 // `debug` = optional explicit observer: `record({ msg, before, after, cmds, events })` after each step, and `attach({ getModel, restore })` once.
 import { createDevtools } from "./devtools.js";
+import { settingsFromEnvironment } from "./elmer.js";
 
 export function run({ init, update, view, render, effects, subscribe, flags, debug, devtools }) {
   let model;
@@ -34,14 +35,15 @@ export function run({ init, update, view, render, effects, subscribe, flags, deb
     observer: debug,
     control: {
       getModel: () => model,
-      // Time travel: puts a past model back and redraws it (no effect is replayed).
+      // Time travel: puts a past model back and redraws it (no effect is replayed). The settings of the framework (`elmer`) stay as they are.
       restore: (past) => {
-        model = past;
+        model = model.elmer ? { ...past, elmer: model.elmer } : past;
         render(view(model), dispatch);
       },
+      dispatch,
     },
   });
-  apply(init(flags), { type: "@init" });
+  apply(init({ ...flags, elmer: settingsFromEnvironment() }), { type: "@init" });
   subscribe?.(dispatch);
 
   return dispatch;

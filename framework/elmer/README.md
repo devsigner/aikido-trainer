@@ -74,6 +74,7 @@ En trois règles :
 | `effects.js` | `createEffects` / `createSubscriptions(features, overrides)` : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
+| `elmer.js`   | la feature `elmer` (réglages du framework, ajoutée d'office par `combine`) : `model.elmer = { debug: "on"\|"off", historySize }` |
 | `devtools.js` | historique des messages, API console `__elmer`, montage à la demande du panneau (appelé par `run`) |
 | `debug.js`   | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (voir « Le debugger ») |
 
@@ -104,12 +105,16 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 - **Feature `lazy`** : sa tranche n'existe pas à l'`init` ; elle est créée (avec `init(flags, model)`) au premier message ou événement auquel elle est abonnée. Un `update` ou une réaction qui renvoie `UNMOUNT` comme modèle supprime la tranche (les commandes et événements sont conservés) ; un nouveau message la recrée depuis `init`. Pendant ce temps `root[name]` est `undefined` : les autres features et la vue doivent le tolérer. Une réponse d'effet tardive la recrée aussi. Avec `lazy: { events: [types] }`, seuls un message ou ces événements créent la tranche ; les autres événements sont ignorés tant qu'elle est démontée.
 - `combine({ nom: feature })` renvoie `{ init, update, subscribe, effects }`, directement utilisables par `run`.
 
+## La feature `elmer`
+
+`combine` ajoute d'office une feature nommée `elmer` (nom réservé, dernière tranche du modèle) : elle porte les réglages du framework, `model.elmer = { debug: "on" | "off", historySize: 200 }`. Au démarrage, `run` lui donne `flags.elmer` (choix mémorisé, sinon `"on"` en local). Changer un réglage = envoyer un message (`to("elmer", { type: "DebugOn" })`) ; la commande `SaveSetting` le mémorise. Le voyage dans le temps (`restore`) **préserve** `model.elmer`.
+
 ## Le debugger
 
 Le debugger est **inclus d'office** : `run({ …, devtools: { slices, hide } })` suffit (`slices` = noms des features, `hide` = résumés des champs volumineux). Il n'est pas dans la boucle : il l'écoute.
 
 - **Local** (`localhost`, `127.x`, `*.local`) : monté automatiquement, sauf si `__elmer.debug.off()` a été appelé.
-- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. Ce choix est **mémorisé** (`localStorage`, clé `elmer.debug`) : après `off()`, il n'est plus monté au rechargement, même en local ; après `on()`, il l'est même hors local. Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
+- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. L'état est dans le modèle (`model.elmer.debug`, messages `elmer/DebugOn` et `elmer/DebugOff`) et le choix est **mémorisé** par la commande `SaveSetting` (`localStorage`, clé `elmer.debug`) : après `off()`, il n'est plus monté au rechargement, même en local ; après `on()`, il l'est même hors local. Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
 
 ```mermaid
 flowchart LR
