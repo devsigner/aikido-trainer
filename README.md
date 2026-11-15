@@ -242,7 +242,7 @@ Ajoute `?debug` à l'URL (ex. `http://localhost:8000/?debug`) : un bouton 🐞 o
 - **État** : le modèle courant en JSON (les données des grades et le pool de tirage sont résumés).
 - **Messages** : le journal de tous les messages (200 derniers). Un clic affiche le message, les **commandes** qu'il a produites et les **champs du modèle modifiés**.
 - **Voyage dans le temps** : « Revenir à l'état après ce message » remet le modèle d'alors (les effets ne sont pas rejoués ; l'URL n'est pas modifiée).
-- **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__debug.model`, `__debug.log`, `__debug.restore(id)`.
+- **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__debug.model`, `__debug.log`, `__debug.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
 
 Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module `src/framework/debug.js` n'est chargé que s'il est actif : aucun coût en usage normal. Il s'appuie sur un simple observateur (`debug`) de `run`, qui reçoit chaque `{ msg, before, after, cmds }`.
 

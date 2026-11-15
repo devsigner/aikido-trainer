@@ -180,6 +180,26 @@ const STYLE = `
 #debug .dbg-change { word-break: break-all; }
 `;
 
+// Browser console helper (`__debug`): `model` (current), `log` (message entries), `restore(id)` (time travel; returns the restored model, or null for an unknown id).
+function consoleApi(getControl, getEntries, restore) {
+  return {
+    get model() {
+      return getControl().getModel();
+    },
+    get log() {
+      return getEntries();
+    },
+    restore(id) {
+      if (!getEntries().some((entry) => entry.id === id)) {
+        console.warn(`__debug.restore: unknown id ${id} (see __debug.log)`);
+        return null;
+      }
+      restore(id);
+      return getControl().getModel();
+    },
+  };
+}
+
 // Mounts the panel and returns the observer expected by `run({ debug })`.
 // `slices` = names of the features that own a slice of the model (see src/framework/combine.js); `hide` = see `summarize`.
 export function mountDebugger(slices = [], hide = {}, doc = document) {
@@ -197,7 +217,10 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
   const clock = () => new Date().toLocaleTimeString("fr-FR");
 
   function dispatch(msg) {
-    if (msg.type === "Restore") control.restore(panel.entries.find((entry) => entry.id === msg.id).after);
+    if (msg.type === "Restore") {
+      const entry = panel.entries.find((e) => e.id === msg.id);
+      if (entry) control.restore(entry.after);
+    }
     else if (msg.type === "Copy") globalThis.navigator?.clipboard?.writeText(msg.text);
     else {
       panel = panelUpdate(panel, msg);
@@ -223,16 +246,7 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
   return {
     attach(handle) {
       control = handle;
-      // Handy from the browser console: `__debug.model`, `__debug.log`, `__debug.restore(n)`.
-      globalThis.__debug = {
-        get model() {
-          return control.getModel();
-        },
-        get log() {
-          return panel.entries;
-        },
-        restore: (id) => dispatch({ type: "Restore", id }),
-      };
+      globalThis.__debug = consoleApi(() => control, () => panel.entries, (id) => dispatch({ type: "Restore", id }));
     },
     record(entry) {
       panel = panelUpdate(panel, { type: "Recorded", entry, time: clock() });
