@@ -33,10 +33,10 @@ describe("logic", () => {
   test("pool: one entry per form, weights 1 / 1.5 / 2.25", () => {
     const pool = buildPool(DATA, "Tachi waza", ALL);
     assert.equal(pool.length, 6);
-    const weightOf = (name, form) => pool.find((entry) => entry.technique.name === name && entry.form === form).weight;
+    const weightOf = (name, form) => pool.find((entry) => entry.technique === name && entry.form === form).weight;
     assert.equal(weightOf("Nikkyo", "Omote"), 1.5);
-    assert.equal(pool.find((entry) => entry.technique.name === "Kote gaeshi").weight, 1);
-    assert.equal(pool.find((entry) => entry.technique.name === "nikkyo").weight, 1.5);
+    assert.equal(pool.find((entry) => entry.technique === "Kote gaeshi").weight, 1);
+    assert.equal(pool.find((entry) => entry.technique === "nikkyo").weight, 1.5);
   });
 
   test("filters: New, Warning, or both (OR)", () => {

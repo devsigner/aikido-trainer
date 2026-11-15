@@ -15,9 +15,9 @@ import { UNMOUNT, to } from "../framework/combine.js";
 
 // State of a quiz session. The model is reset to this state when the user goes home or changes waza.
 // - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
-// - `pool` = list of remaining techniques to quiz (weighted)
+// - `pool` = list of remaining techniques to draw (weighted)
 // - `total` = total number of techniques in the pool at the start of the session
-// - `current` = technique currently drawn (null if none) e.g. { waza, attack, technique, form, weight }
+// - `current` = technique currently drawn (null if none) by references (names): { attack, technique, form, weight }
 // - `done` = true if the pool is empty and the user has seen all techniques
 export const initialModel = { waza: "", pool: [], total: 0, current: null, done: false };
 
@@ -47,7 +47,7 @@ const messages = {
 // Quiz screen: show a technique and ask if the user knows it.
 function view(model, root) {
   const { current } = model;
-  const shown = current ? { waza: model.waza, attack: current.attack, technique: current.technique, form: current.form || "" } : {};
+  const shown = current ? { waza: model.waza, attack: current.attack, technique: current.technique, form: current.form || "" } : { form: "" };
   return h("section", { id: "quiz" },
     h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),

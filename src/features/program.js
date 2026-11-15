@@ -76,7 +76,7 @@ const levels = {
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
-      fields: { waza, attack, technique: current, form: current.forms.join(" · ") },
+      fields: { waza, attack, technique },
       // Last row of the first screen (see `.screen.full`).
       actions: h("div", { className: "pager" },
         h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),

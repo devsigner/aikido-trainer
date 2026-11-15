@@ -41,14 +41,14 @@ export function buildPool(data, waza, { isNew = false, isWarning = false } = {})
       if ((isNew || isWarning) && !((isNew && technique.isNew) || (isWarning && technique.isWarning))) continue;
       const weight = (technique.isNew ? WEIGHT_NEW : 1) * (technique.isWarning ? WEIGHT_WARNING : 1);
       const forms = technique.forms.length ? technique.forms : [null];
-      for (const form of forms) items.push({ waza, attack: attack.name, technique, form, weight });
+      for (const form of forms) items.push({ attack: attack.name, technique: technique.name, form, weight });
     }
   }
   return items;
 }
 
 // Weighted draw: `random` ∈ [0, 1[ comes from an effect (Random), so the function stays pure.
-// The pool is an array of { waza, attack, technique, form, weight }.
+// The pool is an array of references { attack, technique, form, weight } (names; the rest is looked up in the data).
 // The function returns the index of the drawn technique in the pool.
 export function pickIndex(pool, random) {
   let left = random * pool.reduce((sum, entry) => sum + entry.weight, 0);
@@ -62,6 +62,10 @@ export function pickIndex(pool, random) {
 export const norm = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 export const byOrder = (first, second) => first.order - second.order || first.name.localeCompare(second.name, "fr");
 export const badgesOf = (technique) => [technique.isNew ? "🆕" : "", technique.isWarning ? "⚠️" : ""].join(" ").trim();
+
+// Entry of the data for a technique reference (undefined if unknown).
+export const findTechnique = (data, waza, attack, technique) =>
+  (data.waza[waza] || []).find((candidate) => candidate.name === attack)?.techniques.find((candidate) => candidate.name === technique);
 
 export const listAttacks = (data, waza) => [...(data.waza[waza] || [])].sort(byOrder);
 
