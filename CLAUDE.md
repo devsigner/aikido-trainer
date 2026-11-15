@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.56`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.57`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -151,7 +151,7 @@ src/shared/logic.js           Pure functions (merge, pool, weighting, sorting)
 src/update.js         features list, initialModel, init, update (= combine)
 src/features/*.js    one standalone feature per module (catalog, quiz, program, navigation, video, slide)
 src/shared/screen.js         `screenOf` (screen derived from the slices)
-src/shared/card.js           card view shared by quiz and program
+src/layout/card.js           technique card shared by quiz and program (reads `root.video` and `root.slide`)
 src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/route.js          URL (hash) ⇄ model
 src/view.js           view(model) → vnodes (chooses the screen)

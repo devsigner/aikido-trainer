@@ -7,7 +7,7 @@
 // Closes when `HomeRequested`.
 import { h } from "../framework/vdom.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
-import { card, slideProps } from "../shared/card.js";
+import { card } from "../layout/card.js";
 import { navigated } from "./navigation.js";
 import { viewChanged } from "./slide.js";
 import { UNMOUNT, to } from "../framework/combine.js";
@@ -76,7 +76,7 @@ const levels = {
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
-      fields: { waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "", warnVideo: !root.video.skipWarning },
+      fields: { waza, attack, technique: current, form: current.forms.join(" · ") },
       // Last row of the first screen (see `.screen.full`).
       actions: h("div", { className: "pager" },
         h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
@@ -98,7 +98,7 @@ function view(model, root, header) {
       header,
       h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
       h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
-      card("prog", fields, "prog-card", slideProps(root.slide)),
+      card(root, { prefix: "prog", id: "prog-card", ...fields }),
       actions,
       h("h2", { id: "prog-title" }, title),
     ),

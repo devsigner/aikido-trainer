@@ -32,6 +32,10 @@ export const askVideo = (url) => (event) => {
   return to("video", { type: "AskVideo", url });
 };
 
+// Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
+export const videoLink = (root, url, id) =>
+  h("a", { id, className: "video", href: url, target: "_blank", rel: "noopener", onClick: root.video.skipWarning ? null : askVideo(url) }, "▶ Voir la vidéo");
+
 // The modal, with the messages of this feature only (the root view embeds it).
 function view(model) {
   const { prompt } = model;

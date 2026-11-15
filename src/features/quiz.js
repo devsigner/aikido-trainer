@@ -5,8 +5,8 @@
 // Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
 import { h } from "../framework/vdom.js";
-import { badgesOf, buildPool, pickIndex } from "../shared/logic.js";
-import { card, slideProps } from "../shared/card.js";
+import { buildPool, pickIndex } from "../shared/logic.js";
+import { card } from "../layout/card.js";
 import { navigated } from "./navigation.js";
 import { viewChanged } from "./slide.js";
 import { screenOf } from "../shared/screen.js";
@@ -47,21 +47,12 @@ const messages = {
 // Quiz screen: show a technique and ask if the user knows it.
 function view(model, root) {
   const { current } = model;
-  const shown = current && {
-    waza: model.waza,
-    attack: current.attack,
-    technique: current.technique.name,
-    form: current.form || "",
-    badges: badgesOf(current.technique),
-    note: current.technique.note || "",
-    video: current.technique.video || "",
-    warnVideo: !root.video.skipWarning,
-  };
+  const shown = current ? { waza: model.waza, attack: current.attack, technique: current.technique, form: current.form || "" } : {};
   return h("section", { id: "quiz" },
     h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
     h("h3", { className: "hint" }, "Connais-tu cette technique ?"),
-    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(root.slide)),
+    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card(root, { prefix: "card", ...shown }),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
       h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram", waza: model.waza }) }, "Voir le programme")));
