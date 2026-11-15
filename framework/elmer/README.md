@@ -76,7 +76,10 @@ En trois règles :
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
 | `elmer.js`   | la feature `elmer` (réglages du framework, ajoutée d'office par `combine`) : `model.elmer = { debug: "on"\|"off", historySize }` |
 | `devtools.js` | historique des messages, API console `__elmer`, montage à la demande du panneau (appelé par `run`) |
-| `debug.js`   | `mountDebugger(hide)` : panneau d'état, journal, voyage dans le temps (voir « Le debugger ») |
+| `debug/mount.js` | `mountDebugger(hide)` : monte le panneau, API console `log` / `restore` (voir « Le debugger ») |
+| `debug/panel.js` | le panneau (mini app Elm) : état, `panelUpdate`, `panelView` |
+| `debug/inspect.js` | lecture d'un modèle : `summarize`, `diffModels`, `labelOf` |
+| `debug/style.js` | le CSS du panneau |
 
 ## Une feature
 
@@ -114,11 +117,11 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 Le debugger est **inclus d'office** : `run({ …, devtools: { hide } })` suffit (`hide` = résumés des champs volumineux ; les tranches sont déduites des modèles enregistrés). Il n'est pas dans la boucle : il l'écoute.
 
 - **Local** (`localhost`, `127.x`, `*.local`) : monté automatiquement, sauf si `__elmer.debug.off()` a été appelé.
-- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. L'état est dans le modèle (`model.elmer.debug`, messages `elmer/DebugOn` et `elmer/DebugOff`) et le choix est **mémorisé** par la commande `SaveSetting` (`localStorage`, clé `elmer.debug`) : après `off()`, il n'est plus monté au rechargement, même en local ; après `on()`, il l'est même hors local. Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
+- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. L'état est dans le modèle (`model.elmer.debug`, messages `elmer/DebugOn` et `elmer/DebugOff`) et le choix est **mémorisé** par la commande `SaveSetting` (`localStorage`, clé `elmer.debug`) : après `off()`, il n'est plus monté au rechargement, même en local ; après `on()`, il l'est même hors local. Le dossier `debug/` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
 
 ```mermaid
 flowchart LR
-    RUN["run"] -- "record({ msg, before, after, cmds, events })<br/>après chaque message" --> DBG["observateur (debug.js)"]
+    RUN["run"] -- "record({ msg, before, after, cmds, events })<br/>après chaque message" --> DBG["observateur (debug/mount.js)"]
     RUN -- "attach({ getModel, restore })<br/>au montage" --> DBG
     CON["console<br/>__elmer.debug.on() / .off()"] -- "monte / démonte" --> DBG
     DBG --> P["panneau (mini app Elm<br/>avec son propre model/update/view)"]
@@ -160,7 +163,7 @@ __elmer.debug.restore(3);         // revient à l'état après l'entrée 3
 
 1. `run` (`runtime.js`) ne fait que la boucle ; tout le reste est dans `devtools.js`. Après `update` et `view`, et **avant** d'exécuter les commandes, `run` lui confie une entrée `{ msg, before, after, cmds, events, time }` : les messages issus des effets viennent donc après celui qui les a causés.
 2. `devtools.js` l'ajoute à un historique en mémoire (200 max) et transmise aux observateurs (le panneau, s'il est monté). Garder les modèles est peu coûteux : ils sont immuables et partagent leur structure.
-3. Au montage, `debug.js` est importé à la demande, `attach({ getModel, restore })` lui donne la main sur la boucle, et l'historique y est rejoué ; le panneau calcule le diff (`changes`) par tranche.
+3. Au montage, `debug/mount.js` est importé à la demande, `attach({ getModel, restore })` lui donne la main sur la boucle, et l'historique y est rejoué ; le panneau calcule le diff (`changes`) par tranche.
 4. `restore` remet un ancien modèle et redessine ; les commandes ne sont pas rejouées. Au démontage, le panneau, son style et `debug.log` / `debug.restore` disparaissent ; `model`, `debug.on` / `debug.off` et `help` restent.
 5. Le panneau est une mini-app Elm indépendante (son propre model / update / view), rendue hors de l'arbre de l'app.
 
