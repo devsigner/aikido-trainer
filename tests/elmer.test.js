@@ -7,7 +7,7 @@ import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/f
 import { settingsFromEnvironment } from "../framework/elmer/elmer.js";
 import { run } from "../framework/elmer/runtime.js";
 
-const SETTINGS = { debug: "off", persist: true, historySize: 200 };
+const SETTINGS = { debug: "off", persist: false, historySize: 200 };
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
@@ -71,14 +71,15 @@ describe("elmer combine", () => {
 
   test("the feature `elmer` is added to every application: settings in model.elmer, saved when they change, name reserved", () => {
     const saved = [];
-    const [model] = app.init({ elmer: { debug: "on" } });
+    const [model] = app.init({ elmer: { debug: "on", persist: true } });
     assert.deepEqual(model.elmer, { debug: "on", persist: true, historySize: 200 }, "the flags of the environment override the defaults");
     const [next, cmds] = app.update(model, to("elmer", { type: "DebugOff" }));
     assert.equal(next.elmer.debug, "off");
     assert.deepEqual(cmds, [{ type: "SaveSetting", key: "debug", value: "off", feature: "elmer" }]);
     app.effects({ storage: { setItem: (key, value) => saved.push([key, value]) } }).SaveSetting(cmds[0], () => {});
     assert.deepEqual(saved, [["elmer.debug", "off"]]);
-    const [quiet, none] = app.update(app.update(next, to("elmer", { type: "PersistOff" }))[0], to("elmer", { type: "DebugOn" }));
+    const [off] = app.update(next, to("elmer", { type: "PersistOff" }));
+    const [quiet, none] = app.update(off, to("elmer", { type: "DebugOn" }));
     assert.deepEqual(none, [], "nothing is saved while persist is off");
     const [, forget] = app.update(model, to("elmer", { type: "PersistOff" }));
     const removed = [];
@@ -91,10 +92,10 @@ describe("elmer combine", () => {
   });
 
   test("the settings from the environment: the saved choice wins, no browser means off", () => {
-    assert.deepEqual(settingsFromEnvironment(), { debug: "off" });
+    assert.deepEqual(settingsFromEnvironment(), { debug: "off", persist: false });
     globalThis.localStorage = { getItem: () => "on" };
     try {
-      assert.deepEqual(settingsFromEnvironment(), { debug: "on" });
+      assert.deepEqual(settingsFromEnvironment(), { debug: "on", persist: true });
     } finally {
       delete globalThis.localStorage;
     }

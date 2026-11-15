@@ -12,7 +12,7 @@ const HELP = [
   "__elmer.model              current model (one slice per feature, the settings of the framework in `elmer`)",
   "__elmer.debug.on()         mounts the debugger panel (sets model.elmer.debug to \"on\")",
   "__elmer.debug.off()        unmounts it",
-  "__elmer.debug.persist()    saves the choice on/off in the localStorage (default), so it survives a reload",
+  "__elmer.debug.persist()    saves the choice on/off in the localStorage (off by default), so it survives a reload",
   "__elmer.debug.unpersist()  forgets the saved choice and stops saving (a reload goes back to the default: on for a local host)",
   "__elmer.debug.persisted    true or false (model.elmer.persist)",
   "__elmer.debug.status       \"on\" or \"off\" (model.elmer.debug)",
