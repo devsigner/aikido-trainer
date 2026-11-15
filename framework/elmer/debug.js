@@ -179,7 +179,8 @@ const STYLE = `
 #debug .dbg-close { padding: .1rem .5rem; background: #0004; }
 #debug .dbg-tabs { display: flex; gap: .4rem; padding: .5rem .5rem 0; }
 #debug .dbg-content { position: relative; flex: 1; min-height: 0; display: flex; }
-#debug .dbg-body { flex: 1; min-height: 0; overflow: overlay; padding: .5rem; }
+#debug .dbg-body { flex: 1; min-height: 0; overflow: auto; padding: .5rem; scrollbar-width: none; }
+#debug .dbg-body::-webkit-scrollbar { display: none; }
 #debug .dbg-copy { position: absolute; top: .4rem; right: 1.2rem; padding: .3rem .45rem; background: #30363d; }
 #debug .dbg-resize { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #c0392b 50%); }
 #debug .dbg-fold { display: block; width: 100%; margin-bottom: .2rem; background: #161b22; color: #e8a39b; }
