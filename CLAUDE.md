@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.44`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.45`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -154,7 +154,8 @@ src/update-history.js  cross-cutting (not a feature): position, slide, `screenOf
 src/shared/card.js           card view shared by draw and program
 src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/route.js          URL (hash) ⇄ model
-src/view.js           view(model) → vnodes
+src/view.js           view(model) → vnodes (chooses the screen)
+src/layout/          page pieces: `page`, `title`, `footer`, `home`
 data/grades.json      List of available grades
 data/3eme-kyo.json    3rd Kyo program (complete, without `includes`)
 data/2eme-kyo.json    2nd Kyo additions and overrides (inherits from the 3rd)

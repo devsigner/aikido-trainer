@@ -1,24 +1,14 @@
 // view(model) → virtual tree (plain data). Handlers are messages.
-// The root view only composes the views of the features (see `embed`) and holds the page skeleton.
+// The root view picks the screen; the pieces of the page are in src/layout/.
 import { h } from "./framework/vdom.js";
-import { embed, to } from "./framework/combine.js";
+import { embed } from "./framework/combine.js";
 import { grade } from "./features/grade.js";
 import { draw } from "./features/draw.js";
 import { program } from "./features/program.js";
 import { screenOf } from "./update-history.js";
-import { video } from "./features/video.js";
-
-// Home screen: choose a grade and filters (grade), then a waza to start a session (draw).
-const home = (model) => h("section", { id: "home" }, embed("grade", grade.view(model.grade)), embed("draw", draw.picker(model)));
-
-const footer = () => h("footer", {},
-  h("p", {}, "© 2026 Aïkido Trainer. Tous droits réservés."),
-  h("p", {}, "Développé par amour de l'Aïkido 🙏"),
-  h("p", {}, h("a", { href: "manual.html" }, "Manuel d'utilisation")));
-
-const page = (model, ...children) => h("main", {}, ...children, footer(), embed("video", video.view(model.video)));
-
-const title = () => h("h1", { id: "title", onClick: to("draw", { type: "GoHome" }) }, "合気道 Aïkido");
+import { home } from "./layout/home.js";
+import { page } from "./layout/page.js";
+import { title } from "./layout/title.js";
 
 export function view(model) {
   const header = title();
