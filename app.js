@@ -7,6 +7,7 @@ import { createEffects } from "./src/framework/effects.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
 import { to } from "./src/framework/combine.js";
 import { view } from "./src/view.js";
+import { readFlag, writeFlag } from "./src/shared/logic.js";
 
 // Render, and scroll back to the top when the displayed tree actually changed.
 const root = document.getElementById("app");
@@ -58,22 +59,4 @@ function subscriber(dispatch) {
       position: history.state?.position ?? 0
     }))
   });
-}
-
-function writeFlag(key, value) {
-  try {
-    if (value) localStorage.setItem(key, "1");
-    else localStorage.removeItem(key);
-  } catch {
-    // Storage unavailable (private mode): the flag only lasts for this visit.
-  }
-}
-
-// Read a boolean flag from localStorage, returning false if unavailable (private mode).
-function readFlag(key) {
-  try {
-    return localStorage.getItem(key) === "1";
-  } catch {
-    return false;
-  }
 }

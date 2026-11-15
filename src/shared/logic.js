@@ -1,4 +1,4 @@
-// Pure functions: no dependency on the DOM, the network or randomness.
+// Shared functions: pure (no dependency on the DOM, the network or randomness), except the localStorage flags at the end.
 export const WEIGHT_NEW = 1.5;
 export const WEIGHT_WARNING = 1.5;
 export const WAZA_ORDER = ["Tachi waza", "Hanmi Handachi waza", "Suwari waza"];
@@ -72,4 +72,23 @@ export function findSameTechnique(data, waza, attack, techniqueName) {
     .filter((other) => other.name !== attack)
     .flatMap((other) =>
       other.techniques.filter((technique) => norm(technique.name) === norm(techniqueName)).map((technique) => ({ attack: other.name, technique })));
+}
+
+// Writes a boolean flag in localStorage.
+export function writeFlag(key, value) {
+  try {
+    if (value) localStorage.setItem(key, "1");
+    else localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable (private mode): the flag only lasts for this visit.
+  }
+}
+
+// Reads a boolean flag from localStorage, returning false if unavailable (private mode).
+export function readFlag(key) {
+  try {
+    return localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
 }
