@@ -101,8 +101,9 @@ git commit --no-verify
 
 ```mermaid
 flowchart LR
-    U([Utilisateur / navigateur]) -- "clic, popstate" --> M["Msg<br/>{ type, … }"]
-    M --> UP["update(model, msg)<br/>fonction pure"]
+    U([Utilisateur / navigateur]) -- "clic, popstate" --> M["Msg adressé<br/>{ feature, msg }"]
+    M --> UP["update(model, msg)<br/>fonction pure (combine)"]
+    UP -. "événements publiés<br/>(FIFO)" .-> UP
     UP -- "nouveau Model" --> V["view(model)<br/>fonction pure"]
     V -- "vnodes" --> R["rendu<br/>(diff du DOM)"]
     R --> D[(DOM)]
@@ -112,8 +113,9 @@ flowchart LR
 ```
 
 - **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
-- **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…).
-- **`update(model, msg) → [model, cmds]`** : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
+- **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…). À la racine il est adressé à une feature : `{ feature, msg }` (`to("quiz", msg)`).
+- **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ model, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`src/framework/README.md`](src/framework/README.md).
+- **`update(model, msg) → [model, cmds, events?]`** (par feature, via `messages`) : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
 - **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`src/framework/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
 - **`view(model) → vnode`** : fonction **pure** qui produit un arbre de données. Les gestionnaires d'événements sont eux aussi des messages, pas des fonctions qui modifient l'état.
 
@@ -125,24 +127,26 @@ flowchart TB
         APP["app.js<br/>assemble tout, branche popstate"]
     end
     subgraph pure["Cœur pur (testable sans navigateur)"]
-        UPD["src/update.js<br/>Model + Msg + update"]
-        VIEW["src/view.js<br/>view → vnodes"]
+        UPD["src/update.js<br/>features + combine"]
+        FEAT["src/features/*.js<br/>model, messages, on, view, effects"]
+        VIEW["src/view.js + src/layout/*<br/>view → vnodes"]
         LOG["src/shared/logic.js<br/>fusion des grades, pool, pondération"]
         ROUTE["src/route.js<br/>URL ⇄ modèle"]
     end
     subgraph impure["Frontière avec le monde extérieur"]
-        RUN["src/runtime.js<br/>boucle update → view → render"]
+        RUN["src/framework/runtime.js<br/>boucle update → view → render"]
         EFF["src/framework/effects.js<br/>effets des features (fetch, hasard, historique, localStorage)"]
-        VDOM["src/vdom.js<br/>h() + diff du DOM"]
+        VDOM["src/framework/vdom.js<br/>h() + diff du DOM"]
     end
     APP --> RUN
     RUN --> UPD
     RUN --> VIEW
     RUN --> EFF
     RUN --> VDOM
-    UPD --> LOG
-    UPD --> ROUTE
-    VIEW --> LOG
+    UPD --> FEAT
+    FEAT --> LOG
+    FEAT --> ROUTE
+    VIEW --> FEAT
 ```
 
 Les modules du cœur pur n'ont aucun effet de bord : ils sont testés directement avec `node:test`. Les tests d'intégration (`tests/helpers.js`) font tourner la **vraie** boucle avec le vrai JSON et un historique simulé.
@@ -159,7 +163,7 @@ sequenceDiagram
     participant UP as update
     participant E as Effets
     U->>V: touche « Technique suivante »
-    V->>R: dispatch({ type: "Next" })
+    V->>R: dispatch(to("quiz", { type: "Next" }))
     R->>UP: update(model, Next)
     UP-->>R: [model, [{ type: "Random" }]]
     R->>V: view(model) puis diff du DOM
@@ -179,10 +183,10 @@ stateDiagram-v2
     chargement --> erreur: Failed
     accueil --> tirage: StartSession
     tirage --> tirage: Next / Rolled
-    tirage --> accueil: GoHome
-    tirage --> programme: OpenProgram
-    programme --> tirage: CloseProgram
-    programme --> accueil: GoHome
+    tirage --> accueil: GoHome → HomeRequested
+    tirage --> programme: OpenProgram → ProgramOpened
+    programme --> tirage: CloseProgram → ProgramClosed
+    programme --> accueil: GoHome → HomeRequested
     state programme {
         [*] --> attaques
         attaques --> techniques: Navigate
@@ -197,19 +201,20 @@ Les trois niveaux du programme sont stockés dans `model.program = { waza, curre
 
 #### Principaux messages et effets
 
-| Message | Déclenché par | Effet produit (`cmds`) |
-|---------|---------------|------------------------|
-| `GradesLoaded` / `GradeLoaded` | fin du chargement des JSON | `Url` (remplace l'URL) |
-| `SelectGrade` | liste des grades | `LoadGrade`, `Url` |
-| `SetFilter` | cases 🆕 / ⚠️ | — |
-| `StartSession` | bouton d'un waza | `Url`, `Random` |
-| `Next` | « Technique suivante » | `Random` |
-| `Rolled` | retour de l'effet `Random` | — |
-| `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `Url` (+ `Random` au retour au tirage) |
-| `GoHome` | « Retour à l'accueil », titre | `Url` |
-| `Popped` | précédent/suivant du navigateur | — (l'URL fait foi) |
-| `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |
-| `ConfirmVideo` | « Voir la vidéo » dans la modale | `OpenUrl`, `SaveSkipVideoWarning` |
+| Feature | Message | Déclenché par | Effet produit (`cmds`) / événement publié |
+|---------|---------|---------------|-------------------------------------------|
+| `catalog` | `GradesLoaded` / `GradeLoaded` | fin du chargement des JSON | événements `GradesLoaded` / `GradeLoaded` |
+| `catalog` | `SelectGrade` | liste des grades | `LoadGrade`, `Navigated` |
+| `catalog` | `SetFilter` | cases 🆕 / ⚠️ | — |
+| `quiz` | `StartSession` | bouton d'un waza | `Random`, `Navigated`, `ViewChanged` |
+| `quiz` | `Next` | « Technique suivante » | `Random` |
+| `quiz` | `Rolled` | retour de l'effet `Random` | `ViewChanged` |
+| `program` | `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `ProgramOpened` / `ProgramClosed`, `Navigated`, `ViewChanged` |
+| `navigation` | `GoHome` | « Retour à l'accueil », titre | `HomeRequested` |
+| `navigation` | `Popped` | précédent/suivant du navigateur | `RouteChanged` (l'URL fait foi) |
+| `navigation` | (événement `Navigated`) | une feature change ce que l'URL montre | `Url` (écrit l'URL) |
+| `video` | `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |
+| `video` | `ConfirmVideo` | « Voir la vidéo » dans la modale | `OpenUrl`, `SaveSkipVideoWarning` |
 
 #### Le rendu : un mini DOM virtuel
 
@@ -248,10 +253,10 @@ Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module 
 
 #### Ajouter une fonctionnalité
 
-1. Ajouter les champs nécessaires au **Model** (`initialModel` dans `src/update.js`).
-2. Définir le **Msg** et son cas dans `step` (`update`) : renvoyer le nouveau modèle et, si besoin, des `cmds`.
-3. Si un effet est nécessaire, l'ajouter dans la feature concernée (`effects` de `src/features/*.js`, il renvoie son résultat par un nouveau message).
-4. Afficher le résultat dans `view` (`src/view.js`) et, si besoin, le style dans `style.css`.
+1. Choisir la feature concernée (`src/features/*.js`) ou en créer une avec `defineFeature` (puis l'ajouter à l'objet `features` de `src/update.js`, à l'import map de `index.html` et au précache de `sw.js`).
+2. Ajouter les champs nécessaires à son **`model`**, et le **Msg** dans `messages` : renvoyer le nouveau modèle et, si besoin, des `cmds` ou des événements à publier.
+3. Si un effet est nécessaire, l'ajouter dans `effects` de la feature (il renvoie son résultat par un nouveau message).
+4. Afficher le résultat dans sa `view` / `views` (ou `src/layout/*`) et, si besoin, le style dans `style.css`.
 5. Écrire le test, puis incrémenter la version (voir `CLAUDE.md`).
 
 Le détail du format des données JSON, de l'héritage entre grades, de l'ordre d'affichage et de la procédure de version est dans [`CLAUDE.md`](CLAUDE.md).
