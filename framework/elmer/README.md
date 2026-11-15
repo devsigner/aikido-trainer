@@ -3,6 +3,71 @@
 **ELMer** est un petit framework JS pur (ES modules, sans build ni dépendance).
 Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut le copier tel quel dans un autre projet.
 
+## Elm en bref
+
+[Elm](https://elm-lang.org) : un **seul état** (le *model*), modifié uniquement par des **messages**, affiché par une **fonction pure**. Rien d'impur n'est fait directement : les effets (réseau, hasard, URL…) sont *décrits* par des données (les *commandes*), exécutés à l'extérieur, et leur résultat revient sous forme de message.
+
+```mermaid
+flowchart LR
+    U([Utilisateur]) -- "clic…" --> M[Message]
+    M --> UP["update(model, msg)<br/>→ [model, cmds]"]
+    UP -- model --> V["view(model)<br/>→ vnodes"]
+    V --> D[(DOM)]
+    D -.-> U
+    UP -- cmds --> E["effets<br/>(réseau, hasard…)"]
+    E -- "résultat = message" --> M
+```
+
+| Élément | Rôle |
+|---------|------|
+| **Model** | tout l'état de l'app, jamais modifié sur place |
+| **Message** | `{ type, … }` : ce qui s'est passé |
+| **update** | fonction **pure** `(model, msg) → [nouveau model, commandes]` |
+| **Commande** | effet décrit en données (`{ type: "Random" }`) |
+| **view** | fonction **pure** `model → arbre de vnodes` ; ses handlers sont des messages |
+
+## ELMer = Elm + features
+
+Pour qu'`update` ne devienne pas un énorme `switch`, ELMer découpe l'app en **features** : chacune a son bout de model (sa *tranche*), ses messages, sa vue et ses effets. `combine` les assemble en **un** programme Elm (`init`, `update`, `subscribe`, `effects`) que `run` exécute.
+
+```mermaid
+flowchart TB
+    R["run (runtime.js)<br/>boucle Elm"] --> C["combine({ a, b, c })<br/>model = { a, b, c }"]
+    C -- "to('a', msg)" --> A["feature a<br/>messages"]
+    A -- "tranche a" --> C
+    A -- "commande" --> EF["effects.js"]
+    EF -- "réponse → a" --> C
+    A == "événement publié" ==> B["feature b<br/>on: { Événement }"]
+    B -- "tranche b" --> C
+    C --> VW["view racine<br/>embed('a', a.view(…))"] --> VD["vdom.js"]
+```
+
+Le flux d'un clic :
+
+```mermaid
+sequenceDiagram
+    participant V as Vue
+    participant C as combine
+    participant A as feature a
+    participant B as feature b
+    participant E as Effets
+    V->>C: to("a", { type: "Next" })  (via embed)
+    C->>A: messages.Next(tranche a, msg, root)
+    A-->>C: [tranche a', commandes, événements]
+    C->>B: on.Événement(tranche b, événement, root)
+    B-->>C: [tranche b', …]
+    C-->>V: nouveau model → view → diff du DOM
+    C->>E: commandes (taguées « a »)
+    E->>C: to("a", réponse)
+```
+
+En trois règles :
+1. **Une feature n'écrit que sa tranche** ; elle lit les autres via `root` (lecture seule).
+2. **Pour agir sur une autre feature, elle publie un événement** ; l'autre s'y abonne dans `on`.
+3. **Tout est adressé** : messages `{ feature, msg }` (`to`, `embed`), commandes taguées par feature, donc la réponse d'un effet revient à sa feature.
+
+## Les fichiers
+
 | Fichier      | Rôle                                                                                                                      |
 |--------------|---------------------------------------------------------------------------------------------------------------------------|
 | `feature.js` | `defineFeature(spec)`, `combine({ nom: feature })`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
