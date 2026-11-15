@@ -1,4 +1,4 @@
-:root { --pad-top: max(1.5rem, env(safe-area-inset-top)); --pad-bottom: max(1.5rem, env(safe-area-inset-bottom)); --bg: #14171c; --fg: #eceff4; --accent: #c0392b; --card: #1f242c; --muted: #8b95a5; }
+:root { --pad-top: max(2.5rem, env(safe-area-inset-top)); --pad-bottom: max(1.5rem, env(safe-area-inset-bottom)); --bg: #14171c; --fg: #eceff4; --accent: #c0392b; --card: #1f242c; --muted: #8b95a5; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { background: var(--bg); -webkit-text-size-adjust: 100%; }
 body { margin: 0; overscroll-behavior: none; touch-action: manipulation; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
