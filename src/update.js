@@ -5,23 +5,16 @@
 // Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):
 // its init, update, view and effects, composed by `combine` (src/framework/combine.js).
 import { countTechniques } from "./shared/logic.js";
-import { catalog } from "./features/catalog.js";
-import { quiz } from "./features/quiz.js";
-import { program } from "./features/program.js";
-import { navigation } from "./features/navigation.js";
-import { video } from "./features/video.js";
-import { slide } from "./features/slide.js";
+import { feature as catalog } from "./features/catalog.js";
+import { feature as quiz } from "./features/quiz.js";
+import { feature as program } from "./features/program.js";
+import { feature as navigation } from "./features/navigation.js";
+import { feature as video } from "./features/video.js";
+import { feature as slide } from "./features/slide.js";
 import { combine } from "./framework/combine.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
-export const features = [
-  catalog,
-  quiz,
-  program,
-  video,
-  navigation,
-  slide
-];
+export const features = { catalog, quiz, program, video, navigation, slide };
 const standalone = combine(features);
 
 // Bulky fields of the model shown as a summary in the debug panel.

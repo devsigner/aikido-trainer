@@ -5,26 +5,20 @@
 // Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
 import { h } from "../framework/vdom.js";
-import { buildPool, pickIndex } from "../shared/logic.js";
+import { WAZA_ORDER, buildPool, pickIndex } from "../shared/logic.js";
 import { card } from "../layout/card.js";
-import { navigated } from "./navigation.js";
-import { viewChanged } from "./slide.js";
+import { feature as navigation } from "./navigation.js";
+import { feature as slide } from "./slide.js";
 import { screenOf } from "../shared/screen.js";
-import { WAZA_ORDER } from "../shared/logic.js";
-import { UNMOUNT, to } from "../framework/combine.js";
+import { UNMOUNT, defineFeature, to } from "../framework/combine.js";
 
-// State of a quiz session. The model is reset to this state when the user goes home or changes waza.
-// - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
-// - `pool` = list of remaining techniques to draw (weighted)
-// - `total` = total number of techniques in the pool at the start of the session
-// - `current` = technique currently drawn (null if none) by references (names): { attack, technique, form, weight }
-// - `done` = true if the pool is empty and the user has seen all techniques
-export const initialModel = { waza: "", pool: [], total: 0, current: null, done: false };
+const { navigated } = navigation.events;
+const { viewChanged } = slide.events;
 
 // A new session of `waza` with the data and filters of the grade.
 export function startSession(root, waza) {
   const pool = buildPool(root.catalog.data, waza, root.catalog.filters);
-  return { ...initialModel, waza, pool, total: pool.length };
+  return { ...feature.model, waza, pool, total: pool.length };
 }
 
 // Command asking this feature to quiz (for the code that has no access to its messages).
@@ -77,14 +71,16 @@ function routeChanged(model, { route, direction }, root) {
   return [next, needsCard ? [{ type: "Random" }] : [], next !== model && direction ? [viewChanged(direction)] : []];
 }
 
-export const quiz = {
-  name: "quiz",
+export const feature = defineFeature({
   lazy: { events: ["RouteChanged", "ProgramClosed"] }, // the slice only exists during a session
-  init: () => [initialModel, []],
-  update(model, msg, root) {
-    if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
-    return messages[msg.type](model, msg, root);
-  },
+  // State of a quiz session. The model is reset to this state when the user goes home or changes waza.
+  // - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
+  // - `pool` = list of remaining techniques to draw (weighted)
+  // - `total` = total number of techniques in the pool at the start of the session
+  // - `current` = technique currently drawn (null if none) by references (names): { attack, technique, form, weight }
+  // - `done` = true if the pool is empty and the user has seen all techniques
+  model: { waza: "", pool: [], total: 0, current: null, done: false },
+  messages,
   on: {
     RouteChanged: routeChanged,
     ProgramOpened: () => [UNMOUNT, []],
@@ -93,8 +89,8 @@ export const quiz = {
     ProgramClosed: (_, { waza }, root) => [startSession(root, waza), [{ type: "Random" }]],
   },
   view,
-  picker,
+  views: { picker },
   effects: ({ random }) => ({
     Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
   }),
-};
+});

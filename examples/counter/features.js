@@ -2,37 +2,33 @@
 
 // Two features composed with the framework: a counter, and a log that reacts to the counter's events.
 import { h } from "../../src/framework/vdom.js";
-import { UNMOUNT, embed, to } from "../../src/framework/combine.js";
+import { UNMOUNT, defineFeature, embed, to } from "../../src/framework/combine.js";
 
-export const counter = {
-  name: "counter",
-  init: () => [{ count: 0 }, []],
-  update(model, msg) {
-    if (msg.type === "Increment") return [{ count: model.count + 1 }, [], [{ type: "Incremented", count: model.count + 1 }]];
-    if (msg.type === "Reset") return [{ count: 0 }, [], [{ type: "WasReset" }]];
-    throw new Error(`Unknown message : ${msg.type}`);
+export const counter = defineFeature({
+  model: { count: 0 },
+  messages: {
+    Increment: (model) => [{ count: model.count + 1 }, [], [{ type: "Incremented", count: model.count + 1 }]],
+    Reset: () => [{ count: 0 }, [], [{ type: "WasReset" }]],
   },
   view: (model) => h("div", {},
     h("p", { id: "count" }, String(model.count)),
     h("button", { id: "inc", onClick: { type: "Increment" } }, "+1"),
     h("button", { id: "reset", onClick: { type: "Reset" } }, "Reset")),
-};
+});
 
 // Lazy: it has no slice (no memory) until the first increment, and frees it when the counter is reset.
-export const log = {
-  name: "log",
+export const log = defineFeature({
   lazy: true,
-  init: () => [{ lines: [] }, []],
-  update: (model) => [model, []],
+  model: { lines: [] },
   // Reacts to an event of another feature; it never touches the counter's slice.
   on: {
     Incremented: (model, event) => [{ lines: [...model.lines, `count = ${event.count}`] }, []],
     WasReset: () => [UNMOUNT, []],
   },
   view: (model) => h("ul", { id: "log" }, model.lines.map((line) => h("li", {}, line))),
-};
+});
 
-export const features = [counter, log];
+export const features = { counter, log };
 
 // Root view: composes the views of the features; `embed` addresses their handlers to them.
 export const view = (model) => h("main", {},

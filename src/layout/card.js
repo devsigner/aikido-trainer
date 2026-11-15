@@ -3,7 +3,7 @@
 // Card of a technique, shared by the quiz and program views: it reads the video preference and the slide of the root model.
 import { h } from "../framework/vdom.js";
 import { badgesOf, findTechnique } from "../shared/logic.js";
-import { videoLink } from "../features/video.js";
+import { feature as video } from "../features/video.js";
 
 // The technique is given by its references (`waza`, `attack`, `technique` = names); the rest comes from the data.
 // `form` = the form drawn; by default all the forms of the technique.
@@ -18,6 +18,6 @@ export const card = (root, { prefix, id = prefix, waza = "", attack = "", techni
     h("div", { id: `${prefix}-form`, className: "form" }, form ?? technique?.forms?.join(" · ") ?? ""),
     h("div", { id: `${prefix}-badges`, className: "badges" }, technique ? badgesOf(technique) : ""),
     h("div", { id: `${prefix}-note`, className: "note" }, technique?.note || ""),
-    technique?.video ? videoLink(root, technique.video, `${prefix}-video`) : null,
+    technique?.video ? video.views.link(root, technique.video, `${prefix}-video`) : null,
   );
 };

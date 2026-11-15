@@ -2,17 +2,19 @@
 
 // Generic composition of features (no knowledge of the application).
 //
-// A feature is a small Elm program:
+// A feature is a small Elm program, defined with `defineFeature` (its name is its key in `combine({ name: feature })`):
 //   {
-//     name,                              // key of its slice in the root model
+//     model?,                            // initial slice of the model (without flags and commands)
 //     lazy?,                             // true: no slice until a message or a subscribed event reaches the feature (then `init` runs);
 //                                        // { events: [types] }: only a message or these events create it, the other events are ignored while it is unmounted;
 //                                        // an update or reaction returning `UNMOUNT` as model removes the slice
-//     init(flags) → [model, cmds, events?],
-//     update(model, msg, root) → [model, cmds, events?],
+//     init?(flags, model) → [model, cmds, events?],     // when the initial model depends on the flags or starts commands (`model` = the one above)
+//     messages: { Type: (model, msg, root) → [model, cmds, events?] },   // the messages of the feature, the `update` is generated from it
 //     on: { EventType: (model, event, root) → [model, cmds, events?] },   // reactions to events of other features
 //     effects(deps) → { CmdType: (cmd, dispatch) => … },                 // `dispatch` sends messages to this feature
 //     subscribe(dispatch, deps),                                         // listens to the outside world (events of the browser…), `dispatch` sends messages to this feature
+//     view?, views?,                                                     // main view of the feature, other views (`views: { picker }`) for the other features
+//     events?,                                                           // constructors of the events it publishes (`events: { navigated }`)
 //   }
 // `root` is the whole model, read-only: use it to read, never to write another slice.
 //
@@ -20,6 +22,17 @@
 // A feature publishes events (`{ type, … }`) in the third item of its result: they are delivered, in order,
 // to every feature that subscribed to them in `on`, and may publish events in turn.
 // `init` and `update` return `[model, cmds, delivered]`; `delivered` lists the events for debugging: `{ event, from, handledBy }`.
+
+const KEYS = ["model", "lazy", "init", "messages", "on", "effects", "subscribe", "view", "views", "events"];
+
+// Declares a feature: checks the shape (a typo in a key would otherwise be silently ignored) and returns it.
+export function defineFeature(spec) {
+  for (const key of Object.keys(spec)) {
+    if (!KEYS.includes(key)) throw new Error(`Unknown feature key: ${key} (expected: ${KEYS.join(", ")})`);
+  }
+  if (!("model" in spec) && !spec.init) throw new Error("A feature needs a `model` or an `init`");
+  return spec;
+}
 
 const MAX_EVENTS = 1000; // an event loop is a bug: fail loudly rather than freeze the page
 
@@ -30,13 +43,22 @@ export const to = (feature, msg) => ({ feature, msg });
 // A later message or event mounts it again with `init` (the other features see `root[name]` undefined meanwhile).
 export const UNMOUNT = Symbol("unmount");
 
-// Composes several features into one root program: the slices of every feature are merged in the root model,
-// and the messages of every feature are enveloped in `{ feature, msg }`.
+// Composes several features, an object `{ name: feature }`, into one root program: the slices of every feature are merged
+// in the root model (`model[name]`, in the order of the object), and the messages of every feature are enveloped in `{ feature, msg }`.
 //
 // The root program is used by the runtime (src/framework/runtime.js) to run the Elm loop.
-export function combine(features) {
+export function combine(definitions) {
+  const features = Object.entries(definitions).map(([name, spec]) => ({
+    ...defineFeature(spec),
+    name,
+    init: (flags) => (spec.init ? spec.init(flags, spec.model) : [spec.model, []]),
+    update(model, msg, root) {
+      const handler = spec.messages?.[msg.type];
+      if (!handler) throw new Error(`Unknown message : ${msg.type}`);
+      return handler(model, msg, root);
+    },
+  }));
   const byName = new Map(features.map((feature) => [feature.name, feature]));
-  if (byName.size !== features.length) throw new Error("Duplicate feature name");
 
   // Applies a feature result to the root model: writes its slice, tags its commands, queues its events.
   const apply = (state, name, [slice, cmds = [], events = []]) => {

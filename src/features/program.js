@@ -8,12 +8,12 @@
 import { h } from "../framework/vdom.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card } from "../layout/card.js";
-import { navigated } from "./navigation.js";
-import { viewChanged } from "./slide.js";
-import { UNMOUNT, to } from "../framework/combine.js";
+import { feature as navigation } from "./navigation.js";
+import { feature as slide } from "./slide.js";
+import { UNMOUNT, defineFeature, to } from "../framework/combine.js";
 
-// `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
-export const initialModel = { waza: "", current: null };
+const { navigated } = navigation.events;
+const { viewChanged } = slide.events;
 
 // URL route narrowed to what the data contains (unknown attack or technique → level above).
 export function validProgram(data, { waza, program }) {
@@ -115,14 +115,11 @@ function routeChanged(model, { route, direction }, root) {
   return [{ waza: route.waza, current }, [], changed && direction ? [viewChanged(direction)] : []];
 }
 
-export const program = {
-  name: "program",
+export const feature = defineFeature({
   lazy: { events: ["RouteChanged"] }, // the slice only exists while the program is open
-  init: () => [initialModel, []],
-  update(model, msg, root) {
-    if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
-    return messages[msg.type](model, msg, root);
-  },
+  // `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
+  model: { waza: "", current: null },
+  messages,
   on: { HomeRequested: () => [UNMOUNT, [], [viewChanged("back")]], RouteChanged: routeChanged },
   view,
-};
+});

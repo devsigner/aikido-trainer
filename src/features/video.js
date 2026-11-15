@@ -3,14 +3,9 @@
 // Feature "video": confirmation modal before opening a video.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 import { h } from "../framework/vdom.js";
-import { to } from "../framework/combine.js";
+import { defineFeature, to } from "../framework/combine.js";
 
 export const SKIP_VIDEO_WARNING_KEY = "aikido.skipVideoWarning";
-
-export const initialModel = {
-  skipWarning: false, // persisted preference: open videos without the confirmation
-  prompt: null, // { url, dontAsk } while the confirmation modal is open
-};
 
 const messages = {
   AskVideo: (model, msg) => [{ ...model, prompt: { url: msg.url, dontAsk: false } }, []],
@@ -27,13 +22,13 @@ const messages = {
 };
 
 // Click handler for a video link: asks for confirmation first (to be used by the other views).
-export const askVideo = (url) => (event) => {
+const askVideo = (url) => (event) => {
   event.preventDefault?.();
   return to("video", { type: "AskVideo", url });
 };
 
 // Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
-export const videoLink = (root, url, id) =>
+const videoLink = (root, url, id) =>
   h("a", { id, className: "video", href: url, target: "_blank", rel: "noopener", onClick: root.video.skipWarning ? null : askVideo(url) }, "▶ Voir la vidéo");
 
 // The modal, with the messages of this feature only (the root view embeds it).
@@ -50,14 +45,15 @@ function view(model) {
         h("button", { id: "video-cancel", className: "secondary", onClick: { type: "CancelVideo" } }, "Annuler"))));
 }
 
-export const video = {
-  name: "video",
-  init: ({ skipVideoWarning = false } = {}) => [{ ...initialModel, skipWarning: skipVideoWarning }, []],
-  update(model, msg) {
-    if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
-    return messages[msg.type](model, msg);
+export const feature = defineFeature({
+  model: {
+    skipWarning: false, // persisted preference: open videos without the confirmation
+    prompt: null, // { url, dontAsk } while the confirmation modal is open
   },
+  init: ({ skipVideoWarning = false } = {}, model) => [{ ...model, skipWarning: skipVideoWarning }, []],
+  messages,
   view,
+  views: { link: videoLink },
   // Opening the video, remembering the preference.
   effects: ({ open, storage }) => ({
     OpenUrl: ({ url }) => open?.(url, "_blank", "noopener"),
@@ -69,4 +65,4 @@ export const video = {
       }
     },
   }),
-};
+});

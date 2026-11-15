@@ -3,26 +3,24 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { UNMOUNT, combine, embed, to } from "../src/framework/combine.js";
+import { UNMOUNT, combine, defineFeature, embed, to } from "../src/framework/combine.js";
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
-const counter = {
-  name: "counter",
-  init: () => [{ n: 0 }, [{ type: "Hello" }]],
-  update: (model, msg) => (msg.type === "Inc" ? [{ n: model.n + 1 }, [{ type: "Echo" }], [{ type: "Changed", n: model.n + 1 }]] : [model, []]),
+const counter = defineFeature({
+  init: (flags, model) => [model, [{ type: "Hello" }]],
+  model: { n: 0 },
+  messages: { Inc: (model) => [{ n: model.n + 1 }, [{ type: "Echo" }], [{ type: "Changed", n: model.n + 1 }]] },
   effects: () => ({ Echo: (_, dispatch) => dispatch({ type: "Noop" }) }),
-};
-const log = {
-  name: "log",
-  init: () => [{ seen: [] }],
-  update: (model) => [model, []],
+});
+const log = defineFeature({
+  model: { seen: [] },
   on: { Changed: (model, event, root) => [{ seen: [...model.seen, `${event.n}/${root.counter.n}`] }, []] },
   effects: () => ({ Ping: () => {} }),
-};
+});
 
 describe("framework combine", () => {
-  const app = combine([counter, log]);
+  const app = combine({ counter, log });
 
   test("init builds one slice per feature and tags the commands with their feature", () => {
     const [model, cmds] = app.init();
@@ -45,9 +43,9 @@ describe("framework combine", () => {
   });
 
   test("events published by a reaction are delivered too; an endless loop fails loudly", () => {
-    const ping = { name: "ping", init: () => [{}], update: () => [{}, [], [{ type: "A" }]], on: { A: () => [{}, [], [{ type: "B" }]], B: () => [{}, [], [{ type: "A" }]] } };
-    const looping = combine([ping]);
-    assert.throws(() => looping.update(looping.init()[0], to("ping", {})), /Event loop/);
+    const ping = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "A" }]] }, on: { A: () => [{}, [], [{ type: "B" }]], B: () => [{}, [], [{ type: "A" }]] } });
+    const looping = combine({ ping });
+    assert.throws(() => looping.update(looping.init()[0], to("ping", { type: "Go" })), /Event loop/);
   });
 
   test("effects answer to the feature that emitted the command", () => {
@@ -56,10 +54,15 @@ describe("framework combine", () => {
     assert.deepEqual(sent, [to("counter", { type: "Noop" })]);
   });
 
-  test("duplicate feature names, effect types and unknown features are rejected", () => {
-    assert.throws(() => combine([counter, counter]), /Duplicate feature/);
-    assert.throws(() => combine([counter, { ...counter, name: "other" }]).effects(), /Duplicate effect/);
+  test("duplicate effect types, unknown features and unknown messages are rejected", () => {
+    assert.throws(() => combine({ counter, other: counter }).effects(), /Duplicate effect/);
     assert.throws(() => app.update({}, to("nope", {})), /Unknown feature/);
+    assert.throws(() => app.update(app.init()[0], to("counter", { type: "Nope" })), /Unknown message/);
+  });
+
+  test("defineFeature rejects unknown keys and a feature without model nor init", () => {
+    assert.throws(() => defineFeature({ model: {}, update() {} }), /Unknown feature key/);
+    assert.throws(() => defineFeature({ messages: {} }), /model/);
   });
 
   test("embed envelops the handlers of a feature view, messages and functions alike", () => {
@@ -78,33 +81,34 @@ describe("framework combine", () => {
   });
 
   test("a lazy feature has no slice until it is reached, is mounted with the init flags, and can unmount itself", () => {
-    const lazy = { name: "lazy", lazy: true, init: ({ start }) => [{ n: start }, []], update: (model) => [{ n: model.n + 1 }, []], on: { Free: () => [UNMOUNT, [{ type: "Cleanup" }]] } };
-    const eager = { name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type: "Free" }]] };
-    const lazyApp = combine([eager, lazy]);
+    const lazy = defineFeature({ lazy: true, model: { n: 0 }, init: ({ start }) => [{ n: start }, []], messages: { Go: (model) => [{ n: model.n + 1 }, []] }, on: { Free: () => [UNMOUNT, [{ type: "Cleanup" }]] } });
+    const eager = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "Free" }]] } });
+    const lazyApp = combine({ eager, lazy });
     const [model] = lazyApp.init({ start: 10 });
     assert.deepEqual(Object.keys(model), ["eager"]);
-    const [mounted] = lazyApp.update(model, to("lazy", {}));
+    const [mounted] = lazyApp.update(model, to("lazy", { type: "Go" }));
     assert.deepEqual(mounted.lazy, { n: 11 });
-    const [freed, cmds] = lazyApp.update(mounted, to("eager", {}));
+    const [freed, cmds] = lazyApp.update(mounted, to("eager", { type: "Go" }));
     assert.deepEqual(Object.keys(freed), ["eager"]);
     assert.deepEqual(cmds, [{ type: "Cleanup", feature: "lazy" }]);
-    assert.deepEqual(lazyApp.update(freed, to("lazy", {}))[0].lazy, { n: 11 }, "mounted again from init");
+    assert.deepEqual(lazyApp.update(freed, to("lazy", { type: "Go" }))[0].lazy, { n: 11 }, "mounted again from init");
   });
 
   test("lazy: { events } ignores the other events while unmounted", () => {
-    const lazy = { name: "lazy", lazy: { events: ["Wake"] }, init: () => [{ n: 0 }, []], update: (model) => [model, []], on: { Wake: (model) => [{ n: model.n + 1 }, []], Other: (model) => [{ n: model.n + 10 }, []] } };
-    const eager = (type) => ({ name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type }]] });
-    const ignored = combine([eager("Other"), lazy]);
-    assert.equal("lazy" in ignored.update(ignored.init({})[0], to("eager", {}))[0], false);
-    const woken = combine([eager("Wake"), lazy]);
-    assert.deepEqual(woken.update(woken.init({})[0], to("eager", {}))[0].lazy, { n: 1 });
+    const lazy = defineFeature({ lazy: { events: ["Wake"] }, model: { n: 0 }, on: { Wake: (model) => [{ n: model.n + 1 }, []], Other: (model) => [{ n: model.n + 10 }, []] } });
+    const eager = (type) => defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type }]] } });
+    const go = to("eager", { type: "Go" });
+    const ignored = combine({ eager: eager("Other"), lazy });
+    assert.equal("lazy" in ignored.update(ignored.init({})[0], go)[0], false);
+    const woken = combine({ eager: eager("Wake"), lazy });
+    assert.deepEqual(woken.update(woken.init({})[0], go)[0].lazy, { n: 1 });
   });
 
   test("an event mounts a lazy feature that subscribed to it", () => {
-    const lazy = { name: "lazy", lazy: true, init: () => [{ seen: 0 }, []], update: (model) => [model, []], on: { Ping: (model) => [{ seen: model.seen + 1 }, []] } };
-    const eager = { name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type: "Ping" }]] };
-    const lazyApp = combine([eager, lazy]);
-    const [next, , delivered] = lazyApp.update(lazyApp.init({})[0], to("eager", {}));
+    const lazy = defineFeature({ lazy: true, model: { seen: 0 }, on: { Ping: (model) => [{ seen: model.seen + 1 }, []] } });
+    const eager = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "Ping" }]] } });
+    const lazyApp = combine({ eager, lazy });
+    const [next, , delivered] = lazyApp.update(lazyApp.init({})[0], to("eager", { type: "Go" }));
     assert.deepEqual(next.lazy, { seen: 1 });
     assert.deepEqual(delivered[0].handledBy, ["lazy"]);
   });

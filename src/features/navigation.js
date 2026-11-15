@@ -5,16 +5,12 @@
 // Does not write other slices: it publishes events.
 // Publishes `HomeRequested` (quiz and program close), `RouteChanged` ({ route }: quiz and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
 // Reacts to `Navigated` (a feature changed what the URL shows) by writing the URL, stamped with the position (+1 on a push).
+import { defineFeature } from "../framework/combine.js";
 import { parseHash, toHash } from "../route.js";
 import { screenOf } from "../shared/screen.js";
 
-export const initialModel = {
-  pending: null, // route from the URL, applied once the data is loaded
-  position: 0, // index of the current history entry
-};
-
 // Event published by a feature when the URL must follow its change (`mode`: "push" | "replace").
-export const navigated = (mode) => ({ type: "Navigated", mode });
+const navigated = (mode) => ({ type: "Navigated", mode });
 
 // `direction` ("back" | "forward") is only known for a browser pop: the cards slide that way (no slide otherwise).
 const routeChanged = (route, direction) => ({ type: "RouteChanged", route, direction });
@@ -37,13 +33,14 @@ const messages = {
   },
 };
 
-export const navigation = {
-  name: "navigation",
-  init: ({ hash = "", position = 0 } = {}) => [{ pending: parseHash(hash), position }, []],
-  update(model, msg, root) {
-    if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
-    return messages[msg.type](model, msg, root);
+export const feature = defineFeature({
+  model: {
+    pending: null, // route from the URL, applied once the data is loaded
+    position: 0, // index of the current history entry
   },
+  init: ({ hash = "", position = 0 } = {}, model) => [{ ...model, pending: parseHash(hash), position }, []],
+  messages,
+  events: { navigated },
   on: {
     // Once the data is loaded, the pending route is applied and written in the URL (without a history entry).
     GradesLoaded: (model) => [{ ...model, pending: null }, [], [routeChanged(model.pending || {}), { type: "Navigated", mode: "replace" }]],
@@ -64,4 +61,4 @@ export const navigation = {
   effects: ({ history }) => ({
     Url: ({ mode, hash, position }) => (mode === "push" ? history.pushState({ position }, "", hash) : history.replaceState({ position }, "", hash)),
   }),
-};
+});

@@ -34,7 +34,7 @@ const DEBUG_KEY = "aikido.debug";
 const debugParam = new URLSearchParams(location.search).get("debug");
 if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
 const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
-const debugObserver = debug ? (await import("./src/framework/debug.js")).mountDebugger(features.map((feature) => feature.name), debugHide) : undefined;
+const debugObserver = debug ? (await import("./src/framework/debug.js")).mountDebugger(Object.keys(features), debugHide) : undefined;
 
 // launch the app with the initial flags (hash, history position, skip video warning).
 run({

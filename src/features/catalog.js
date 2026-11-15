@@ -3,19 +3,13 @@
 // Feature "catalog": the list of grades, the data of the selected grade, and the filters.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
+import { defineFeature } from "../framework/combine.js";
 import { h } from "../framework/vdom.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { parseHash } from "../route.js";
-import { navigated } from "./navigation.js";
+import { feature as navigation } from "./navigation.js";
 
-export const initialModel = {
-  status: "loading", // loading | ready | error
-  error: "", // error message if status is "error"
-  list: [], // [{ id, label, file, includes?, count }]
-  id: "", // id of the selected grade
-  data: null, // loaded grade data (null if not loaded yet)
-  filters: { isNew: false, isWarning: false },
-};
+const { navigated } = navigation.events;
 
 const messages = {
   GradesLoaded: (model, msg) => [{ ...model, status: "ready", list: msg.grades, id: msg.gradeId, data: msg.data }, [], [{ type: "GradesLoaded" }]],
@@ -60,15 +54,17 @@ export async function resolveGrade(grade, fetchJson) {
   return datas.reduce((merged, data) => mergeGrades(merged, data));
 }
 
-// Command asking this feature to load a grade (for the code that has no access to its messages).
-
-export const catalog = {
-  name: "catalog",
-  init: ({ hash = "" } = {}) => [initialModel, [{ type: "LoadGrades", gradeId: parseHash(hash).grade }]],
-  update(model, msg, root) {
-    if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
-    return messages[msg.type](model, msg, root);
+export const feature = defineFeature({
+  model: {
+    status: "loading", // loading | ready | error
+    error: "", // error message if status is "error"
+    list: [], // [{ id, label, file, includes?, count }]
+    id: "", // id of the selected grade
+    data: null, // loaded grade data (null if not loaded yet)
+    filters: { isNew: false, isWarning: false },
   },
+  init: ({ hash = "" } = {}, model) => [model, [{ type: "LoadGrades", gradeId: parseHash(hash).grade }]],
+  messages,
   // The navigation needs another grade: select it and load its data.
   on: {
     GradeWanted(model, event) {
@@ -77,7 +73,7 @@ export const catalog = {
     },
   },
   view,
-  statusView,
+  views: { status: statusView },
   // Loading the data. Any loading error becomes a `Failed` message.
   effects({ fetchJson }) {
     const loading = (fn) => async (cmd, dispatch) => {
@@ -102,4 +98,4 @@ export const catalog = {
       LoadGrade: loading(async ({ grade: selected }) => ({ type: "GradeLoaded", id: selected.id, data: await resolveGrade(selected, fetchJson) })),
     };
   },
-};
+});

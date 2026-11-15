@@ -2,7 +2,7 @@
 
 import { h } from "../framework/vdom.js";
 import { embed } from "../framework/combine.js";
-import { video } from "../features/video.js";
+import { feature as video } from "../features/video.js";
 import { footer } from "./footer.js";
 
 // Page skeleton: the content, the footer and the video modal.
