@@ -1,4 +1,5 @@
 // src/route.js
+
 // URL ⇄ model: #/grade[/waza[/program[/attack[/technique]]]] (hash routing works on GitHub Pages).
 export function toHash(model) {
   const parts = [model.grade.id];

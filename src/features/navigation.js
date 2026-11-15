@@ -1,4 +1,5 @@
 // src/features/navigation.js
+
 // Feature "navigation": the URL is the source of truth (reload, browser back/forward).
 // Owns: pending (the route waiting for the data). Does not write other slices: it publishes events.
 // Publishes `RouteChanged` ({ route }: draw and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).

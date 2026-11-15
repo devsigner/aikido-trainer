@@ -1,4 +1,5 @@
 // src/update.js
+
 // Model and pure update: update(model, msg) → [model, commands].
 // Effects (network, randomness, history) are described as commands run by the runtime.
 // Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):

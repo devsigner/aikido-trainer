@@ -1,4 +1,5 @@
 // src/framework/combine.js
+
 // Generic composition of features (no knowledge of the application).
 //
 // A feature is a small Elm program:

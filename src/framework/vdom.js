@@ -1,4 +1,5 @@
 // src/framework/vdom.js
+
 const PROPS_DOM = new Set(["hidden", "disabled", "checked", "selected", "value"]);
 
 // Mini virtual DOM: h() describes the tree, createRenderer() updates the real DOM by diffing.

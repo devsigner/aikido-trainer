@@ -1,4 +1,5 @@
 // src/layout/home.js
+
 import { h } from "../framework/vdom.js";
 import { embed } from "../framework/combine.js";
 import { grade } from "../features/grade.js";

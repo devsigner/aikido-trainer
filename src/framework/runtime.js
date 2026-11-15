@@ -1,4 +1,5 @@
 // src/framework/runtime.js
+
 // Elm loop: message → update → view → render, then run the commands.
 // The `run` function returns the `dispatch` function, which can be used to send messages to the loop.
 // Optional `debug` observer: `record({ msg, before, after, cmds, events })` (`events`: published by the features, optional) after each step, and `attach({ getModel, restore })` once.
