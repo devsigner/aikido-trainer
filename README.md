@@ -95,7 +95,7 @@ git commit --no-verify
 
 ### L'architecture Elm
 
-[Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, dans le petit framework **ELMer** (`src/elmer/`), en ~700 lignes.
+[Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, dans le petit framework **ELMer** (`framework/elmer/`), en ~700 lignes.
 
 #### La boucle
 
@@ -114,9 +114,9 @@ flowchart LR
 
 - **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
 - **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…). À la racine il est adressé à une feature : `{ feature, msg }` (`to("quiz", msg)`).
-- **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ model, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`src/elmer/README.md`](src/elmer/README.md).
+- **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ model, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`framework/elmer/README.md`](framework/elmer/README.md).
 - **`update(model, msg) → [model, cmds, events?]`** (par feature, via `messages`) : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
-- **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`src/elmer/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
+- **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`framework/elmer/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
 - **`view(model) → vnode`** : fonction **pure** qui produit un arbre de données. Les gestionnaires d'événements sont eux aussi des messages, pas des fonctions qui modifient l'état.
 
 #### Qui fait quoi
@@ -133,9 +133,9 @@ flowchart TB
         LOG["src/shared/logic.js<br/>fusion des grades, pool, pondération"]
     end
     subgraph impure["Frontière avec le monde extérieur"]
-        RUN["src/elmer/runtime.js<br/>boucle update → view → render"]
-        EFF["src/elmer/effects.js<br/>effets des features (fetch, hasard, historique, localStorage)"]
-        VDOM["src/elmer/vdom.js<br/>h() + diff du DOM"]
+        RUN["framework/elmer/runtime.js<br/>boucle update → view → render"]
+        EFF["framework/elmer/effects.js<br/>effets des features (fetch, hasard, historique, localStorage)"]
+        VDOM["framework/elmer/vdom.js<br/>h() + diff du DOM"]
     end
     APP --> RUN
     RUN --> UPD
@@ -216,7 +216,7 @@ Les trois niveaux du programme sont stockés dans `model.program = { waza, curre
 
 #### Le rendu : un mini DOM virtuel
 
-`view` produit des `vnode` (objets simples) avec `h(tag, props, ...enfants)`. `src/elmer/vdom.js` compare l'arbre précédent au nouveau et ne modifie dans le DOM réel que ce qui a changé :
+`view` produit des `vnode` (objets simples) avec `h(tag, props, ...enfants)`. `framework/elmer/vdom.js` compare l'arbre précédent au nouveau et ne modifie dans le DOM réel que ce qui a changé :
 
 ```mermaid
 flowchart LR
@@ -247,7 +247,7 @@ Ajoute `?debug` à l'URL (ex. `http://localhost:8000/?debug`) : un bouton 🐞 o
 - **Voyage dans le temps** : « Revenir à l'état après ce message » remet le modèle d'alors (les effets ne sont pas rejoués ; l'URL n'est pas modifiée).
 - **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__debug.model`, `__debug.log`, `__debug.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
 
-Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module `src/elmer/debug.js` n'est chargé que s'il est actif : aucun coût en usage normal. Il s'appuie sur un simple observateur (`debug`) de `run`, qui reçoit chaque `{ msg, before, after, cmds }`.
+Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module `framework/elmer/debug.js` n'est chargé que s'il est actif : aucun coût en usage normal. Il s'appuie sur un simple observateur (`debug`) de `run`, qui reçoit chaque `{ msg, before, after, cmds }`.
 
 #### Ajouter une fonctionnalité
 

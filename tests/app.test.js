@@ -4,13 +4,13 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
 import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/shared/logic.js";
-import { h } from "../src/elmer/vdom.js";
+import { h } from "../framework/elmer/vdom.js";
 import { parseHash, toHash } from "../src/features/navigation.js";
 import { update, init, initialModel, debugHide } from "../src/update.js";
 import { view } from "../src/view.js";
-import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/elmer/debug.js";
-import { run } from "../src/elmer/runtime.js";
-import { to } from "../src/elmer/combine.js";
+import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../framework/elmer/debug.js";
+import { run } from "../framework/elmer/runtime.js";
+import { to } from "../framework/elmer/combine.js";
 import { screenOf } from "../src/shared/screen.js";
 import { resolveGrade as resolveGradeFx } from "../src/features/catalog.js";
 

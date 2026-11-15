@@ -9,7 +9,7 @@ export default [
   // Strict mode everywhere: ES modules are strict by themselves, the classic script (sw.js) needs the directive.
   { rules: { strict: ["error", "safe"] } },
   {
-    files: ["app.js", "src/**/*.js"],
+    files: ["app.js", "src/**/*.js", "framework/**/*.js"],
     languageOptions: { globals: globals.browser },
   },
   {

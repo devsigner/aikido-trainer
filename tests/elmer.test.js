@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { UNMOUNT, combine, defineFeature, embed, to } from "../src/elmer/combine.js";
+import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/combine.js";
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
@@ -125,7 +125,7 @@ describe("elmer combine", () => {
   });
 
   test("the elmer folder does not depend on the application", () => {
-    const dir = new URL("../src/elmer/", import.meta.url);
+    const dir = new URL("../framework/elmer/", import.meta.url);
     for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".js"))) {
       const imports = [...fs.readFileSync(new URL(file, dir), "utf8").matchAll(/from "([^"]+)"/g)].map((match) => match[1]);
       assert.ok(imports.every((path) => path.startsWith("./")), `${file} imports outside the framework: ${imports}`);

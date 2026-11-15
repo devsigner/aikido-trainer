@@ -3,10 +3,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createEffects, createSubscriptions } from "../src/elmer/effects.js";
-import { to } from "../src/elmer/combine.js";
+import { createEffects, createSubscriptions } from "../framework/elmer/effects.js";
+import { to } from "../framework/elmer/combine.js";
 import { mergeGrades } from "../src/shared/logic.js";
-import { run } from "../src/elmer/runtime.js";
+import { run } from "../framework/elmer/runtime.js";
 import { features, init, update } from "../src/update.js";
 import { view } from "../src/view.js";
 

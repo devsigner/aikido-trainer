@@ -1,4 +1,4 @@
-// src/elmer/combine.js
+// framework/elmer/combine.js
 
 // Generic composition of features (no knowledge of the application).
 //
@@ -46,7 +46,7 @@ export const UNMOUNT = Symbol("unmount");
 // Composes several features, an object `{ name: feature }`, into one root program: the slices of every feature are merged
 // in the root model (`model[name]`, in the order of the object), and the messages of every feature are enveloped in `{ feature, msg }`.
 //
-// The root program is used by the runtime (src/elmer/runtime.js) to run the Elm loop.
+// The root program is used by the runtime (framework/elmer/runtime.js) to run the Elm loop.
 export function combine(definitions) {
   const features = Object.entries(definitions).map(([name, spec]) => ({
     ...defineFeature(spec),

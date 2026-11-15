@@ -1,4 +1,4 @@
-// src/elmer/debug.js
+// framework/elmer/debug.js
 
 // Debug mode (`?debug` in the URL): a panel with the current model, the message log,
 // the commands and events each message produced, a diff of the model (per feature slice), and time travel.
@@ -201,7 +201,7 @@ function consoleApi(getControl, getEntries, restore) {
 }
 
 // Mounts the panel and returns the observer expected by `run({ debug })`.
-// `slices` = names of the features that own a slice of the model (see src/elmer/combine.js); `hide` = see `summarize`.
+// `slices` = names of the features that own a slice of the model (see framework/elmer/combine.js); `hide` = see `summarize`.
 export function mountDebugger(slices = [], hide = {}, doc = document) {
   const style = doc.createElement("style");
   style.textContent = STYLE;

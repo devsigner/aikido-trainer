@@ -1,10 +1,10 @@
 // src/features/catalog.js
 
 // Feature "catalog": the list of grades, the data of the selected grade, and the filters.
-// Standalone feature (see src/elmer/combine.js): its model, update, view and effects are all here.
+// Standalone feature (see framework/elmer/combine.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
-import { defineFeature } from "../elmer/combine.js";
-import { h } from "../elmer/vdom.js";
+import { defineFeature } from "../../framework/elmer/combine.js";
+import { h } from "../../framework/elmer/vdom.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 

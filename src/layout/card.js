@@ -1,7 +1,7 @@
 // src/layout/card.js
 
 // Card of a technique, shared by the quiz and program views: it reads the video preference and the slide of the root model.
-import { h } from "../elmer/vdom.js";
+import { h } from "../../framework/elmer/vdom.js";
 import { badgesOf, findTechnique } from "../shared/logic.js";
 import { feature as video } from "../features/video.js";
 
