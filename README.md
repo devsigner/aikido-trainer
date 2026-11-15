@@ -95,7 +95,7 @@ git commit --no-verify
 
 ### L'architecture Elm
 
-[Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, en ~700 lignes.
+[Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, dans le petit framework **ELMer** (`src/framework/`), en ~700 lignes.
 
 #### La boucle
 

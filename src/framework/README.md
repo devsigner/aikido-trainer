@@ -1,6 +1,6 @@
-# Framework Elm par features
+# ELMer : framework Elm par features
 
-Petit framework JS pur (ES modules, sans build ni dépendance).
+**ELMer** est un petit framework JS pur (ES modules, sans build ni dépendance).
 Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut le copier tel quel dans un autre projet.
 
 | Fichier      | Rôle                                                                                                                      |
