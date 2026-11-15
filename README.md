@@ -193,7 +193,7 @@ stateDiagram-v2
     }
 ```
 
-Les trois niveaux du programme sont stockés dans `model.program = { level, attack?, technique? }`.
+Les trois niveaux du programme sont stockés dans `model.program.at = { level, attack?, technique? }` (`null` quand le programme est fermé).
 
 #### Principaux messages et effets
 

@@ -67,4 +67,9 @@ describe("framework combine", () => {
     assert.equal(mapped.props.id, "x");
     assert.equal(embed("counter", null), null);
   });
+
+  test("embed leaves a message already addressed to a feature as it is", () => {
+    const mapped = embed("counter", { tag: "button", props: { onClick: to("other", { type: "A" }) }, children: [] });
+    assert.deepEqual(mapped.props.onClick, to("other", { type: "A" }));
+  });
 });

@@ -580,9 +580,9 @@ describe("debug mode", () => {
     let panel = panelUpdate(initialPanel(["video"]), { type: "Tab", tab: "state" });
     const model = { screen: "home", video: { skipWarning: false, prompt: null } };
     const folds = (current) => find(panelView(current, model), (node) => node.props.className === "dbg-fold").map(text);
-    assert.deepEqual(folds(panelUpdate(panel, { type: "Toggle" })), ["▾ video", "▾ (modèle plat)"]);
+    assert.deepEqual(folds(panelUpdate(panel, { type: "Toggle" })), ["▾ video", "▾ (racine)"]);
     panel = panelUpdate(panelUpdate(panel, { type: "Toggle" }), { type: "Fold", name: "video" });
-    assert.deepEqual(folds(panel), ["▸ video", "▾ (modèle plat)"]);
+    assert.deepEqual(folds(panel), ["▸ video", "▾ (racine)"]);
     const entry = { msg: { feature: "a", msg: { type: "X" } }, before: {}, after: {}, cmds: [], events: [{ event: { type: "Changed" }, from: "a", handledBy: ["b"] }] };
     panel = panelUpdate(panelUpdate(panelUpdate(panel, { type: "Recorded", entry, time: "t" }), { type: "Tab", tab: "log" }), { type: "Select", id: 1 });
     assert.match(find(panelView(panel, model), (node) => node.props.className === "dbg-detail").map(text)[0], /a → Changed : reçu par b/);
