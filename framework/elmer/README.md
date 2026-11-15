@@ -146,7 +146,7 @@ flowchart LR
 | `__elmer.debug.persisted` | toujours | `true` ou `false` |
 | `__elmer.debug.status` | toujours | `"on"` si le panneau est monté (ou en cours de montage), `"off"` sinon |
 | `__elmer.debug.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
-| `__elmer.debug.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |
+| `__elmer.debug.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` (les entrées suivantes sont supprimées du journal) ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |
 | `__elmer.help` | toujours | affiche cette liste dans la console (et la renvoie) |
 
 ```js

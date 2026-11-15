@@ -69,6 +69,8 @@ export function panelUpdate(panel, msg) {
       return { ...panel, folded: panel.folded.includes(msg.name) ? panel.folded.filter((name) => name !== msg.name) : [...panel.folded, msg.name] };
     case "Select":
       return { ...panel, selected: panel.selected === msg.id ? null : msg.id };
+    case "Restored":
+      return { ...panel, entries: panel.entries.filter((e) => e.id <= msg.id), counter: msg.id, selected: panel.selected > msg.id ? null : panel.selected };
     case "Clear":
       return { ...panel, entries: [], selected: null };
     case "DragStart":
@@ -217,7 +219,11 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
   function dispatch(msg) {
     if (msg.type === "Restore") {
       const entry = panel.entries.find((e) => e.id === msg.id);
-      if (entry) control.restore(entry.after);
+      if (entry) {
+        control.restore(entry.after);
+        // The steps after it are gone: the log shows the history up to the restored state, and the next step follows it.
+        panel = panelUpdate(panel, { type: "Restored", id: entry.id });
+      }
     }
     else if (msg.type === "Copy") globalThis.navigator?.clipboard?.writeText(msg.text);
     else {

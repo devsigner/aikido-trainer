@@ -678,5 +678,9 @@ describe("debug mode", () => {
     assert.equal(text(copy), "📋");
     assert.match(copy.props.onClick.text, /"screen": "home"/);
     assert.equal(panelUpdate(panelUpdate(panel, { type: "Select", id: 2 }), { type: "Clear" }).entries.length, 0);
+    const back = panelUpdate(panel, { type: "Restored", id: 1 });
+    assert.deepEqual(back.entries.map((recorded) => recorded.id), [1], "the steps after the restored one are forgotten");
+    assert.equal(back.selected, null);
+    assert.equal(panelUpdate(back, { type: "Recorded", entry, time: "10:00:02" }).entries[1].id, 2, "the next step follows the restored one");
   });
 });

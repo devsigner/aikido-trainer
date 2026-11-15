@@ -25,7 +25,16 @@ const HELP = [
 export function createDevtools({ config, control, observer }) {
   const observers = observer ? [observer] : [];
   const history = [];
-  observer?.attach(control);
+  // Time travel forgets the steps after the model that is put back: they no longer happened.
+  const travel = {
+    ...control,
+    restore(past) {
+      const index = history.findLastIndex((entry) => entry.after === past);
+      if (index >= 0) history.length = index + 1;
+      control.restore(past);
+    },
+  };
+  observer?.attach(travel);
 
   const browser = config && typeof document !== "undefined";
   let panel = null; // the mounted panel
@@ -37,7 +46,7 @@ export function createDevtools({ config, control, observer }) {
     if (wanted && !panel && !loading) {
       loading = (async () => {
         const mounted = (await import("./debug.js")).mountDebugger([...config.slices, "elmer"], config.hide);
-        mounted.attach(control);
+        mounted.attach(travel);
         history.forEach((entry) => mounted.record(entry));
         observers.push(mounted);
         panel = mounted;
