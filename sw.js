@@ -1,5 +1,5 @@
 // Same number as the ?v= in index.html (see CLAUDE.md): renews the cache on every version.
-const VERSION = "20261114.38";
+const VERSION = "20261114.39";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -13,9 +13,9 @@ const PRECACHE = [
   "docs/screenshots/5-technique.png",
   `style.css?v=${VERSION}`,
   `app.js?v=${VERSION}`,
-  `src/runtime.js?v=${VERSION}`,
+  `src/framework/runtime.js?v=${VERSION}`,
   `src/effects.js?v=${VERSION}`,
-  `src/vdom.js?v=${VERSION}`,
+  `src/framework/vdom.js?v=${VERSION}`,
   `src/update.js?v=${VERSION}`,
   `src/update-video.js?v=${VERSION}`,
   `src/update-program.js?v=${VERSION}`,
@@ -28,7 +28,7 @@ const PRECACHE = [
   `src/view.js?v=${VERSION}`,
   `src/logic.js?v=${VERSION}`,
   `src/route.js?v=${VERSION}`,
-  `src/debug.js?v=${VERSION}`,
+  `src/framework/debug.js?v=${VERSION}`,
   `favicon.ico?v=${VERSION}`,
   "manifest.webmanifest",
   "icons/icon-192.png",

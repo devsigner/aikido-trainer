@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Counter — framework example</title>
+</head>
+<body>
+  <div id="app"></div>
+  <!-- Serve the repository root (e.g. `python3 -m http.server`) and open /examples/counter/ -->
+  <script type="module">
+    import { combine } from "../../src/framework/combine.js";
+    import { createRenderer } from "../../src/framework/vdom.js";
+    import { run } from "../../src/framework/runtime.js";
+    import { features, view } from "./features.js";
+
+    const app = combine(features);
+    const renderer = createRenderer(document.getElementById("app"));
+    run({ init: app.init, update: app.update, view, render: renderer, effects: app.effects({}) });
+  </script>
+</body>
+</html>

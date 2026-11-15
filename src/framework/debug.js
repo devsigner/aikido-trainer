@@ -1,30 +1,26 @@
 // Debug mode (`?debug` in the URL): a panel with the current model, the message log,
 // the commands and events each message produced, a diff of the model (per feature slice), and time travel.
 // Loaded only when the mode is on. The panel is its own tiny Elm app, rendered outside the app tree.
-import { countTechniques } from "./logic.js";
 import { createRenderer, h } from "./vdom.js";
 
 const MAX_ENTRIES = 200;
 
-const bulky = (fields) => ({
-  ...fields,
-  ...("data" in fields && { data: fields.data ? `[données : ${countTechniques(fields.data)} techniques]` : fields.data }),
-  ...("pool" in fields && { pool: Array.isArray(fields.pool) ? `[${fields.pool.length} éléments]` : fields.pool }),
-});
+// `hide` = { field: (value) => short text }: the bulky fields of the model (at the root or in a slice) shown as a summary.
+const bulky = (fields, hide) => Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, key in hide ? hide[key](value) : value]));
 
-// The model without its bulky parts (grade data, draw pool), readable in a panel.
-export function summarize(model) {
+// The model without its bulky parts, readable in a panel.
+export function summarize(model, hide = {}) {
   if (!model) return model;
   const plain = (value) => value && typeof value === "object" && !Array.isArray(value);
-  const slices = Object.entries(model).filter(([, value]) => plain(value)).map(([key, value]) => [key, bulky(value)]);
-  return { ...bulky(model), ...Object.fromEntries(slices) };
+  const slices = Object.entries(model).filter(([, value]) => plain(value)).map(([key, value]) => [key, bulky(value, hide)]);
+  return { ...bulky(model, hide), ...Object.fromEntries(slices) };
 }
 
 // Fields that differ between two models: [{ key, from, to }].
 // `slices` = names of the features that own a slice of the model: their fields are diffed one by one (key "video.prompt").
-export function diffModels(before, after, slices = []) {
-  const a = summarize(before) ?? {};
-  const b = summarize(after) ?? {};
+export function diffModels(before, after, slices = [], hide = {}) {
+  const a = summarize(before, hide) ?? {};
+  const b = summarize(after, hide) ?? {};
   const differ = (from, to) => JSON.stringify(from) !== JSON.stringify(to);
   const fields = (from, to, prefix, keys) => keys.filter((key) => differ(from[key], to[key])).map((key) => ({ key: prefix + key, from: from[key], to: to[key] }));
   const keysOf = (from, to) => [...new Set([...Object.keys(from ?? {}), ...Object.keys(to ?? {})])];
@@ -46,7 +42,7 @@ const MIN_HEIGHT = 140;
 const clamp = (value, min, max) => Math.max(min, Math.min(value, Math.max(min, max)));
 
 // `box` = position and size of the panel in px; `drag` = pointer gesture in progress ({ mode: "move" | "resize", x, y, box }).
-export const initialPanel = (slices = []) => ({ open: false, tab: "state", selected: null, folded: [], slices, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
+export const initialPanel = (slices = [], hide = {}) => ({ open: false, tab: "state", selected: null, folded: [], slices, hide, entries: [], counter: 0, box: { x: 8, y: 48, w: 340, h: 420 }, drag: null });
 
 // Keeps at least a grabbable part of the panel inside the viewport.
 function dragged({ drag }, { x, y, viewport }) {
@@ -60,7 +56,7 @@ function dragged({ drag }, { x, y, viewport }) {
 export function panelUpdate(panel, msg) {
   switch (msg.type) {
     case "Recorded": {
-      const entry = { ...msg.entry, id: panel.counter + 1, time: msg.time, changes: diffModels(msg.entry.before, msg.entry.after, panel.slices) };
+      const entry = { ...msg.entry, id: panel.counter + 1, time: msg.time, changes: diffModels(msg.entry.before, msg.entry.after, panel.slices, panel.hide) };
       return { ...panel, counter: entry.id, entries: [...panel.entries, entry].slice(-MAX_ENTRIES) };
     }
     case "Toggle":
@@ -131,7 +127,7 @@ const section = (panel, name, content) => [
 ];
 
 const stateTab = (panel, model) => {
-  const summary = summarize(model) ?? {};
+  const summary = summarize(model, panel.hide) ?? {};
   const rest = Object.fromEntries(Object.entries(summary).filter(([key]) => !panel.slices.includes(key)));
   return [
     panel.slices.map((name) => section(panel, name, summary[name])),
@@ -140,7 +136,7 @@ const stateTab = (panel, model) => {
 };
 
 // Icon button pinned to the top right of the content: it stays visible while the state scrolls.
-const copyButton = (model) => h("button", { className: "dbg-copy", title: "Copier l'état", "aria-label": "Copier l'état", onClick: { type: "Copy", text: json(summarize(model)) } }, "📋");
+const copyButton = (model, hide) => h("button", { className: "dbg-copy", title: "Copier l'état", "aria-label": "Copier l'état", onClick: { type: "Copy", text: json(summarize(model, hide)) } }, "📋");
 
 export function panelView(panel, model) {
   return h("div", { id: "debug" },
@@ -152,7 +148,7 @@ export function panelView(panel, model) {
       h("div", { className: "dbg-tabs" }, tab(panel, "state", "État"), tab(panel, "log", `Messages (${panel.entries.length})`)),
       h("div", { className: "dbg-content" },
         h("div", { className: "dbg-body" }, panel.tab === "state" ? stateTab(panel, model) : logTab(panel)),
-        panel.tab === "state" ? copyButton(model) : null),
+        panel.tab === "state" ? copyButton(model, panel.hide) : null),
       h("div", { className: "dbg-resize", onPointerDown: grab("resize") })));
 }
 
@@ -183,8 +179,8 @@ const STYLE = `
 `;
 
 // Mounts the panel and returns the observer expected by `run({ debug })`.
-// `slices` = names of the features that own a slice of the model (see src/framework/combine.js).
-export function mountDebugger(slices = [], doc = document) {
+// `slices` = names of the features that own a slice of the model (see src/framework/combine.js); `hide` = see `summarize`.
+export function mountDebugger(slices = [], hide = {}, doc = document) {
   const style = doc.createElement("style");
   style.textContent = STYLE;
   doc.head.appendChild(style);
@@ -192,7 +188,7 @@ export function mountDebugger(slices = [], doc = document) {
   doc.body.appendChild(root);
   const render = createRenderer(root);
 
-  const start = initialPanel(slices);
+  const start = initialPanel(slices, hide);
   let panel = { ...start, box: { ...start.box, w: Math.min(start.box.w, innerWidth - 16), h: Math.min(start.box.h, innerHeight - 96) } };
   let control = null;
   const paint = () => render(panelView(panel, control?.getModel()), dispatch);
@@ -225,8 +221,8 @@ export function mountDebugger(slices = [], doc = document) {
   return {
     attach(handle) {
       control = handle;
-      // Handy from the browser console: `__aikido.model`, `__aikido.log`, `__aikido.restore(n)`.
-      globalThis.__aikido = {
+      // Handy from the browser console: `__debug.model`, `__debug.log`, `__debug.restore(n)`.
+      globalThis.__debug = {
         get model() {
           return control.getModel();
         },

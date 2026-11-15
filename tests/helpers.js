@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEffects } from "../src/effects.js";
 import { mergeGrades } from "../src/logic.js";
-import { run } from "../src/runtime.js";
+import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
 import { init, update } from "../src/update.js";
 import { view } from "../src/view.js";

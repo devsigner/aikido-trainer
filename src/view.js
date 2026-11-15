@@ -1,6 +1,6 @@
 // view(model) → virtual tree (plain data). Handlers are messages.
 // The root view only composes the views of the features (see `embed`) and holds the page skeleton.
-import { h } from "./vdom.js";
+import { h } from "./framework/vdom.js";
 import { embed, to } from "./framework/combine.js";
 import { grade } from "./update-grade.js";
 import { draw } from "./update-draw.js";

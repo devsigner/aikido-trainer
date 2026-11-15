@@ -1,7 +1,7 @@
 // Feature "grade": the list of grades, the data of the selected grade, and the filters.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
-import { h } from "./vdom.js";
+import { h } from "./framework/vdom.js";
 import { countTechniques, mergeGrades } from "./logic.js";
 import { parseHash } from "./route.js";
 import { url } from "./update-history.js";

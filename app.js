@@ -1,8 +1,8 @@
 // Entry point: wires the model, the view and the effects together (see src/).
-import { createRenderer } from "./src/vdom.js";
+import { createRenderer } from "./src/framework/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
-import { features, init, update } from "./src/update.js";
-import { run } from "./src/runtime.js";
+import { debugHide, features, init, update } from "./src/update.js";
+import { run } from "./src/framework/runtime.js";
 import { DEBUG_KEY, SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
 import { to } from "./src/framework/combine.js";
 import { view } from "./src/view.js";
@@ -30,7 +30,7 @@ const render = (vnode, dispatch) => {
 const debugParam = new URLSearchParams(location.search).get("debug");
 if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
 const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
-const debugObserver = debug ? (await import("./src/debug.js")).mountDebugger(features.map((feature) => feature.name)) : undefined;
+const debugObserver = debug ? (await import("./src/framework/debug.js")).mountDebugger(features.map((feature) => feature.name), debugHide) : undefined;
 
 // launch the app with the initial flags (hash, history position, skip video warning).
 run({

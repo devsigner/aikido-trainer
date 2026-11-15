@@ -2,7 +2,7 @@
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the data and filters of the grade feature through the root model (read-only).
 // Publishes `SessionReset` (the session is over: the program closes) and `Navigated` (the URL must follow).
-import { h } from "./vdom.js";
+import { h } from "./framework/vdom.js";
 import { badgesOf, buildPool, pickIndex } from "./logic.js";
 import { card, slideProps } from "./card.js";
 import { navigated, screenOf } from "./update-history.js";

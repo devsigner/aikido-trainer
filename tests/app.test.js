@@ -2,12 +2,12 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
 import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/logic.js";
-import { h } from "../src/vdom.js";
+import { h } from "../src/framework/vdom.js";
 import { parseHash, toHash } from "../src/route.js";
-import { update, init, initialModel } from "../src/update.js";
+import { update, init, initialModel, debugHide } from "../src/update.js";
 import { view } from "../src/view.js";
-import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/debug.js";
-import { run } from "../src/runtime.js";
+import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/framework/debug.js";
+import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
 import { screenOf } from "../src/update-history.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
@@ -553,7 +553,7 @@ describe("debug mode", () => {
   test("summarize hides the bulky parts of the model", () => {
     const model = { ...initialModel(), pool: [1, 2, 3] };
     model.grade = { ...model.grade, data: readJson("data/2eme-kyo.json") };
-    const summary = summarize(model);
+    const summary = summarize(model, debugHide);
     assert.match(summary.grade.data, /techniques/);
     assert.equal(summary.pool, "[3 éléments]");
     assert.equal(summary.grade.status, "loading");
@@ -562,7 +562,7 @@ describe("debug mode", () => {
   test("diffModels lists only the changed fields", () => {
     const before = { ...initialModel(), waza: "", pool: [1, 2] };
     const after = { ...before, waza: "Tachi waza", pool: [1] };
-    assert.deepEqual(diffModels(before, after).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[2 éléments]", "[1 éléments]"]]);
+    assert.deepEqual(diffModels(before, after, [], debugHide).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[2 éléments]", "[1 éléments]"]]);
     assert.deepEqual(diffModels(before, before), []);
     assert.ok(diffModels(null, before).length > 0);
   });

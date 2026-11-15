@@ -1,5 +1,5 @@
 // Card of a technique, shared by the draw and program views.
-import { h } from "./vdom.js";
+import { h } from "./framework/vdom.js";
 import { askVideo } from "./update-video.js";
 
 // Key and class of the animated card: a new key replaces the element and restarts the animation.

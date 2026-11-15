@@ -2,6 +2,7 @@
 // Effects (network, randomness, history) are described as commands run by the runtime.
 // Each feature lives in its own module (src/update-*.js) and owns a slice of the model (`model.<name>`):
 // its init, update, view and effects, composed by `combine` (src/framework/combine.js).
+import { countTechniques } from "./logic.js";
 import { grade } from "./update-grade.js";
 import { draw } from "./update-draw.js";
 import { program } from "./update-program.js";
@@ -14,6 +15,12 @@ import { initialModel as history, withPosition, withSlide } from "./update-histo
 // Position in the history and card animation (`update-history.js`) still wrap the result of every update.
 export const features = [grade, draw, program, video, navigation];
 const standalone = combine(features);
+
+// Bulky fields of the model shown as a summary in the debug panel.
+export const debugHide = {
+  data: (data) => (data ? `[données : ${countTechniques(data)} techniques]` : data),
+  pool: (pool) => (Array.isArray(pool) ? `[${pool.length} éléments]` : pool),
+};
 
 // Initial model: the slices of every feature (see each module for the field details).
 export function initialModel() {

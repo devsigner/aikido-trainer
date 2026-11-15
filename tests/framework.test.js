@@ -1,6 +1,8 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { combine, embed, to } from "../src/framework/combine.js";
+import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
 const counter = {
@@ -71,5 +73,22 @@ describe("framework combine", () => {
   test("embed leaves a message already addressed to a feature as it is", () => {
     const mapped = embed("counter", { tag: "button", props: { onClick: to("other", { type: "A" }) }, children: [] });
     assert.deepEqual(mapped.props.onClick, to("other", { type: "A" }));
+  });
+
+  test("the counter example: an event of a feature reaches another, and the view addresses its handlers", () => {
+    const app = combine(exampleFeatures);
+    const [model] = app.init({});
+    const [next] = app.update(model, to("counter", { type: "Increment" }));
+    assert.deepEqual([next.counter.count, next.log.lines], [1, ["count = 1"]]);
+    const tree = exampleView(next);
+    assert.deepEqual(tree.children[0].children[1].props.onClick, to("counter", { type: "Increment" }));
+  });
+
+  test("the framework folder does not depend on the application", () => {
+    const dir = new URL("../src/framework/", import.meta.url);
+    for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".js"))) {
+      const imports = [...fs.readFileSync(new URL(file, dir), "utf8").matchAll(/from "([^"]+)"/g)].map((match) => match[1]);
+      assert.ok(imports.every((path) => path.startsWith("./")), `${file} imports outside the framework: ${imports}`);
+    }
   });
 });
