@@ -5,6 +5,7 @@
 // Optional `debug` observer: `record({ msg, before, after, cmds, events })` (`events`: published by the features, optional) after each step, and `attach({ getModel, restore })` once.
 // Dev tools (browser): the last steps are always kept, and `__elmer.debug.on()` / `.off()` mount or unmount the debugger panel (module loaded on demand,
 // the log is replayed into it). `devtools: { slices, hide }` configures it (see debug.js); it is mounted by default on a local host.
+// `debug.on()` / `debug.off()` are remembered (localStorage): `off()` also disables the automatic mount on a local host.
 const MAX_HISTORY = 200;
 const HELP = [
   "__elmer.model              current model (one slice per feature)",
@@ -15,6 +16,9 @@ const HELP = [
   "__elmer.debug.restore(id)  (panel mounted) time travel to the state after entry `id`; returns the model, or null",
   "__elmer.help               this help",
 ].join("\n");
+const DEBUG_KEY = "elmer.debug"; // "on" | "off": the last choice made from the console, kept across reloads
+const saved = () => { try { return localStorage.getItem(DEBUG_KEY); } catch { return null; } };
+const save = (value) => { try { localStorage.setItem(DEBUG_KEY, value); } catch { /* storage unavailable: the choice is not kept */ } };
 const isLocal = () => /^(localhost|127\..*|\[::1\]|.*\.local)$/.test(globalThis.location?.hostname ?? "");
 
 export function run({ init, update, view, render, effects, subscribe, flags, debug, devtools }) {
@@ -76,10 +80,10 @@ export function run({ init, update, view, render, effects, subscribe, flags, deb
     };
     globalThis.__elmer = {
       get model() { return model; },
-      debug: { on: () => toggle(true), off: () => toggle(false), get status() { return mounted ? "on" : "off"; } },
+      debug: { on: () => { save("on"); return toggle(true); }, off: () => { save("off"); return toggle(false); }, get status() { return mounted ? "on" : "off"; } },
       get help() { console.log(HELP); return HELP; },
     };
-    if (isLocal()) toggle(true);
+    if (saved() === "on" || (saved() !== "off" && isLocal())) toggle(true);
   }
 
   return dispatch;

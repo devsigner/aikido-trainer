@@ -107,8 +107,8 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 
 Le debugger est **inclus d'office** : `run({ …, devtools: { slices, hide } })` suffit (`slices` = noms des features, `hide` = résumés des champs volumineux). Il n'est pas dans la boucle : il l'écoute.
 
-- **Local** (`localhost`, `127.x`, `*.local`) : monté automatiquement.
-- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
+- **Local** (`localhost`, `127.x`, `*.local`) : monté automatiquement, sauf si `__elmer.debug.off()` a été appelé.
+- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. Ce choix est **mémorisé** (`localStorage`, clé `elmer.debug`) : après `off()`, il n'est plus monté au rechargement, même en local ; après `on()`, il l'est même hors local. Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
 
 ```mermaid
 flowchart LR
@@ -133,8 +133,8 @@ flowchart LR
 | Appel | Disponible | Effet |
 |-------|------------|-------|
 | `__elmer.model` | toujours | modèle courant (la racine : une tranche par feature) |
-| `__elmer.debug.on()` | toujours | monte le panneau ; renvoie une promesse de `true` |
-| `__elmer.debug.off()` | toujours | le démonte ; renvoie une promesse de `false` |
+| `__elmer.debug.on()` | toujours | monte le panneau (et le mémorise) ; renvoie une promesse de `true` |
+| `__elmer.debug.off()` | toujours | le démonte (et désactive le montage automatique, même en local) ; renvoie une promesse de `false` |
 | `__elmer.debug.status` | toujours | `"on"` si le panneau est monté (ou en cours de montage), `"off"` sinon |
 | `__elmer.debug.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
 | `__elmer.debug.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |

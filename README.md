@@ -240,7 +240,7 @@ Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). La 
 
 #### Mode debug
 
-En local (`localhost`), le debugger est monté automatiquement ; ailleurs, tape `__elmer.debug.on()` dans la console du navigateur (`__elmer.debug.off()` pour le démonter ; `__elmer.help` liste l'API). Un bouton 🐞 ouvre un panneau flottant, à la manière du debugger d'Elm. Il s'ouvre à gauche de l'écran ; on le **déplace** en glissant sa barre rouge et on le **redimensionne** avec le coin en bas à droite (souris ou doigt).
+En local (`localhost`), le debugger est monté automatiquement ; ailleurs, tape `__elmer.debug.on()` dans la console du navigateur (`__elmer.debug.off()` pour le démonter et ne plus le monter automatiquement, même en local ; `__elmer.help` liste l'API). Un bouton 🐞 ouvre un panneau flottant, à la manière du debugger d'Elm. Il s'ouvre à gauche de l'écran ; on le **déplace** en glissant sa barre rouge et on le **redimensionne** avec le coin en bas à droite (souris ou doigt).
 
 - **État** : le modèle courant en JSON (les données des grades et le pool de tirage sont résumés).
 - **Messages** : le journal de tous les messages (200 derniers). Un clic affiche le message, les **commandes** qu'il a produites et les **champs du modèle modifiés**.
