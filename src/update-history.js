@@ -43,7 +43,7 @@ function slideDirection(before, after, msg) {
 }
 
 export function withSlide(before, after, msg) {
-  if (before.status !== "ready" || sameView(before, after)) return after;
+  if (before.grade.status !== "ready" || sameView(before, after)) return after;
   return { ...after, slide: { direction: slideDirection(before, after, msg), count: after.slide.count + 1 } };
 }
 

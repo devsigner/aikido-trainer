@@ -6,14 +6,18 @@ import { createRenderer, h } from "./vdom.js";
 
 const MAX_ENTRIES = 200;
 
+const bulky = (fields) => ({
+  ...fields,
+  ...("data" in fields && { data: fields.data ? `[données : ${countTechniques(fields.data)} techniques]` : fields.data }),
+  ...("pool" in fields && { pool: Array.isArray(fields.pool) ? `[${fields.pool.length} éléments]` : fields.pool }),
+});
+
 // The model without its bulky parts (grade data, draw pool), readable in a panel.
 export function summarize(model) {
   if (!model) return model;
-  return {
-    ...model,
-    data: model.data ? `[données : ${countTechniques(model.data)} techniques]` : model.data,
-    pool: Array.isArray(model.pool) ? `[${model.pool.length} éléments]` : model.pool,
-  };
+  const plain = (value) => value && typeof value === "object" && !Array.isArray(value);
+  const slices = Object.entries(model).filter(([, value]) => plain(value)).map(([key, value]) => [key, bulky(value)]);
+  return { ...bulky(model), ...Object.fromEntries(slices) };
 }
 
 // Fields that differ between two models: [{ key, from, to }].

@@ -1,6 +1,7 @@
 // view(model) → virtual tree (plain data). Handlers are messages.
 import { h } from "./vdom.js";
 import { embed } from "./framework/combine.js";
+import { grade } from "./update-grade.js";
 import { askVideo, video } from "./update-video.js";
 import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
 
@@ -22,15 +23,9 @@ const card = (prefix, { waza = "", attack = "", technique = "", form = "", badge
 
 // Home screen: choose a waza and start a session.
 const home = (model) => {
-  const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(model.data, waza, model.filters).length === 0]));
+  const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(model.grade.data, waza, model.grade.filters).length === 0]));
   return h("section", { id: "home" },
-    h("div", { className: "group settings" },
-      h("label", { className: "field" }, "Grade",
-        h("select", { id: "grade", onChange: (event) => ({ type: "SelectGrade", id: event.target.value }) },
-          model.grades.map((grade) => h("option", { value: grade.id, selected: grade.id === model.gradeId }, `${grade.label} (${grade.count} techniques)`)))),
-      h("div", { className: "filters" },
-        h("label", {}, h("input", { type: "checkbox", id: "f-new", checked: model.filters.isNew, onChange: (event) => ({ type: "SetFilter", name: "isNew", checked: event.target.checked }) }), " 🆕 Nouveautés"),
-        h("label", {}, h("input", { type: "checkbox", id: "f-warning", checked: model.filters.isWarning, onChange: (event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked }) }), " ⚠️ Attention"))),
+    embed("grade", grade.view(model.grade)),
     h("div", { className: "group grow" },
       h("p", { className: "hint" }, "Choisis un waza et teste-toi !"),
       h("div", { id: "waza-buttons", className: "buttons grow" },
@@ -71,7 +66,7 @@ const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim(
 // 3/ then see other attacks with the same technique.
 const levels = {
   1(model) {
-    const attacks = listAttacks(model.data, model.waza);
+    const attacks = listAttacks(model.grade.data, model.waza);
     return {
       back: "← Tirage",
       backMessage: { type: "CloseProgram" },
@@ -82,7 +77,7 @@ const levels = {
     };
   },
   2(model, { attack }) {
-    const techniques = listTechniques(model.data, model.waza, attack);
+    const techniques = listTechniques(model.grade.data, model.waza, attack);
     return {
       back: "← Programme",
       backMessage: { type: "Navigate", to: { level: 1 } },
@@ -93,14 +88,14 @@ const levels = {
     };
   },
   3(model, { attack, technique }) {
-    const siblings = listTechniques(model.data, model.waza, attack);
+    const siblings = listTechniques(model.grade.data, model.waza, attack);
     const position = siblings.findIndex((candidate) => candidate.name === technique);
     const current = siblings[position];
     // Neighbours wrap around the list; none when the attack has a single technique.
     const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
     const pagerButton = (id, label, target, direction) =>
       h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
-    const others = findSameTechnique(model.data, model.waza, attack, current.name);
+    const others = findSameTechnique(model.grade.data, model.waza, attack, current.name);
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
@@ -144,7 +139,7 @@ const page = (model, ...children) => h("main", {}, ...children, footer(), embed(
 
 const loadingView = () => h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
 
-const errorView = (model) => h("p", { className: "hint" }, model.error);
+const errorView = (model) => h("p", { className: "hint" }, model.grade.error);
 
 const title = () => h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido");
 
@@ -155,8 +150,8 @@ export function view(model) {
   const header = title();
 
   // The other screens are stacked vertically, with the footer below the fold.
-  if (model.status !== "ready") {
-    return page(model, header, model.status === "loading" ? loadingView() : errorView(model));
+  if (model.grade.status !== "ready") {
+    return page(model, header, model.grade.status === "loading" ? loadingView() : errorView(model));
   }
 
   // The program screen is a special case: the first page fills the viewport, the list is below.

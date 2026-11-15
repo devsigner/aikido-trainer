@@ -16,7 +16,7 @@ export function noSession() {
 }
 
 export function session(model, waza) {
-  const pool = buildPool(model.data, waza, model.filters);
+  const pool = buildPool(model.grade.data, waza, model.grade.filters);
   return { ...model, ...noSession(), screen: "draw", waza, pool, total: pool.length };
 }
 

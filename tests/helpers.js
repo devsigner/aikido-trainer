@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createEffects } from "../src/effects.js";
 import { mergeGrades } from "../src/logic.js";
 import { run } from "../src/runtime.js";
+import { to } from "../src/framework/combine.js";
 import { init, update } from "../src/update.js";
 import { view } from "../src/view.js";
 
@@ -119,7 +120,7 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     },
     // Loads test data in place of the JSON files.
     load(data) {
-      dispatch({ type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data });
+      dispatch(to("grade", { type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data }));
     },
   };
   return app;

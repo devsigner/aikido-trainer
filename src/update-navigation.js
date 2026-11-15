@@ -1,6 +1,8 @@
 // Feature "navigation": the URL is the source of truth (reload, browser back/forward).
 // Owns: pending. Orchestrates the draw and program features to put the model in the state of a route.
 import { WAZA_ORDER } from "./logic.js";
+import { loadGrade } from "./update-grade.js";
+import { url } from "./update-history.js";
 import { parseHash } from "./route.js";
 import { noSession, session } from "./update-draw.js";
 import { validProgram } from "./update-program.js";
@@ -15,7 +17,7 @@ export function applyRoute(model, route) {
   if (!WAZA_ORDER.includes(route.waza)) return [{ ...model, ...noSession() }, []];
 
   const base = model.screen !== "home" && model.waza === route.waza ? model : session(model, route.waza);
-  const program = validProgram(base.data, route);
+  const program = validProgram(base.grade.data, route);
 
   const next = program ? { ...base, screen: "program", program } : { ...base, screen: "draw", program: null };
   const needsDraw = next.screen === "draw" && !next.current && !next.done && next.pool.length > 0;
@@ -25,12 +27,22 @@ export function applyRoute(model, route) {
 
 // A route of another grade first loads that grade (the route waits in `pending`).
 function goTo(model, route) {
-  const grade = model.grades.find((candidate) => candidate.id === route.grade);
-  if (grade && grade.id !== model.gradeId) return [{ ...model, gradeId: grade.id, pending: route }, [{ type: "LoadGrade", grade }]];
+  const grade = model.grade.list.find((candidate) => candidate.id === route.grade);
+  if (grade && grade.id !== model.grade.id) return [{ ...model, grade: { ...model.grade, id: grade.id }, pending: route }, [loadGrade(grade)]];
   return applyRoute(model, route);
 }
 
 export const updateHandler = {
   // Browser navigation: the URL is the source of truth.
-  Popped: (model, msg) => (model.status === "ready" ? goTo(model, parseHash(msg.hash)) : [model, []]),
+  Popped: (model, msg) => (model.grade.status === "ready" ? goTo(model, parseHash(msg.hash)) : [model, []]),
+};
+
+// Reactions to the events of the standalone features (the model is still flat here): once the data is loaded, the pending route is applied.
+export const reactions = {
+  GradesLoaded(model) {
+    const [next, cmds] = applyRoute({ ...model, pending: null }, model.pending || {});
+    return [next, [url(next, "replace"), ...cmds]];
+  },
+
+  GradeLoaded: (model) => (model.pending ? applyRoute({ ...model, pending: null }, model.pending) : [model, []]),
 };

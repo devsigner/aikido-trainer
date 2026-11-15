@@ -1,6 +1,6 @@
 // Side effects: network, randomness, history. They receive `dispatch` and send messages back.
 // Each feature module (src/update-*.js) defines its own effects (`effectHandler`); this file only composes them.
-import { effectHandler as gradeEffects, resolveGrade } from "./update-grade.js";
+import { resolveGrade } from "./update-grade.js";
 import { effectHandler as drawEffects } from "./update-draw.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./update-video.js";
 import { features } from "./update.js";
@@ -18,5 +18,5 @@ const defaultFetchJson = async (url) => {
 
 export function createEffects({ fetchJson = defaultFetchJson, random = Math.random, history = globalThis.history, storage = globalThis.localStorage, open = globalThis.open } = {}) {
   const deps = { fetchJson, random, history, storage, open };
-  return { ...gradeEffects(deps), ...drawEffects(deps), ...combine(features).effects(deps), ...historyEffects(deps) };
+  return { ...drawEffects(deps), ...combine(features).effects(deps), ...historyEffects(deps) };
 }
