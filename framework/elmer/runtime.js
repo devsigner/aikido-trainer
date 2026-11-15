@@ -6,6 +6,13 @@
 // Dev tools (browser): the last steps are always kept, and `__elmer.debug(on?)` mounts or unmounts the debugger panel (module loaded on demand,
 // the log is replayed into it). `devtools: { slices, hide }` configures it (see debug.js); it is mounted by default on a local host.
 const MAX_HISTORY = 200;
+const HELP = [
+  "__elmer.model            current model (one slice per feature)",
+  "__elmer.debug()          mounts / unmounts the debugger panel (debug(true) / debug(false) to force)",
+  "__elmer.log              (panel mounted) log entries { id, msg, before, after, cmds, events, changes, time }",
+  "__elmer.restore(id)      (panel mounted) time travel to the state after entry `id`; returns the model, or null",
+  "__elmer.help             this help",
+].join("\n");
 const isLocal = () => /^(localhost|127\..*|\[::1\]|.*\.local)$/.test(globalThis.location?.hostname ?? "");
 
 export function run({ init, update, view, render, effects, subscribe, flags, debug, devtools }) {
@@ -65,7 +72,11 @@ export function run({ init, update, view, render, effects, subscribe, flags, deb
       }
       return Boolean(mounted);
     };
-    globalThis.__elmer = { get model() { return model; }, debug: toggle };
+    globalThis.__elmer = {
+      get model() { return model; },
+      debug: toggle,
+      get help() { console.log(HELP); return HELP; },
+    };
     if (isLocal()) toggle(true);
   }
 

@@ -128,7 +128,7 @@ flowchart LR
 
 ### L'API `__elmer` (console du navigateur)
 
-`run` publie `globalThis.__elmer` dès le démarrage (si `devtools` est fourni) :
+`run` publie `globalThis.__elmer` dès le démarrage (si `devtools` est fourni). `__elmer.help` en affiche la liste :
 
 | Appel | Disponible | Effet |
 |-------|------------|-------|
@@ -136,6 +136,7 @@ flowchart LR
 | `__elmer.debug()` | toujours | monte le panneau s'il est démonté, le démonte sinon ; renvoie une promesse de `true` (monté) / `false` |
 | `__elmer.debug(true)` / `__elmer.debug(false)` | toujours | force le montage / le démontage |
 | `__elmer.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
+| `__elmer.help` | toujours | affiche cette liste dans la console (et la renvoie) |
 | `__elmer.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |
 
 ```js
