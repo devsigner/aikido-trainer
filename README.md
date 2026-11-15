@@ -193,7 +193,7 @@ stateDiagram-v2
     }
 ```
 
-Les trois niveaux du programme sont stockés dans `model.program.at = { level, attack?, technique? }` (`null` quand le programme est fermé).
+Les trois niveaux du programme sont stockés dans `model.program = { waza, at: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `draw` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
 
 #### Principaux messages et effets
 
@@ -205,7 +205,7 @@ Les trois niveaux du programme sont stockés dans `model.program.at = { level, a
 | `StartSession` | bouton d'un waza | `Url`, `Random` |
 | `Next` | « Technique suivante » | `Random` |
 | `Rolled` | retour de l'effet `Random` | — |
-| `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `Url` |
+| `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `Url` (+ `Random` au retour au tirage) |
 | `GoHome` | « Retour à l'accueil », titre | `Url` |
 | `Popped` | précédent/suivant du navigateur | — (l'URL fait foi) |
 | `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |

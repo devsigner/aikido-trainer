@@ -2,9 +2,10 @@
 
 // Feature "navigation": the URL is the source of truth (reload, browser back/forward).
 // Owns: pending (the route waiting for the data). Does not write other slices: it publishes events.
-// Publishes `RouteChanged` ({ route }: draw and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
+// Publishes `HomeRequested` (draw and program close), `RouteChanged` ({ route }: draw and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
 // Reacts to `Navigated` (a feature changed what the URL shows) by writing the URL.
 import { parseHash, toHash } from "../route.js";
+import { navigated, screenOf } from "../update-history.js";
 
 export const initialModel = {
   pending: null, // route from the URL, applied once the data is loaded
@@ -21,6 +22,8 @@ function goTo(model, route, root) {
 }
 
 const messages = {
+  GoHome: (model, _, root) => (screenOf(root) === "home" ? [model, []] : [model, [], [{ type: "HomeRequested" }, navigated("push")]]),
+
   // Browser navigation: the URL is the source of truth.
   Popped: (model, msg, root) => (root.grade.status === "ready" ? goTo(model, parseHash(msg.hash), root) : [model, []]),
 };

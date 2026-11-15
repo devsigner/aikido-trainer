@@ -2,16 +2,17 @@
 
 // Feature "program": browsing attacks → techniques → card, in three levels.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
-// Reads the grade data and the waza of the draw through the root model (read-only).
-// Publishes `Navigated` (the URL must follow); closes when the draw session is reset.
+// Reads the grade data through the root model (read-only); keeps its own waza (the draw session is over while the program is open).
+// Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: draw starts a new session), `Navigated` (the URL must follow).
+// Closes when `HomeRequested`.
 import { h } from "../framework/vdom.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card, slideProps } from "../shared/card.js";
 import { navigated } from "../update-history.js";
 import { UNMOUNT, to } from "../framework/combine.js";
 
-// `at` = { level, attack?, technique? }, or null when the program is not open.
-export const initialModel = { at: null };
+// `waza` = the waza being browsed; `at` = { level, attack?, technique? }, or null when the program is not open.
+export const initialModel = { waza: "", at: null };
 
 // URL route narrowed to what the data contains (unknown attack or technique → level above).
 export function validProgram(data, { waza, program }) {
@@ -22,14 +23,12 @@ export function validProgram(data, { waza, program }) {
   return technique ? { level: 3, attack: attack.name, technique: technique.name } : { level: 2, attack: attack.name };
 }
 
-const open = (at) => [{ at }, [], [navigated("push")]];
-
 const messages = {
-  OpenProgram: () => open({ level: 1 }),
+  OpenProgram: (_, msg) => [{ waza: msg.waza, at: { level: 1 } }, [], [{ type: "ProgramOpened" }, navigated("push")]],
 
-  Navigate: (_, msg) => open(msg.to),
+  Navigate: (model, msg) => [{ ...model, at: msg.to }, [], [navigated("push")]],
 
-  CloseProgram: () => [UNMOUNT, [], [navigated("push")]],
+  CloseProgram: (model) => [UNMOUNT, [], [{ type: "ProgramClosed", waza: model.waza }, navigated("push")]],
 };
 
 const item = (label, target) => h("button", { className: "item", onClick: { type: "Navigate", to: target } }, label);
@@ -41,19 +40,18 @@ const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim(
 // 2/ then a technique,
 // 3/ then see other attacks with the same technique.
 const levels = {
-  1(root) {
-    const attacks = listAttacks(root.grade.data, root.draw.waza);
+  1(root, { waza }) {
+    const attacks = listAttacks(root.grade.data, waza);
     return {
       back: "← Tirage",
       backMessage: { type: "CloseProgram" },
-      fields: { waza: root.draw.waza },
+      fields: { waza },
       title: "Choisis une attaque :",
       sub: `${attacks.length} attaques`,
       items: attacks.map((attack) => item(attack.name, { level: 2, attack: attack.name })),
     };
   },
-  2(root, { attack }) {
-    const { waza } = root.draw;
+  2(root, { waza, at: { attack } }) {
     const techniques = listTechniques(root.grade.data, waza, attack);
     return {
       back: "← Programme",
@@ -64,8 +62,7 @@ const levels = {
       items: techniques.map((technique) => item(withBadges(technique.name, technique), { level: 3, attack, technique: technique.name })),
     };
   },
-  3(root, { attack, technique }) {
-    const { waza } = root.draw;
+  3(root, { waza, at: { attack, technique } }) {
     const siblings = listTechniques(root.grade.data, waza, attack);
     const position = siblings.findIndex((candidate) => candidate.name === technique);
     const current = siblings[position];
@@ -93,11 +90,11 @@ const levels = {
 
 // The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
 function view(model, root, header) {
-  const { back, backMessage, fields, actions, title, sub, items } = levels[model.at.level](root, model.at);
+  const { back, backMessage, fields, actions, title, sub, items } = levels[model.at.level](root, model);
   return h("section", { id: "program" },
     h("div", { className: actions ? "screen full" : "screen" },
       header,
-      h("button", { id: "home-btn", className: "secondary", onClick: to("draw", { type: "GoHome" }) }, "Retour à l'accueil"),
+      h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
       h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
       card("prog", fields, "prog-card", slideProps(root.slide)),
       actions,
@@ -111,7 +108,7 @@ function view(model, root, header) {
 // The URL changed: the program of the route, narrowed to what the data contains.
 function routeChanged(_, { route }, root) {
   const at = WAZA_ORDER.includes(route.waza) ? validProgram(root.grade.data, route) : null;
-  return at ? [{ at }, []] : [UNMOUNT, []];
+  return at ? [{ waza: route.waza, at }, []] : [UNMOUNT, []];
 }
 
 export const program = {
@@ -122,6 +119,6 @@ export const program = {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
   },
-  on: { SessionReset: () => [UNMOUNT, []], RouteChanged: routeChanged },
+  on: { HomeRequested: () => [UNMOUNT, []], RouteChanged: routeChanged },
   view,
 };

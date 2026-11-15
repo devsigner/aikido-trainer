@@ -190,10 +190,10 @@ describe("program", () => {
     return { app, before };
   }
 
-  test("attacks sorted, session untouched", async () => {
-    const { app, before } = await open();
+  test("attacks sorted, the session is over", async () => {
+    const { app } = await open();
     assert.deepEqual(app.list(), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
-    assert.equal(app.model.draw.pool.length, before);
+    assert.equal("draw" in app.model, false);
   });
 
   test("attack → techniques with badges, sorted", async () => {
@@ -317,7 +317,7 @@ describe("URL and history", () => {
   test("reloading on a program URL restores the same state", async () => {
     const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
     const app = await createApp({ hash });
-    assert.deepEqual([app.model.grade.id, app.model.draw.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
+    assert.deepEqual([app.model.grade.id, app.model.program.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
     assert.equal(app.model.program.at.technique, "Nikkyo");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     assert.equal(app.history.url, hash);
@@ -333,10 +333,27 @@ describe("URL and history", () => {
 
   test("after reloading on the program, going back to the draw starts a draw", async () => {
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program" });
-    assert.equal(app.model.draw.current, null);
+    assert.equal("draw" in app.model, false);
     app.dispatch(to("navigation", { type: "Popped", hash: "#/1er-kyo/Tachi%20waza" }));
     assert.equal(screenOf(app.model), "draw");
     assert.ok(app.model.draw.current);
+  });
+
+  test("opening the program ends the session; coming back starts a new one at 0", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    app.click("Tachi waza");
+    app.click("Technique suivante");
+    assert.ok(app.model.draw.total - app.model.draw.pool.length >= 2);
+    const total = app.model.draw.total;
+    app.click("Voir le programme");
+    assert.equal("draw" in app.model, false);
+    assert.equal(app.model.program.waza, "Tachi waza");
+    app.click("← Tirage");
+    assert.equal("program" in app.model, false);
+    assert.equal(app.model.draw.total, total);
+    assert.equal(app.model.draw.total - app.model.draw.pool.length, 1);
+    assert.equal(app.history.url.endsWith("Tachi%20waza"), true);
   });
 
   test("invalid URL: unknown grade or waza → home, unknown attack → level 1", async () => {
@@ -365,7 +382,7 @@ describe("title and loading", () => {
     app.click("Tachi waza");
     assert.deepEqual(slices(), ["draw"]);
     app.click("prog-btn");
-    assert.deepEqual(slices(), ["draw", "program"]);
+    assert.deepEqual(slices(), ["program"]);
     app.click("prog-back");
     assert.deepEqual(slices(), ["draw"]);
     app.fire(app.byId("title"));
@@ -431,7 +448,7 @@ describe("card transitions", () => {
 
   test("a message can force the direction", () => {
     const [model] = init();
-    const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA }, draw: { ...model.draw, waza: "Tachi waza" }, program: { at: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
+    const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA }, program: { waza: "Tachi waza", at: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
     const [next] = update(ready, to("program", { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" }));
     assert.equal(next.slide.direction, "back");
   });
@@ -486,7 +503,6 @@ describe("program buttons", () => {
     assert.equal(app.model.program.at.level, 1);
     app.click("prog-back");
     assert.equal(screenOf(app.model), "draw");
-    assert.equal(app.model.slide.direction, "back");
     assert.equal(app.history.url, "#/t/Tachi%20waza");
   });
 

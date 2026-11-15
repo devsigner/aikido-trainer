@@ -3,7 +3,7 @@
 // Feature "draw": a session of random techniques for one waza (pool without repetition).
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the data and filters of the grade feature through the root model (read-only).
-// Publishes `SessionReset` (the session is over: the program closes) and `Navigated` (the URL must follow).
+// Publishes `Navigated` (the URL must follow). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
 import { h } from "../framework/vdom.js";
 import { badgesOf, buildPool, pickIndex } from "../shared/logic.js";
 import { card, slideProps } from "../shared/card.js";
@@ -28,10 +28,8 @@ export function startSession(root, waza) {
 // Command asking this feature to draw (for the code that has no access to its messages).
 export const roll = { type: "Random", feature: "draw" };
 
-const SESSION_RESET = { type: "SessionReset" };
-
 const messages = {
-  StartSession: (_, msg, root) => [startSession(root, msg.waza), [{ type: "Random" }], [SESSION_RESET, navigated("push")]],
+  StartSession: (_, msg, root) => [startSession(root, msg.waza), [{ type: "Random" }], [navigated("push")]],
 
   Next: (model) => (model.pool.length === 0 ? [{ ...model, current: null, done: true }, []] : [model, [{ type: "Random" }]]),
 
@@ -42,8 +40,6 @@ const messages = {
     const index = pickIndex(model.pool, msg.value);
     return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, []];
   },
-
-  GoHome: (model) => (model.waza ? [UNMOUNT, [], [SESSION_RESET, navigated("push")]] : [UNMOUNT, []]), // no session: already home
 };
 
 // Draw screen: show a technique and ask if the user knows it.
@@ -60,13 +56,13 @@ function view(model, root) {
     warnVideo: !root.video.skipWarning,
   };
   return h("section", { id: "draw" },
-    h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
+    h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
     h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
     h("h3", { className: "hint" }, "Connais-tu cette technique ?"),
     model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(root.slide)),
     h("div", { className: "buttons actions" },
       !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
-      h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram" }) }, "Voir le programme")));
+      h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram", waza: model.waza }) }, "Voir le programme")));
 }
 
 // Waza buttons of the home screen: start a session (a waza with no technique for the filters is disabled).
@@ -81,22 +77,28 @@ function picker(root) {
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
 function routeChanged(model, { route }, root) {
-  if (!WAZA_ORDER.includes(route.waza)) return [UNMOUNT, []];
+  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, []]; // the program replaces the session
 
   const next = model.waza === route.waza ? model : startSession(root, route.waza);
-  const needsDraw = !route.program && !next.current && !next.done && next.pool.length > 0;
+  const needsDraw = !next.current && !next.done && next.pool.length > 0;
   return [next, needsDraw ? [{ type: "Random" }] : []];
 }
 
 export const draw = {
   name: "draw",
-  lazy: { events: ["RouteChanged"] }, // the slice only exists during a session
+  lazy: { events: ["RouteChanged", "ProgramClosed"] }, // the slice only exists during a session
   init: () => [initialModel, []],
   update(model, msg, root) {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
   },
-  on: { RouteChanged: routeChanged },
+  on: {
+    RouteChanged: routeChanged,
+    ProgramOpened: () => [UNMOUNT, []],
+    HomeRequested: () => [UNMOUNT, []],
+    // Back from the program: a fresh session of the same waza.
+    ProgramClosed: (_, { waza }, root) => [startSession(root, waza), [{ type: "Random" }]],
+  },
   view,
   picker,
   effects: ({ random }) => ({
