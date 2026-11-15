@@ -1,10 +1,12 @@
+// app.js
+
 // Entry point: wires the model, the view and the effects together (see src/).
-import { createRenderer } from "./src/vdom.js";
+import { createEffects, createRenderer, createSubscriptions, run } from "./framework/elmer/index.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
-import { init, update } from "./src/update.js";
-import { run } from "./src/runtime.js";
-import { DEBUG_KEY, SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
+import { application, debugHide, init, update } from "./src/update.js";
+import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
 import { view } from "./src/view.js";
+import { readFlag } from "./src/shared/logic.js";
 
 // Render, and scroll back to the top when the displayed tree actually changed.
 const root = document.getElementById("app");
@@ -25,52 +27,18 @@ const render = (vnode, dispatch) => {
   lastSnapshot = snapshot;
 };
 
-// Debug mode: `?debug` turns it on (and remembers it), `?debug=0` turns it off. The module is loaded only when on.
-const debugParam = new URLSearchParams(location.search).get("debug");
-if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
-const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
-const debugObserver = debug ? (await import("./src/debug.js")).mountDebugger() : undefined;
-
 // launch the app with the initial flags (hash, history position, skip video warning).
 run({
   init,
   update,
   view,
   render,
-  subscribe: subscriber,
-  debug: debugObserver,
-  effects: createEffects(),
+  subscribe: createSubscriptions(application),
+  devtools: { hide: debugHide },
+  effects: createEffects(application),
   flags: {
     hash: location.hash,
     position: history.state?.position ?? 0,
     skipVideoWarning: readFlag(SKIP_VIDEO_WARNING_KEY)
   },
 });
-
-function subscriber(dispatch) {
-  window.addEventListener("popstate", () => {
-    return dispatch({
-      type: "Popped",
-      hash: location.hash,
-      position: history.state?.position ?? 0
-    })
-  });
-}
-
-function writeFlag(key, value) {
-  try {
-    if (value) localStorage.setItem(key, "1");
-    else localStorage.removeItem(key);
-  } catch {
-    // Storage unavailable (private mode): the flag only lasts for this visit.
-  }
-}
-
-// Read a boolean flag from localStorage, returning false if unavailable (private mode).
-function readFlag(key) {
-  try {
-    return localStorage.getItem(key) === "1";
-  } catch {
-    return false;
-  }
-}

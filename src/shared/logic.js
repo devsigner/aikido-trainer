@@ -1,4 +1,6 @@
-// Pure functions: no dependency on the DOM, the network or randomness.
+// src/shared/logic.js
+
+// Shared functions: pure (no dependency on the DOM, the network or randomness), except the localStorage flags at the end.
 export const WEIGHT_NEW = 1.5;
 export const WEIGHT_WARNING = 1.5;
 export const WAZA_ORDER = ["Tachi waza", "Hanmi Handachi waza", "Suwari waza"];
@@ -39,13 +41,15 @@ export function buildPool(data, waza, { isNew = false, isWarning = false } = {})
       if ((isNew || isWarning) && !((isNew && technique.isNew) || (isWarning && technique.isWarning))) continue;
       const weight = (technique.isNew ? WEIGHT_NEW : 1) * (technique.isWarning ? WEIGHT_WARNING : 1);
       const forms = technique.forms.length ? technique.forms : [null];
-      for (const form of forms) items.push({ waza, attack: attack.name, technique, form, weight });
+      for (const form of forms) items.push({ attack: attack.name, technique: technique.name, form, weight });
     }
   }
   return items;
 }
 
 // Weighted draw: `random` ∈ [0, 1[ comes from an effect (Random), so the function stays pure.
+// The pool is an array of references { attack, technique, form, weight } (names; the rest is looked up in the data).
+// The function returns the index of the drawn technique in the pool.
 export function pickIndex(pool, random) {
   let left = random * pool.reduce((sum, entry) => sum + entry.weight, 0);
   for (let index = 0; index < pool.length; index++) {
@@ -59,6 +63,10 @@ export const norm = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, 
 export const byOrder = (first, second) => first.order - second.order || first.name.localeCompare(second.name, "fr");
 export const badgesOf = (technique) => [technique.isNew ? "🆕" : "", technique.isWarning ? "⚠️" : ""].join(" ").trim();
 
+// Entry of the data for a technique reference (undefined if unknown).
+export const findTechnique = (data, waza, attack, technique) =>
+  (data.waza[waza] || []).find((candidate) => candidate.name === attack)?.techniques.find((candidate) => candidate.name === technique);
+
 export const listAttacks = (data, waza) => [...(data.waza[waza] || [])].sort(byOrder);
 
 export const listTechniques = (data, waza, attack) =>
@@ -70,4 +78,23 @@ export function findSameTechnique(data, waza, attack, techniqueName) {
     .filter((other) => other.name !== attack)
     .flatMap((other) =>
       other.techniques.filter((technique) => norm(technique.name) === norm(techniqueName)).map((technique) => ({ attack: other.name, technique })));
+}
+
+// Writes a boolean flag in localStorage.
+export function writeFlag(key, value) {
+  try {
+    if (value) localStorage.setItem(key, "1");
+    else localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable (private mode): the flag only lasts for this visit.
+  }
+}
+
+// Reads a boolean flag from localStorage, returning false if unavailable (private mode).
+export function readFlag(key) {
+  try {
+    return localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
 }

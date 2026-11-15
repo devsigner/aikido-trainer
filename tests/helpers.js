@@ -1,10 +1,13 @@
+// tests/helpers.js
+
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createEffects } from "../src/effects.js";
-import { mergeGrades } from "../src/logic.js";
-import { run } from "../src/runtime.js";
-import { init, update } from "../src/update.js";
+import { createEffects, createSubscriptions } from "../framework/elmer/effects.js";
+import { to } from "../framework/elmer/feature.js";
+import { mergeGrades } from "../src/shared/logic.js";
+import { run } from "../framework/elmer/runtime.js";
+import { application, init, update } from "../src/update.js";
 import { view } from "../src/view.js";
 
 export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -45,6 +48,7 @@ export async function createApp({ random = Math.random, hash = "", open, storage
   let tree;
   let model;
   let popstate;
+  const window = { addEventListener: (_type, listener) => (popstate = listener), location: { hash } };
   const states = [hash];
   let index = 0;
   const history = {
@@ -55,14 +59,21 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     replaceState(_state, _title, url) {
       states[index] = url;
     },
+    state: { position: 0 },
     back() {
       index = Math.max(0, index - 1);
-      popstate({ type: "Popped", hash: states[index], position: index });
+      arrive();
     },
     forward() {
       index = Math.min(states.length - 1, index + 1);
-      popstate({ type: "Popped", hash: states[index], position: index });
+      arrive();
     },
+  };
+  // The browser moved to another history entry.
+  const arrive = () => {
+    window.location.hash = states[index];
+    history.state = { position: index };
+    popstate();
   };
   const dispatch = run({
     init,
@@ -74,8 +85,8 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     view,
     flags: { hash, skipVideoWarning },
     render: (vnode) => (tree = vnode),
-    effects: createEffects({ fetchJson: async (url) => readJson(url), random, history, open, storage }),
-    subscribe: (listener) => (popstate = listener),
+    effects: createEffects(application, { fetchJson: async (url) => readJson(url), random, history, open, storage }),
+    subscribe: createSubscriptions(application, { history, window }),
   });
   await settle();
   const app = {
@@ -119,7 +130,7 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     },
     // Loads test data in place of the JSON files.
     load(data) {
-      dispatch({ type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data });
+      dispatch(to("catalog", { type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data }));
     },
   };
   return app;

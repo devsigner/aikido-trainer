@@ -1,5 +1,9 @@
+// sw.js
+
+"use strict";
+
 // Same number as the ?v= in index.html (see CLAUDE.md): renews the cache on every version.
-const VERSION = "20261114.30";
+const VERSION = "20261114.95";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -13,20 +17,32 @@ const PRECACHE = [
   "docs/screenshots/5-technique.png",
   `style.css?v=${VERSION}`,
   `app.js?v=${VERSION}`,
-  `src/runtime.js?v=${VERSION}`,
-  `src/effects.js?v=${VERSION}`,
-  `src/vdom.js?v=${VERSION}`,
+  `framework/elmer/index.js?v=${VERSION}`,
+  `framework/elmer/runtime.js?v=${VERSION}`,
+  `framework/elmer/elmer.js?v=${VERSION}`,
+  `framework/elmer/devtools.js?v=${VERSION}`,
+  `framework/elmer/effects.js?v=${VERSION}`,
+  `framework/elmer/vdom.js?v=${VERSION}`,
   `src/update.js?v=${VERSION}`,
-  `src/update-video.js?v=${VERSION}`,
-  `src/update-program.js?v=${VERSION}`,
-  `src/update-navigation.js?v=${VERSION}`,
-  `src/update-history.js?v=${VERSION}`,
-  `src/update-grade.js?v=${VERSION}`,
-  `src/update-draw.js?v=${VERSION}`,
+  `src/features/video.js?v=${VERSION}`,
+  `src/features/program.js?v=${VERSION}`,
+  `src/features/navigation.js?v=${VERSION}`,
+  `src/shared/screen.js?v=${VERSION}`,
+  `src/features/slide.js?v=${VERSION}`,
+  `src/features/catalog.js?v=${VERSION}`,
+  `src/features/quiz.js?v=${VERSION}`,
+  `framework/elmer/feature.js?v=${VERSION}`,
+  `src/layout/card.js?v=${VERSION}`,
   `src/view.js?v=${VERSION}`,
-  `src/logic.js?v=${VERSION}`,
-  `src/route.js?v=${VERSION}`,
-  `src/debug.js?v=${VERSION}`,
+  `src/layout/footer.js?v=${VERSION}`,
+  `src/layout/title.js?v=${VERSION}`,
+  `src/layout/page.js?v=${VERSION}`,
+  `src/layout/home.js?v=${VERSION}`,
+  `src/shared/logic.js?v=${VERSION}`,
+  `framework/elmer/debug/mount.js?v=${VERSION}`,
+  `framework/elmer/debug/panel.js?v=${VERSION}`,
+  `framework/elmer/debug/inspect.js?v=${VERSION}`,
+  `framework/elmer/debug/style.js?v=${VERSION}`,
   `favicon.ico?v=${VERSION}`,
   "manifest.webmanifest",
   "icons/icon-192.png",

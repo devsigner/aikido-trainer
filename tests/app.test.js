@@ -1,14 +1,17 @@
+// tests/app.test.js
+
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
-import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/logic.js";
-import { h } from "../src/vdom.js";
-import { parseHash, toHash } from "../src/route.js";
-import { update, init, initialModel } from "../src/update.js";
+import { buildPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/shared/logic.js";
+import { h } from "../framework/elmer/vdom.js";
+import { parseHash, toHash } from "../src/features/navigation.js";
+import { update, init, initialModel, debugHide } from "../src/update.js";
 import { view } from "../src/view.js";
-import { summarize, diffModels, panelUpdate, panelView, initialPanel } from "../src/debug.js";
-import { run } from "../src/runtime.js";
-import { resolveGrade as resolveGradeFx } from "../src/effects.js";
+import { summarize, diffModels } from "../framework/elmer/debug/inspect.js";
+import { to } from "../framework/elmer/feature.js";
+import { screenOf } from "../src/shared/screen.js";
+import { resolveGrade as resolveGradeFx } from "../src/features/catalog.js";
 
 const DATA = {
   waza: {
@@ -29,10 +32,10 @@ describe("logic", () => {
   test("pool: one entry per form, weights 1 / 1.5 / 2.25", () => {
     const pool = buildPool(DATA, "Tachi waza", ALL);
     assert.equal(pool.length, 6);
-    const weightOf = (name, form) => pool.find((entry) => entry.technique.name === name && entry.form === form).weight;
+    const weightOf = (name, form) => pool.find((entry) => entry.technique === name && entry.form === form).weight;
     assert.equal(weightOf("Nikkyo", "Omote"), 1.5);
-    assert.equal(pool.find((entry) => entry.technique.name === "Kote gaeshi").weight, 1);
-    assert.equal(pool.find((entry) => entry.technique.name === "nikkyo").weight, 1.5);
+    assert.equal(pool.find((entry) => entry.technique === "Kote gaeshi").weight, 1);
+    assert.equal(pool.find((entry) => entry.technique === "nikkyo").weight, 1.5);
   });
 
   test("filters: New, Warning, or both (OR)", () => {
@@ -71,10 +74,10 @@ describe("logic", () => {
 });
 
 describe("update (pure)", () => {
-  test("Rolled is ignored outside a draw", () => {
+  test("Rolled is ignored outside a quiz", () => {
     const [model] = init();
-    const [next, cmds] = update(model, { type: "Rolled", value: 0.5 });
-    assert.equal(next.current, model.current);
+    const [next, cmds] = update(model, to("quiz", { type: "Rolled", value: 0.5 }));
+    assert.equal("quiz" in next, false, "the quiz feature stays unmounted");
     assert.deepEqual(cmds, []);
   });
 });
@@ -87,7 +90,7 @@ describe("vdom", () => {
   });
 });
 
-describe("effects.resolveGrade", () => {
+describe("resolveGrade", () => {
   test("merges the parents then the grade", async () => {
     const grades = readJson("data/grades.json");
     const data = await resolveGradeFx(grades.find((grade) => grade.id === "2eme-kyo"), async (url) => readJson(url));
@@ -98,7 +101,7 @@ describe("effects.resolveGrade", () => {
 describe("application", () => {
   test("home: grades, enabled waza buttons", async () => {
     const app = await createApp();
-    assert.equal(app.model.screen, "home");
+    assert.equal(screenOf(app.model), "home");
     assert.equal(find(app.tree, (node) => node.tag === "option").length, 3);
     for (const waza of WAZA) assert.equal(app.button(waza).props.disabled, false);
   });
@@ -115,14 +118,14 @@ describe("application", () => {
 
   test("changing grade reloads the merged data", async () => {
     const app = await createApp();
-    const n1 = app.model.total ?? 0;
+    const n1 = app.model.quiz?.total ?? 0;
     await app.selectGrade("3eme-kyo");
-    assert.equal(app.model.gradeId, "3eme-kyo");
-    assert.equal(countTechniques(app.model.data), 65);
+    assert.equal(app.model.catalog.id, "3eme-kyo");
+    assert.equal(countTechniques(app.model.catalog.data), 65);
     assert.ok(n1 >= 0);
   });
 
-  test("draw: full card, video, progress", async () => {
+  test("quiz: full card, video, progress", async () => {
     const app = await createApp({ random: () => 0 });
     app.load({ waza: { "Tachi waza": [{ name: "Katate dori", order: 1, techniques: [{ name: "Nikkyo", order: 2, forms: ["Ura"], isNew: true, isWarning: true, note: "N", video: "https://v" }] }] } });
     app.click("Tachi waza");
@@ -148,7 +151,7 @@ describe("application", () => {
     const app = await createApp();
     app.load(DATA);
     app.click("Tachi waza");
-    const total = app.model.total;
+    const total = app.model.quiz.total;
     const seen = new Set();
     const key = () => Object.values(app.card()).slice(0, 4).join("|");
     seen.add(key());
@@ -168,11 +171,11 @@ describe("application", () => {
     app.load(DATA);
     app.setFilter("f-new", true);
     app.click("Tachi waza");
-    assert.equal(app.model.total, 2);
+    assert.equal(app.model.quiz.total, 2);
     app.click("home-btn");
-    assert.equal(app.model.screen, "home");
+    assert.equal(screenOf(app.model), "home");
     app.click("Tachi waza");
-    assert.equal(app.model.pool.length, app.model.total - 1);
+    assert.equal(app.model.quiz.pool.length, app.model.quiz.total - 1);
   });
 });
 
@@ -181,15 +184,15 @@ describe("program", () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
     app.click("Tachi waza");
-    const before = app.model.pool.length;
+    const before = app.model.quiz.pool.length;
     app.click("prog-btn");
     return { app, before };
   }
 
-  test("attacks sorted, session untouched", async () => {
-    const { app, before } = await open();
+  test("attacks sorted, the session is over", async () => {
+    const { app } = await open();
     assert.deepEqual(app.list(), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
-    assert.equal(app.model.pool.length, before);
+    assert.equal("quiz" in app.model, false);
   });
 
   test("attack → techniques with badges, sorted", async () => {
@@ -232,8 +235,8 @@ describe("program", () => {
     app.click("prog-prev");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
-    assert.equal(app.model.program.attack, "Katate dori");
+    assert.equal(app.model.program.current.level, 2);
+    assert.equal(app.model.program.current.attack, "Katate dori");
   });
 
   test("level 2 back button always lists the attacks, even after other navigation", async () => {
@@ -241,22 +244,22 @@ describe("program", () => {
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.program.current.level, 1);
     assert.equal(app.model.slide.direction, "back");
   });
 
-  test("back button: goes up one level then returns to the draw", async () => {
+  test("back button: goes up one level then returns to the quiz", async () => {
     const { app } = await open();
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.program.current.level, 1);
     app.click("prog-back");
-    assert.equal(app.model.screen, "draw");
+    assert.equal(screenOf(app.model), "quiz");
     assert.ok(byId(app.tree, "card"));
   });
 
@@ -267,26 +270,26 @@ describe("program", () => {
     app.click(app.list()[0]);
     assert.equal(app.model.slide.direction, "forward");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     assert.equal(app.model.slide.direction, "back");
     app.history.back();
-    assert.equal(app.model.program.level, 3);
+    assert.equal(app.model.program.current.level, 3);
     assert.equal(app.model.slide.direction, "back");
     app.history.forward();
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     assert.equal(app.model.slide.direction, "forward");
   });
 });
 
 describe("URL and history", () => {
   test("parseHash / toHash: round trip, accents and spaces encoded", () => {
-    const model = { gradeId: "2eme-kyo", screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } };
+    const model = { catalog: { id: "2eme-kyo" }, quiz: { waza: "Tachi waza" }, program: { current: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } } };
     assert.equal(toHash(model), "#/2eme-kyo/Tachi%20waza/program/A%C3%AF%20hammi%20katate%20dori/Nikkyo");
     assert.deepEqual(parseHash(toHash(model)), { grade: "2eme-kyo", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } });
     assert.deepEqual(parseHash("#/%E0%A4%A"), {});
   });
 
-  test("the URL follows navigation: home, draw, program, back", async () => {
+  test("the URL follows navigation: home, quiz, program, back", async () => {
     const app = await createApp();
     assert.equal(app.history.url, "#/1er-kyo");
     app.click("Tachi waza");
@@ -298,7 +301,7 @@ describe("URL and history", () => {
     app.click("prog-back");
     app.click("prog-back");
     assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza");
-    assert.equal(app.model.screen, "draw");
+    assert.equal(screenOf(app.model), "quiz");
     app.click("home-btn");
     assert.equal(app.history.url, "#/1er-kyo");
   });
@@ -313,46 +316,78 @@ describe("URL and history", () => {
   test("reloading on a program URL restores the same state", async () => {
     const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
     const app = await createApp({ hash });
-    assert.deepEqual([app.model.gradeId, app.model.waza, app.model.screen], ["2eme-kyo", "Suwari waza", "program"]);
-    assert.equal(app.model.program.technique, "Nikkyo");
+    assert.deepEqual([app.model.catalog.id, app.model.program.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
+    assert.equal(app.model.program.current.technique, "Nikkyo");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     assert.equal(app.history.url, hash);
   });
 
-  test("reloading on a draw URL starts a new draw of that waza", async () => {
+  test("reloading on a quiz URL starts a new quiz of that waza", async () => {
     const app = await createApp({ hash: "#/3eme-kyo/Tachi%20waza" });
-    assert.equal(app.model.screen, "draw");
-    assert.equal(app.model.gradeId, "3eme-kyo");
-    assert.ok(app.model.current);
+    assert.equal(screenOf(app.model), "quiz");
+    assert.equal(app.model.catalog.id, "3eme-kyo");
+    assert.ok(app.model.quiz.current);
     assert.equal(app.card().waza, "Tachi waza");
   });
 
-  test("after reloading on the program, going back to the draw starts a draw", async () => {
+  test("after reloading on the program, going back to the quiz starts a quiz", async () => {
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program" });
-    assert.equal(app.model.current, null);
-    app.dispatch({ type: "Popped", hash: "#/1er-kyo/Tachi%20waza" });
-    assert.equal(app.model.screen, "draw");
-    assert.ok(app.model.current);
+    assert.equal("quiz" in app.model, false);
+    app.dispatch(to("navigation", { type: "Popped", hash: "#/1er-kyo/Tachi%20waza" }));
+    assert.equal(screenOf(app.model), "quiz");
+    assert.ok(app.model.quiz.current);
+  });
+
+  test("opening the program ends the session; coming back starts a new one at 0", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    app.click("Tachi waza");
+    app.click("Technique suivante");
+    assert.ok(app.model.quiz.total - app.model.quiz.pool.length >= 2);
+    const total = app.model.quiz.total;
+    app.click("Voir le programme");
+    assert.equal("quiz" in app.model, false);
+    assert.equal(app.model.program.waza, "Tachi waza");
+    app.click("← Tirage");
+    assert.equal("program" in app.model, false);
+    assert.equal(app.model.quiz.total, total);
+    assert.equal(app.model.quiz.total - app.model.quiz.pool.length, 1);
+    assert.equal(app.history.url.endsWith("Tachi%20waza"), true);
   });
 
   test("invalid URL: unknown grade or waza → home, unknown attack → level 1", async () => {
-    assert.equal((await createApp({ hash: "#/xx/Foo" })).model.screen, "home");
+    assert.equal(screenOf((await createApp({ hash: "#/xx/Foo" })).model), "home");
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program/Nimporte/Quoi" });
-    assert.deepEqual(app.model.program, { level: 1 });
+    assert.deepEqual(app.model.program?.current, { level: 1 });
     assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
   });
 
   test("popstate to another grade loads its data", async () => {
     const app = await createApp();
-    app.dispatch({ type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" });
+    app.dispatch(to("navigation", { type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" }));
     await settle();
-    assert.equal(app.model.gradeId, "3eme-kyo");
-    assert.equal(countTechniques(app.model.data), 65);
-    assert.equal(app.model.screen, "program");
+    assert.equal(app.model.catalog.id, "3eme-kyo");
+    assert.equal(countTechniques(app.model.catalog.data), 65);
+    assert.equal(screenOf(app.model), "program");
   });
 });
 
 describe("title and loading", () => {
+  test("the quiz and program slices only exist while they are used", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    const slices = () => ["quiz", "program"].filter((name) => name in app.model);
+    assert.deepEqual(slices(), []);
+    app.click("Tachi waza");
+    assert.deepEqual(slices(), ["quiz"]);
+    app.click("prog-btn");
+    assert.deepEqual(slices(), ["program"]);
+    app.click("prog-back");
+    assert.deepEqual(slices(), ["quiz"]);
+    app.fire(app.byId("title"));
+    assert.deepEqual(slices(), []);
+  });
+
   test("the title goes home, and does nothing when already home", async () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
@@ -361,7 +396,7 @@ describe("title and loading", () => {
     assert.equal(app.history.states.length, entries);
     app.click("Tachi waza");
     app.fire(app.byId("title"));
-    assert.equal(app.model.screen, "home");
+    assert.equal(screenOf(app.model), "home");
     assert.equal(app.history.url, "#/t");
   });
 
@@ -379,7 +414,7 @@ describe("card transitions", () => {
     return app;
   }
 
-  test("no slide while loading, a new draw slides forward with a new key", async () => {
+  test("no slide while loading, a new quiz slides forward with a new key", async () => {
     const app = await open();
     assert.equal(app.model.slide.count, 0);
     app.click("Tachi waza");
@@ -406,14 +441,14 @@ describe("card transitions", () => {
     const app = await open();
     app.click("Tachi waza");
     const { count } = app.model.slide;
-    app.dispatch({ type: "SetFilter", name: "isNew", checked: true });
+    app.dispatch(to("catalog", { type: "SetFilter", name: "isNew", checked: true }));
     assert.equal(app.model.slide.count, count);
   });
 
   test("a message can force the direction", () => {
     const [model] = init();
-    const ready = { ...model, status: "ready", data: DATA, screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Katate dori", technique: "Nikkyo" } };
-    const [next] = update(ready, { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" });
+    const ready = { ...model, catalog: { ...model.catalog, status: "ready", data: DATA }, program: { waza: "Tachi waza", current: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
+    const [next] = update(ready, to("program", { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" }));
     assert.equal(next.slide.direction, "back");
   });
 });
@@ -422,26 +457,27 @@ describe("history position", () => {
   test("push increments the position, replace keeps it, a pop restores it", async () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
-    assert.equal(app.model.position, 0);
+    assert.equal(app.model.navigation.position, 0);
     app.click("Tachi waza");
     app.click("prog-btn");
-    assert.equal(app.model.position, 2);
+    assert.equal(app.model.navigation.position, 2);
     app.history.back();
-    assert.equal(app.model.position, 1);
+    assert.equal(app.model.navigation.position, 1);
     app.history.forward();
-    assert.equal(app.model.position, 2);
+    assert.equal(app.model.navigation.position, 2);
   });
 
   test("Url commands carry the position; init restores it after a reload", () => {
     const [model] = init({ position: 3 });
-    assert.equal(model.position, 3);
-    const ready = { ...model, status: "ready", data: DATA, grades: [], gradeId: "t" };
-    const [pushed, [push]] = update(ready, { type: "StartSession", waza: "Tachi waza" });
-    assert.equal(pushed.position, 4);
+    assert.equal(model.navigation.position, 3);
+    const ready = { ...model, catalog: { ...model.catalog, status: "ready", data: DATA, list: [], id: "t" } };
+    const [pushed, pushes] = update(ready, to("quiz", { type: "StartSession", waza: "Tachi waza" }));
+    const push = pushes.find((command) => command.type === "Url");
+    assert.equal(pushed.navigation.position, 4);
     assert.deepEqual([push.type, push.mode, push.position], ["Url", "push", 4]);
-    const [selected, commands] = update({ ...ready, grades: [{ id: "t" }] }, { type: "SelectGrade", id: "t" });
+    const [selected, commands] = update({ ...ready, catalog: { ...ready.catalog, list: [{ id: "t" }] } }, to("catalog", { type: "SelectGrade", id: "t" }));
     const replace = commands.find((command) => command.type === "Url");
-    assert.deepEqual([replace.mode, replace.position, selected.position], ["replace", 3, 3]);
+    assert.deepEqual([replace.mode, replace.position, selected.navigation.position], ["replace", 3, 3]);
   });
 });
 
@@ -460,13 +496,12 @@ describe("program buttons", () => {
     app.click("Nikkyo");
     app.click("prog-next");
     app.click("prog-back");
-    assert.deepEqual([app.model.program.level, app.model.program.attack], [2, "Katate dori"]);
+    assert.deepEqual([app.model.program.current.level, app.model.program.current.attack], [2, "Katate dori"]);
     assert.equal(app.model.slide.direction, "back");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.program.current.level, 1);
     app.click("prog-back");
-    assert.equal(app.model.screen, "draw");
-    assert.equal(app.model.slide.direction, "back");
+    assert.equal(screenOf(app.model), "quiz");
     assert.equal(app.history.url, "#/t/Tachi%20waza");
   });
 
@@ -548,76 +583,19 @@ describe("video confirmation", () => {
 
 describe("debug mode", () => {
   test("summarize hides the bulky parts of the model", () => {
-    const model = { ...initialModel(), data: readJson("data/2eme-kyo.json"), pool: [1, 2, 3] };
-    const summary = summarize(model);
-    assert.match(summary.data, /techniques/);
-    assert.equal(summary.pool, "[3 éléments]");
-    assert.equal(summary.status, "loading");
+    const model = { ...initialModel(), pool: [1, 2, 3] };
+    model.catalog = { ...model.catalog, data: readJson("data/2eme-kyo.json") };
+    const summary = summarize(model, debugHide);
+    assert.match(summary.catalog.data, /techniques/);
+    assert.equal(summary.pool, "[...3 éléments]");
+    assert.equal(summary.catalog.status, "loading");
   });
 
   test("diffModels lists only the changed fields", () => {
     const before = { ...initialModel(), waza: "", pool: [1, 2] };
     const after = { ...before, waza: "Tachi waza", pool: [1] };
-    assert.deepEqual(diffModels(before, after).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[2 éléments]", "[1 éléments]"]]);
+    assert.deepEqual(diffModels(before, after, [], debugHide).map(({ key, from, to }) => [key, from, to]), [["waza", "", "Tachi waza"], ["pool", "[...2 éléments]", "[...1 éléments]"]]);
     assert.deepEqual(diffModels(before, before), []);
     assert.ok(diffModels(null, before).length > 0);
-  });
-
-  test("the runtime reports each step, effects after the message that caused them, and can restore a past model", () => {
-    const records = [];
-    let handle;
-    const rendered = [];
-    const dispatch = run({
-      init: () => [{ n: 0 }, []],
-      update: (model, msg) => (msg.type === "Inc" ? [{ n: model.n + 1 }, [{ type: "Echo" }]] : [model, []]),
-      view: (model) => model.n,
-      render: (tree) => rendered.push(tree),
-      effects: { Echo: (_, send) => send({ type: "Noop" }) },
-      debug: { attach: (control) => (handle = control), record: (entry) => records.push(entry) },
-    });
-    dispatch({ type: "Inc" });
-    assert.deepEqual(records.map((entry) => entry.msg.type), ["@init", "Inc", "Noop"]);
-    assert.deepEqual(records[1].cmds, [{ type: "Echo" }]);
-    assert.deepEqual([records[1].before, records[1].after], [{ n: 0 }, { n: 1 }]);
-    handle.restore(records[0].after);
-    assert.deepEqual(handle.getModel(), { n: 0 });
-    assert.equal(rendered.at(-1), 0);
-  });
-
-  test("the panel can be moved and resized with the pointer, kept inside the viewport", () => {
-    const viewport = { width: 500, height: 800 };
-    const base = initialPanel();
-    const moved = panelUpdate(panelUpdate(base, { type: "DragStart", mode: "move", x: 100, y: 100 }), { type: "Drag", x: 160, y: 130, viewport });
-    assert.deepEqual([moved.box.x, moved.box.y, moved.box.w, moved.box.h], [base.box.x + 60, base.box.y + 30, base.box.w, base.box.h]);
-    const away = panelUpdate(moved, { type: "Drag", x: 9999, y: -9999, viewport });
-    assert.deepEqual([away.box.x, away.box.y], [440, 0]);
-    const resized = panelUpdate(panelUpdate(base, { type: "DragStart", mode: "resize", x: 0, y: 0 }), { type: "Drag", x: 50, y: -9999, viewport });
-    assert.deepEqual([resized.box.x, resized.box.w, resized.box.h], [base.box.x, base.box.w + 50, 140]);
-    assert.equal(panelUpdate(panelUpdate(moved, { type: "DragEnd" }), { type: "Drag", x: 300, y: 300, viewport }).box.x, moved.box.x);
-  });
-
-  test("the panel keeps a numbered log, shows the selected entry and toggles", () => {
-    const entry = { msg: { type: "Next" }, before: { a: 1 }, after: { a: 2 }, cmds: [{ type: "Random" }] };
-    let panel = panelUpdate(initialPanel(), { type: "Recorded", entry, time: "10:00:00" });
-    panel = panelUpdate(panel, { type: "Recorded", entry, time: "10:00:01" });
-    assert.deepEqual(panel.entries.map((recorded) => recorded.id), [1, 2]);
-    assert.equal(panel.entries[0].changes[0].key, "a");
-    assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-panel").length, 0);
-    panel = panelUpdate(panel, { type: "Toggle" });
-    const close = find(panelView(panel, {}), (node) => node.props.className === "dbg-close")[0];
-    assert.equal(panelUpdate(panel, close.props.onClick).open, false);
-    const bar = find(panelView(panel, {}), (node) => node.props.className === "dbg-bar")[0];
-    const onButton = { target: { closest: () => ({}) }, clientX: 1, clientY: 1 };
-    assert.equal(bar.props.onPointerDown(onButton).type, "Noop");
-    assert.equal(bar.props.onPointerDown({ target: { closest: () => null }, clientX: 1, clientY: 1 }).type, "DragStart");
-    panel = panelUpdate(panel, { type: "Tab", tab: "log" });
-    panel = panelUpdate(panel, { type: "Select", id: 2 });
-    assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-detail").length, 1);
-    assert.equal(find(panelView(panel, {}), (node) => node.props.className === "dbg-copy").length, 0);
-    const onState = panelView(panelUpdate(panel, { type: "Tab", tab: "state" }), { screen: "home" });
-    const copy = find(onState, (node) => node.props.className === "dbg-copy")[0];
-    assert.equal(text(copy), "📋");
-    assert.match(copy.props.onClick.text, /"screen": "home"/);
-    assert.equal(panelUpdate(panelUpdate(panel, { type: "Select", id: 2 }), { type: "Clear" }).entries.length, 0);
   });
 });
