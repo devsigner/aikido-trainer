@@ -16,6 +16,7 @@ Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut
 ```js
 {
   name,                                        // clé de sa tranche : model[name]
+  lazy?,                                       // true : pas de tranche tant qu'aucun message ni événement abonné ne l'atteint
   init(flags) → [model, cmds, events?],
   update(model, msg, root) → [model, cmds, events?],   // root = modèle complet, en lecture seule
   on: { EventType: (model, event, root) → [model, cmds, events?] },
@@ -28,7 +29,8 @@ Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut
 - Les événements sont livrés dans l'ordre (FIFO) ; une boucle de plus de 1000 événements lève une erreur.
 - Les messages racine sont des enveloppes `{ feature, msg }` ; les commandes sont taguées avec leur feature, et la réponse d'un effet retourne à celle-ci.
 - `embed` enveloppe les handlers d'une vue de feature ; un message déjà adressé (`to(...)`) est laissé tel quel.
-- `combine(features)` renvoie `{ init, update, effects }`, directement utilisables par `run`.
+- **Feature `lazy`** : sa tranche n'existe pas à l'`init` ; elle est créée (avec `init(flags)`) au premier message ou événement auquel elle est abonnée. Un `update` ou une réaction qui renvoie `UNMOUNT` comme modèle supprime la tranche (les commandes et événements sont conservés) ; un nouveau message la recrée depuis `init`. Pendant ce temps `root[name]` est `undefined` : les autres features et la vue doivent le tolérer. Une réponse d'effet tardive la recrée aussi.
+- `combine(features)` renvoie `{ init, update, subscribe, effects }`, directement utilisables par `run`.
 
 ## Exemple
 

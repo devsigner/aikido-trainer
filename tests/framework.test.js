@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { combine, embed, to } from "../src/framework/combine.js";
+import { UNMOUNT, combine, embed, to } from "../src/framework/combine.js";
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
@@ -77,11 +77,36 @@ describe("framework combine", () => {
     assert.deepEqual(mapped.props.onClick, to("other", { type: "A" }));
   });
 
+  test("a lazy feature has no slice until it is reached, is mounted with the init flags, and can unmount itself", () => {
+    const lazy = { name: "lazy", lazy: true, init: ({ start }) => [{ n: start }, []], update: (model) => [{ n: model.n + 1 }, []], on: { Free: () => [UNMOUNT, [{ type: "Cleanup" }]] } };
+    const eager = { name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type: "Free" }]] };
+    const lazyApp = combine([eager, lazy]);
+    const [model] = lazyApp.init({ start: 10 });
+    assert.deepEqual(Object.keys(model), ["eager"]);
+    const [mounted] = lazyApp.update(model, to("lazy", {}));
+    assert.deepEqual(mounted.lazy, { n: 11 });
+    const [freed, cmds] = lazyApp.update(mounted, to("eager", {}));
+    assert.deepEqual(Object.keys(freed), ["eager"]);
+    assert.deepEqual(cmds, [{ type: "Cleanup", feature: "lazy" }]);
+    assert.deepEqual(lazyApp.update(freed, to("lazy", {}))[0].lazy, { n: 11 }, "mounted again from init");
+  });
+
+  test("an event mounts a lazy feature that subscribed to it", () => {
+    const lazy = { name: "lazy", lazy: true, init: () => [{ seen: 0 }, []], update: (model) => [model, []], on: { Ping: (model) => [{ seen: model.seen + 1 }, []] } };
+    const eager = { name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type: "Ping" }]] };
+    const lazyApp = combine([eager, lazy]);
+    const [next, , delivered] = lazyApp.update(lazyApp.init({})[0], to("eager", {}));
+    assert.deepEqual(next.lazy, { seen: 1 });
+    assert.deepEqual(delivered[0].handledBy, ["lazy"]);
+  });
+
   test("the counter example: an event of a feature reaches another, and the view addresses its handlers", () => {
     const app = combine(exampleFeatures);
     const [model] = app.init({});
     const [next] = app.update(model, to("counter", { type: "Increment" }));
+    assert.equal("log" in model, false, "the lazy log has no slice yet");
     assert.deepEqual([next.counter.count, next.log.lines], [1, ["count = 1"]]);
+    assert.equal("log" in app.update(next, to("counter", { type: "Reset" }))[0], false, "and frees it on reset");
     const tree = exampleView(next);
     assert.deepEqual(tree.children[0].children[1].props.onClick, to("counter", { type: "Increment" }));
   });

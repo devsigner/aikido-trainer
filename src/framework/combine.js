@@ -5,6 +5,7 @@
 // A feature is a small Elm program:
 //   {
 //     name,                              // key of its slice in the root model
+//     lazy?,                             // true: no slice until a message or a subscribed event reaches the feature (then `init` runs); an update or reaction returning `UNMOUNT` as model removes the slice
 //     init(flags) → [model, cmds, events?],
 //     update(model, msg, root) → [model, cmds, events?],
 //     on: { EventType: (model, event, root) → [model, cmds, events?] },   // reactions to events of other features
@@ -23,6 +24,10 @@ const MAX_EVENTS = 1000; // an event loop is a bug: fail loudly rather than free
 // Message addressed to a feature.
 export const to = (feature, msg) => ({ feature, msg });
 
+// Returned as the model by the update or a reaction of a lazy feature: its slice is removed from the root model.
+// A later message or event mounts it again with `init` (the other features see `root[name]` undefined meanwhile).
+export const UNMOUNT = Symbol("unmount");
+
 // Composes several features into one root program: the slices of every feature are merged in the root model,
 // and the messages of every feature are enveloped in `{ feature, msg }`.
 //
@@ -33,9 +38,18 @@ export function combine(features) {
 
   // Applies a feature result to the root model: writes its slice, tags its commands, queues its events.
   const apply = (state, name, [slice, cmds = [], events = []]) => {
-    state.model = { ...state.model, [name]: slice };
+    if (slice === UNMOUNT) {
+      state.model = Object.fromEntries(Object.entries(state.model).filter(([key]) => key !== name));
+    } else {
+      state.model = { ...state.model, [name]: slice };
+    }
     state.cmds.push(...cmds.map((cmd) => ({ ...cmd, feature: name })));
     state.events.push(...events.map((event) => ({ event, from: name })));
+  };
+
+  // A lazy feature without slice is mounted (with the flags of `init`) before it handles a message or an event.
+  const mount = (state, feature) => {
+    if (feature.lazy && !(feature.name in state.model)) apply(state, feature.name, feature.init(flags));
   };
 
   // Delivers the queued events until none is left.
@@ -48,6 +62,7 @@ export function combine(features) {
         const reaction = feature.on?.[event.type];
         if (!reaction) continue;
         handledBy.push(feature.name);
+        mount(state, feature);
         apply(state, feature.name, reaction(state.model[feature.name], event, state.model));
       }
       state.delivered.push({ event, from, handledBy });
@@ -55,12 +70,15 @@ export function combine(features) {
     return [state.model, state.cmds, state.delivered];
   };
 
+  let flags = {}; // the flags of `init`, for the lazy features mounted later
+
   const start = (model) => ({ model, cmds: [], events: [], delivered: [] });
 
   return {
-    init(flags) {
+    init(initFlags) {
+      flags = initFlags;
       const state = start({});
-      for (const feature of features) apply(state, feature.name, feature.init(flags));
+      for (const feature of features) if (!feature.lazy) apply(state, feature.name, feature.init(flags));
       return settle(state);
     },
 
@@ -68,7 +86,8 @@ export function combine(features) {
       const feature = byName.get(name);
       if (!feature) throw new Error(`Unknown feature: ${name}`);
       const state = start(model);
-      apply(state, name, feature.update(model[name], msg, model));
+      mount(state, feature);
+      apply(state, name, feature.update(state.model[name], msg, state.model));
       return settle(state);
     },
 
