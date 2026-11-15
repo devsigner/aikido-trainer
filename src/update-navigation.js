@@ -2,10 +2,10 @@
 // Owns: pending. Orchestrates the draw and program features to put the model in the state of a route.
 import { WAZA_ORDER } from "./logic.js";
 import { loadGrade } from "./update-grade.js";
-import { url } from "./update-history.js";
+import { screenOf, url } from "./update-history.js";
 import { parseHash } from "./route.js";
-import { noSession, session } from "./update-draw.js";
-import { validProgram } from "./update-program.js";
+import { initialModel as drawModel, roll, startSession } from "./update-draw.js";
+import { initialModel as programModel, validProgram } from "./update-program.js";
 
 export const initialModel = {
   pending: null, // route from the URL, applied once the data is loaded
@@ -14,15 +14,16 @@ export const initialModel = {
 // Puts the model in the state described by the route (the grade data must be loaded).
 export function applyRoute(model, route) {
   // Unknown waza → home, unknown program → level above.
-  if (!WAZA_ORDER.includes(route.waza)) return [{ ...model, ...noSession() }, []];
+  if (!WAZA_ORDER.includes(route.waza)) return [{ ...model, draw: drawModel, program: programModel }, []];
 
-  const base = model.screen !== "home" && model.waza === route.waza ? model : session(model, route.waza);
-  const program = validProgram(base.grade.data, route);
+  const base = screenOf(model) !== "home" && model.draw.waza === route.waza ? model : { ...model, draw: startSession(model, route.waza), program: programModel };
+  const at = validProgram(base.grade.data, route);
 
-  const next = program ? { ...base, screen: "program", program } : { ...base, screen: "draw", program: null };
-  const needsDraw = next.screen === "draw" && !next.current && !next.done && next.pool.length > 0;
+  const next = { ...base, program: { at } };
+  const { current, done, pool } = next.draw;
+  const needsDraw = !at && !current && !done && pool.length > 0;
 
-  return [next, needsDraw ? [{ type: "Random" }] : []];
+  return [next, needsDraw ? [roll] : []];
 }
 
 // A route of another grade first loads that grade (the route waits in `pending`).
@@ -43,6 +44,9 @@ export const reactions = {
     const [next, cmds] = applyRoute({ ...model, pending: null }, model.pending || {});
     return [next, [url(next, "replace"), ...cmds]];
   },
+
+  // A feature changed what the URL shows.
+  Navigated: (model, event) => [model, [url(model, event.mode)]],
 
   GradeLoaded: (model) => (model.pending ? applyRoute({ ...model, pending: null }, model.pending) : [model, []]),
 };

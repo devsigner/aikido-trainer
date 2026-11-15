@@ -1,25 +1,13 @@
 // view(model) → virtual tree (plain data). Handlers are messages.
+// The root view only composes the views of the features (see `embed`) and holds the page skeleton.
 import { h } from "./vdom.js";
-import { embed } from "./framework/combine.js";
+import { embed, to } from "./framework/combine.js";
+import { WAZA_ORDER, buildPool } from "./logic.js";
 import { grade } from "./update-grade.js";
-import { askVideo, video } from "./update-video.js";
-import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
-
-// Key and class of the animated card: a new key replaces the element and restarts the animation.
-const slideProps = ({ direction, count }) => ({ key: count, className: direction ? `card slide-${direction}` : "card" });
-
-// Card of a technique, used in the draw and program screens.
-// The `prefix` is used to generate the element ids.
-const card = (prefix, { waza = "", attack = "", technique = "", form = "", badges = "", note = "", video = "", warnVideo = false }, id = prefix, extra = {}) =>
-  h("div", { id, className: "card", ...extra },
-    h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
-    h("div", { id: `${prefix}-attack`, className: "attack" }, attack),
-    h("div", { id: `${prefix}-technique`, className: "technique" }, technique),
-    h("div", { id: `${prefix}-form`, className: "form" }, form),
-    h("div", { id: `${prefix}-badges`, className: "badges" }, badges),
-    h("div", { id: `${prefix}-note`, className: "note" }, note),
-    video ? h("a", { id: `${prefix}-video`, className: "video", href: video, target: "_blank", rel: "noopener", onClick: warnVideo ? askVideo(video) : null }, "▶ Voir la vidéo") : null,
-  );
+import { draw } from "./update-draw.js";
+import { program } from "./update-program.js";
+import { screenOf } from "./update-history.js";
+import { video } from "./update-video.js";
 
 // Home screen: choose a waza and start a session.
 const home = (model) => {
@@ -29,105 +17,8 @@ const home = (model) => {
     h("div", { className: "group grow" },
       h("p", { className: "hint" }, "Choisis un waza et teste-toi !"),
       h("div", { id: "waza-buttons", className: "buttons grow" },
-        WAZA_ORDER.map((waza) => h("button", { disabled: empty[waza], onClick: { type: "StartSession", waza } }, waza))),
+        WAZA_ORDER.map((waza) => h("button", { disabled: empty[waza], onClick: to("draw", { type: "StartSession", waza }) }, waza))),
       h("p", { id: "home-msg", className: "hint" }, Object.values(empty).some(Boolean) ? "Un waza grisé n'a aucune technique pour ces filtres." : "")));
-};
-
-// Draw screen: show a technique and ask if the user knows it.
-const draw = (model) => {
-  const { current } = model;
-  const shown = current && {
-    waza: model.waza,
-    attack: current.attack,
-    technique: current.technique.name,
-    form: current.form || "",
-    badges: badgesOf(current.technique),
-    note: current.technique.note || "",
-    video: current.technique.video || "",
-    warnVideo: !model.video.skipWarning,
-  };
-  return h("section", { id: "draw" },
-    h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
-    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
-    h("h3", { className: "hint" }, "Connais-tu cette technique ?"),
-    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(model.slide)),
-    h("div", { className: "buttons actions" },
-      !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
-      h("button", { id: "prog-btn", className: "secondary", onClick: { type: "OpenProgram" } }, "Voir le programme")));
-};
-
-const item = (label, to) => h("button", { className: "item", onClick: { type: "Navigate", to } }, label);
-
-const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim();
-
-// Program screen:
-// 1/ choose an attack,
-// 2/ then a technique,
-// 3/ then see other attacks with the same technique.
-const levels = {
-  1(model) {
-    const attacks = listAttacks(model.grade.data, model.waza);
-    return {
-      back: "← Tirage",
-      backMessage: { type: "CloseProgram" },
-      fields: { waza: model.waza },
-      title: "Choisis une attaque :",
-      sub: `${attacks.length} attaques`,
-      items: attacks.map((attack) => item(attack.name, { level: 2, attack: attack.name })),
-    };
-  },
-  2(model, { attack }) {
-    const techniques = listTechniques(model.grade.data, model.waza, attack);
-    return {
-      back: "← Programme",
-      backMessage: { type: "Navigate", to: { level: 1 } },
-      fields: { waza: model.waza, attack },
-      title: "Choisis une technique :",
-      sub: `${techniques.length} techniques`,
-      items: techniques.map((technique) => item(withBadges(technique.name, technique), { level: 3, attack, technique: technique.name })),
-    };
-  },
-  3(model, { attack, technique }) {
-    const siblings = listTechniques(model.grade.data, model.waza, attack);
-    const position = siblings.findIndex((candidate) => candidate.name === technique);
-    const current = siblings[position];
-    // Neighbours wrap around the list; none when the attack has a single technique.
-    const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
-    const pagerButton = (id, label, target, direction) =>
-      h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
-    const others = findSameTechnique(model.grade.data, model.waza, attack, current.name);
-    return {
-      back: `← ${attack}`,
-      backMessage: { type: "Navigate", to: { level: 2, attack } },
-      fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "", warnVideo: !model.video.skipWarning },
-      // Last row of the first screen (see `.screen.full`).
-      actions: h("div", { className: "pager" },
-        h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
-        h("div", { className: "pager-buttons" },
-          pagerButton("prog-prev", "Précédente", neighbour(-1), "back"),
-          pagerButton("prog-next", "Suivante", neighbour(1), "forward"))),
-      title: "Même technique, autres attaques ↓",
-      sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
-      items: others.map((other) => item(withBadges(other.attack, other.technique), { level: 3, attack: other.attack, technique: other.technique.name })),
-    };
-  },
-};
-
-// The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
-const program = (model, header) => {
-  const { back, backMessage, fields, actions, title, sub, items } = levels[model.program.level](model, model.program);
-  return h("section", { id: "program" },
-    h("div", { className: actions ? "screen full" : "screen" },
-      header,
-      h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
-      h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
-      card("prog", fields, "prog-card", slideProps(model.slide)),
-      actions,
-      h("h2", { id: "prog-title" }, title),
-    ),
-    h("div", { className: "group" },
-      h("p", { id: "prog-sub", className: "hint" }, sub),
-      h("div", { id: "prog-list", className: "buttons" }, items)));
 };
 
 const footer = () => h("footer", {},
@@ -141,10 +32,7 @@ const loadingView = () => h("div", { id: "loading", className: "loading", role: 
 
 const errorView = (model) => h("p", { className: "hint" }, model.grade.error);
 
-const title = () => h("h1", { id: "title", onClick: { type: "GoHome" } }, "合気道 Aïkido");
-
-// Screens whose first page fills the viewport height; the footer sits below the fold.
-const fullHeightScreens = { draw };
+const title = () => h("h1", { id: "title", onClick: to("draw", { type: "GoHome" }) }, "合気道 Aïkido");
 
 export function view(model) {
   const header = title();
@@ -155,13 +43,14 @@ export function view(model) {
   }
 
   // The program screen is a special case: the first page fills the viewport, the list is below.
-  if (model.screen === "program") {
-    return page(model, program(model, header));
+  const screen = screenOf(model);
+  if (screen === "program") {
+    return page(model, embed("program", program.view(model.program, model, header)));
   }
 
-  const body = { home, draw }[model.screen](model);
-  if (model.screen in fullHeightScreens) {
-    return page(model, h("div", { className: "screen full" }, header, body));
+  // The draw screen's first page fills the viewport height; the footer sits below the fold.
+  if (screen === "draw") {
+    return page(model, h("div", { className: "screen full" }, header, embed("draw", draw.view(model.draw, model))));
   }
-  return page(model, header, body);
+  return page(model, header, home(model));
 }

@@ -1,9 +1,9 @@
 // URL ⇄ model: #/grade[/waza[/program[/attack[/technique]]]] (hash routing works on GitHub Pages).
 export function toHash(model) {
   const parts = [model.grade.id];
-  if (model.screen !== "home") parts.push(model.waza);
-  if (model.screen === "program") {
-    const { level, attack, technique } = model.program;
+  if (model.draw.waza) parts.push(model.draw.waza);
+  if (model.program.at) {
+    const { level, attack, technique } = model.program.at;
     parts.push("program");
     if (level >= 2) parts.push(attack);
     if (level === 3) parts.push(technique);

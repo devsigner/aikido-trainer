@@ -9,6 +9,7 @@ import { view } from "../src/view.js";
 import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../src/debug.js";
 import { run } from "../src/runtime.js";
 import { to } from "../src/framework/combine.js";
+import { screenOf } from "../src/update-history.js";
 import { resolveGrade as resolveGradeFx } from "../src/effects.js";
 
 const DATA = {
@@ -74,8 +75,8 @@ describe("logic", () => {
 describe("update (pure)", () => {
   test("Rolled is ignored outside a draw", () => {
     const [model] = init();
-    const [next, cmds] = update(model, { type: "Rolled", value: 0.5 });
-    assert.equal(next.current, model.current);
+    const [next, cmds] = update(model, to("draw", { type: "Rolled", value: 0.5 }));
+    assert.equal(next.draw.current, model.draw.current);
     assert.deepEqual(cmds, []);
   });
 });
@@ -99,7 +100,7 @@ describe("effects.resolveGrade", () => {
 describe("application", () => {
   test("home: grades, enabled waza buttons", async () => {
     const app = await createApp();
-    assert.equal(app.model.screen, "home");
+    assert.equal(screenOf(app.model), "home");
     assert.equal(find(app.tree, (node) => node.tag === "option").length, 3);
     for (const waza of WAZA) assert.equal(app.button(waza).props.disabled, false);
   });
@@ -116,7 +117,7 @@ describe("application", () => {
 
   test("changing grade reloads the merged data", async () => {
     const app = await createApp();
-    const n1 = app.model.total ?? 0;
+    const n1 = app.model.draw.total ?? 0;
     await app.selectGrade("3eme-kyo");
     assert.equal(app.model.grade.id, "3eme-kyo");
     assert.equal(countTechniques(app.model.grade.data), 65);
@@ -149,7 +150,7 @@ describe("application", () => {
     const app = await createApp();
     app.load(DATA);
     app.click("Tachi waza");
-    const total = app.model.total;
+    const total = app.model.draw.total;
     const seen = new Set();
     const key = () => Object.values(app.card()).slice(0, 4).join("|");
     seen.add(key());
@@ -169,11 +170,11 @@ describe("application", () => {
     app.load(DATA);
     app.setFilter("f-new", true);
     app.click("Tachi waza");
-    assert.equal(app.model.total, 2);
+    assert.equal(app.model.draw.total, 2);
     app.click("home-btn");
-    assert.equal(app.model.screen, "home");
+    assert.equal(screenOf(app.model), "home");
     app.click("Tachi waza");
-    assert.equal(app.model.pool.length, app.model.total - 1);
+    assert.equal(app.model.draw.pool.length, app.model.draw.total - 1);
   });
 });
 
@@ -182,7 +183,7 @@ describe("program", () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
     app.click("Tachi waza");
-    const before = app.model.pool.length;
+    const before = app.model.draw.pool.length;
     app.click("prog-btn");
     return { app, before };
   }
@@ -190,7 +191,7 @@ describe("program", () => {
   test("attacks sorted, session untouched", async () => {
     const { app, before } = await open();
     assert.deepEqual(app.list(), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);
-    assert.equal(app.model.pool.length, before);
+    assert.equal(app.model.draw.pool.length, before);
   });
 
   test("attack → techniques with badges, sorted", async () => {
@@ -233,8 +234,8 @@ describe("program", () => {
     app.click("prog-prev");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
-    assert.equal(app.model.program.attack, "Katate dori");
+    assert.equal(app.model.program.at.level, 2);
+    assert.equal(app.model.program.at.attack, "Katate dori");
   });
 
   test("level 2 back button always lists the attacks, even after other navigation", async () => {
@@ -242,9 +243,9 @@ describe("program", () => {
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.at.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.program.at.level, 1);
     assert.equal(app.model.slide.direction, "back");
   });
 
@@ -253,11 +254,11 @@ describe("program", () => {
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.at.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.program.at.level, 1);
     app.click("prog-back");
-    assert.equal(app.model.screen, "draw");
+    assert.equal(screenOf(app.model), "draw");
     assert.ok(byId(app.tree, "card"));
   });
 
@@ -268,20 +269,20 @@ describe("program", () => {
     app.click(app.list()[0]);
     assert.equal(app.model.slide.direction, "forward");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.at.level, 2);
     assert.equal(app.model.slide.direction, "back");
     app.history.back();
-    assert.equal(app.model.program.level, 3);
+    assert.equal(app.model.program.at.level, 3);
     assert.equal(app.model.slide.direction, "back");
     app.history.forward();
-    assert.equal(app.model.program.level, 2);
+    assert.equal(app.model.program.at.level, 2);
     assert.equal(app.model.slide.direction, "forward");
   });
 });
 
 describe("URL and history", () => {
   test("parseHash / toHash: round trip, accents and spaces encoded", () => {
-    const model = { grade: { id: "2eme-kyo" }, screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } };
+    const model = { grade: { id: "2eme-kyo" }, draw: { waza: "Tachi waza" }, program: { at: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } } };
     assert.equal(toHash(model), "#/2eme-kyo/Tachi%20waza/program/A%C3%AF%20hammi%20katate%20dori/Nikkyo");
     assert.deepEqual(parseHash(toHash(model)), { grade: "2eme-kyo", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } });
     assert.deepEqual(parseHash("#/%E0%A4%A"), {});
@@ -299,7 +300,7 @@ describe("URL and history", () => {
     app.click("prog-back");
     app.click("prog-back");
     assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza");
-    assert.equal(app.model.screen, "draw");
+    assert.equal(screenOf(app.model), "draw");
     app.click("home-btn");
     assert.equal(app.history.url, "#/1er-kyo");
   });
@@ -314,32 +315,32 @@ describe("URL and history", () => {
   test("reloading on a program URL restores the same state", async () => {
     const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
     const app = await createApp({ hash });
-    assert.deepEqual([app.model.grade.id, app.model.waza, app.model.screen], ["2eme-kyo", "Suwari waza", "program"]);
-    assert.equal(app.model.program.technique, "Nikkyo");
+    assert.deepEqual([app.model.grade.id, app.model.draw.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
+    assert.equal(app.model.program.at.technique, "Nikkyo");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     assert.equal(app.history.url, hash);
   });
 
   test("reloading on a draw URL starts a new draw of that waza", async () => {
     const app = await createApp({ hash: "#/3eme-kyo/Tachi%20waza" });
-    assert.equal(app.model.screen, "draw");
+    assert.equal(screenOf(app.model), "draw");
     assert.equal(app.model.grade.id, "3eme-kyo");
-    assert.ok(app.model.current);
+    assert.ok(app.model.draw.current);
     assert.equal(app.card().waza, "Tachi waza");
   });
 
   test("after reloading on the program, going back to the draw starts a draw", async () => {
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program" });
-    assert.equal(app.model.current, null);
+    assert.equal(app.model.draw.current, null);
     app.dispatch({ type: "Popped", hash: "#/1er-kyo/Tachi%20waza" });
-    assert.equal(app.model.screen, "draw");
-    assert.ok(app.model.current);
+    assert.equal(screenOf(app.model), "draw");
+    assert.ok(app.model.draw.current);
   });
 
   test("invalid URL: unknown grade or waza → home, unknown attack → level 1", async () => {
-    assert.equal((await createApp({ hash: "#/xx/Foo" })).model.screen, "home");
+    assert.equal(screenOf((await createApp({ hash: "#/xx/Foo" })).model), "home");
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program/Nimporte/Quoi" });
-    assert.deepEqual(app.model.program, { level: 1 });
+    assert.deepEqual(app.model.program.at, { level: 1 });
     assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
   });
 
@@ -349,7 +350,7 @@ describe("URL and history", () => {
     await settle();
     assert.equal(app.model.grade.id, "3eme-kyo");
     assert.equal(countTechniques(app.model.grade.data), 65);
-    assert.equal(app.model.screen, "program");
+    assert.equal(screenOf(app.model), "program");
   });
 });
 
@@ -362,7 +363,7 @@ describe("title and loading", () => {
     assert.equal(app.history.states.length, entries);
     app.click("Tachi waza");
     app.fire(app.byId("title"));
-    assert.equal(app.model.screen, "home");
+    assert.equal(screenOf(app.model), "home");
     assert.equal(app.history.url, "#/t");
   });
 
@@ -413,8 +414,8 @@ describe("card transitions", () => {
 
   test("a message can force the direction", () => {
     const [model] = init();
-    const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA }, screen: "program", waza: "Tachi waza", program: { level: 3, attack: "Katate dori", technique: "Nikkyo" } };
-    const [next] = update(ready, { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" });
+    const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA }, draw: { ...model.draw, waza: "Tachi waza" }, program: { at: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
+    const [next] = update(ready, to("program", { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" }));
     assert.equal(next.slide.direction, "back");
   });
 });
@@ -437,7 +438,7 @@ describe("history position", () => {
     const [model] = init({ position: 3 });
     assert.equal(model.position, 3);
     const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA, list: [], id: "t" } };
-    const [pushed, [push]] = update(ready, { type: "StartSession", waza: "Tachi waza" });
+    const [pushed, [push]] = update(ready, to("draw", { type: "StartSession", waza: "Tachi waza" }));
     assert.equal(pushed.position, 4);
     assert.deepEqual([push.type, push.mode, push.position], ["Url", "push", 4]);
     const [selected, commands] = update({ ...ready, grade: { ...ready.grade, list: [{ id: "t" }] } }, to("grade", { type: "SelectGrade", id: "t" }));
@@ -461,12 +462,12 @@ describe("program buttons", () => {
     app.click("Nikkyo");
     app.click("prog-next");
     app.click("prog-back");
-    assert.deepEqual([app.model.program.level, app.model.program.attack], [2, "Katate dori"]);
+    assert.deepEqual([app.model.program.at.level, app.model.program.at.attack], [2, "Katate dori"]);
     assert.equal(app.model.slide.direction, "back");
     app.click("prog-back");
-    assert.equal(app.model.program.level, 1);
+    assert.equal(app.model.program.at.level, 1);
     app.click("prog-back");
-    assert.equal(app.model.screen, "draw");
+    assert.equal(screenOf(app.model), "draw");
     assert.equal(app.model.slide.direction, "back");
     assert.equal(app.history.url, "#/t/Tachi%20waza");
   });

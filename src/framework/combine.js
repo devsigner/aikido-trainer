@@ -83,7 +83,8 @@ export function combine(features) {
 // are enveloped, so that the feature view only knows its own messages.
 export function embed(feature, vnode) {
   if (typeof vnode !== "string" && vnode) {
-    const wrap = (msg) => to(feature, msg);
+    // A message already addressed to a feature (e.g. a button of another feature) is left as it is.
+    const wrap = (msg) => (msg?.feature ? msg : to(feature, msg));
     const props = Object.fromEntries(Object.entries(vnode.props).map(([key, value]) =>
       key.startsWith("on") ? [key, typeof value === "function" ? (event) => wrap(value(event)) : wrap(value)] : [key, value]));
     return { ...vnode, props, children: vnode.children.map((child) => embed(feature, child)) };

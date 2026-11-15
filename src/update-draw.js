@@ -1,52 +1,79 @@
 // Feature "draw": a session of random techniques for one waza (pool without repetition).
-// Owns: screen (home | draw), waza, pool, total, current, done.
-import { buildPool, pickIndex } from "./logic.js";
-import { initialModel as programModel } from "./update-program.js";
-import { url } from "./update-history.js";
+// Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
+// Reads the data and filters of the grade feature through the root model (read-only).
+// Publishes `SessionReset` (the session is over: the program closes) and `Navigated` (the URL must follow).
+import { h } from "./vdom.js";
+import { badgesOf, buildPool, pickIndex } from "./logic.js";
+import { card, slideProps } from "./card.js";
+import { navigated, screenOf } from "./update-history.js";
+import { to } from "./framework/combine.js";
 
 // State of a draw session. The model is reset to this state when the user goes home or changes waza.
-// - `screen` = "home" | "draw" | "program"
-// - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza"
+// - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
 // - `pool` = list of remaining techniques to draw (weighted)
 // - `total` = total number of techniques in the pool at the start of the session
 // - `current` = technique currently drawn (null if none) e.g. { waza, attack, technique, form, weight }
 // - `done` = true if the pool is empty and the user has seen all techniques
-export function noSession() {
-  return { screen: "home", waza: "", pool: [], total: 0, current: null, done: false, ...programModel };
+export const initialModel = { waza: "", pool: [], total: 0, current: null, done: false };
+
+// A new session of `waza` with the data and filters of the grade.
+export function startSession(root, waza) {
+  const pool = buildPool(root.grade.data, waza, root.grade.filters);
+  return { ...initialModel, waza, pool, total: pool.length };
 }
 
-export function session(model, waza) {
-  const pool = buildPool(model.grade.data, waza, model.grade.filters);
-  return { ...model, ...noSession(), screen: "draw", waza, pool, total: pool.length };
-}
+// Command asking this feature to draw (for the code that has no access to its messages).
+export const roll = { type: "Random", feature: "draw" };
 
-export const updateHandler = {
-  StartSession(model, msg) {
-    const next = session(model, msg.waza);
-    return [next, [url(next, "push"), { type: "Random" }]];
-  },
+const SESSION_RESET = { type: "SessionReset" };
 
-  Next(model) {
-    return model.pool.length === 0
-      ? [{ ...model, current: null, done: true }, []]
-      : [model, [{ type: "Random" }]];
-  },
+const messages = {
+  StartSession: (_, msg, root) => [startSession(root, msg.waza), [{ type: "Random" }], [SESSION_RESET, navigated("push")]],
+
+  Next: (model) => (model.pool.length === 0 ? [{ ...model, current: null, done: true }, []] : [model, [{ type: "Random" }]]),
 
   // Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
-  Rolled(model, msg) {
-    if (model.screen !== "draw" || model.pool.length === 0) return [model, []];
+  Rolled(model, msg, root) {
+    if (screenOf(root) !== "draw" || model.pool.length === 0) return [model, []];
     const index = pickIndex(model.pool, msg.value);
     return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, []];
   },
 
-  GoHome(model) {
-    if (model.screen === "home") return [model, []];
-    const next = { ...model, ...noSession() };
-    return [next, [url(next, "push")]];
-  },
+  GoHome: (model, _, root) => (screenOf(root) === "home" ? [model, []] : [initialModel, [], [SESSION_RESET, navigated("push")]]),
 };
 
-// Effects of the feature: randomness is an effect, so `update` stays pure.
-export const effectHandler = ({ random }) => ({
-  Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
-});
+// Draw screen: show a technique and ask if the user knows it.
+function view(model, root) {
+  const { current } = model;
+  const shown = current && {
+    waza: model.waza,
+    attack: current.attack,
+    technique: current.technique.name,
+    form: current.form || "",
+    badges: badgesOf(current.technique),
+    note: current.technique.note || "",
+    video: current.technique.video || "",
+    warnVideo: !root.video.skipWarning,
+  };
+  return h("section", { id: "draw" },
+    h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
+    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
+    h("h3", { className: "hint" }, "Connais-tu cette technique ?"),
+    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card("card", shown || {}, "card", slideProps(root.slide)),
+    h("div", { className: "buttons actions" },
+      !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
+      h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram" }) }, "Voir le programme")));
+}
+
+export const draw = {
+  name: "draw",
+  init: () => [initialModel, []],
+  update(model, msg, root) {
+    if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
+    return messages[msg.type](model, msg, root);
+  },
+  view,
+  effects: ({ random }) => ({
+    Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
+  }),
+};

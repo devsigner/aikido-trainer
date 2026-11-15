@@ -2,6 +2,12 @@
 // Not a feature of its own: it wraps the result of every feature handler (see `update` in update.js).
 import { toHash } from "./route.js";
 
+// Screen shown, derived from the features: "home" (no session), "draw" (a session), "program" (program open).
+export const screenOf = (model) => (model.program.at ? "program" : model.draw.waza ? "draw" : "home");
+
+// Event published by a feature when the URL must follow its change (`mode`: "push" | "replace"), see `reactions`.
+export const navigated = (mode) => ({ type: "Navigated", mode });
+
 export const initialModel = {
   slide: { direction: "", count: 0 }, // transition between program levels: { direction: "back" | "forward" | "", count }
   position: 0, // index of the current history entry (tells back from forward)
@@ -28,9 +34,9 @@ function sameProgram(from, to) {
 }
 
 function sameView(before, after) {
-  return before.screen === after.screen
-    && before.current === after.current
-    && sameProgram(before.program, after.program);
+  return screenOf(before) === screenOf(after)
+    && before.draw.current === after.draw.current
+    && sameProgram(before.program.at, after.program.at);
 }
 
 // Direction of the card animation: a history pop follows the history (back or forward),
@@ -39,7 +45,8 @@ function slideDirection(before, after, msg) {
   if (msg.direction) return msg.direction;
   if (msg.type === "Popped" && msg.position !== before.position) return msg.position < before.position ? "back" : "forward";
 
-  return before.program && (!after.program || after.program.level < before.program.level) ? "back" : "forward";
+  const [from, to] = [before.program.at, after.program.at];
+  return from && (!to || to.level < from.level) ? "back" : "forward";
 }
 
 export function withSlide(before, after, msg) {
