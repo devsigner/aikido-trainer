@@ -74,7 +74,7 @@ En trois règles :
 | `effects.js` | `createEffects` / `createSubscriptions(features, overrides)` : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
-| `debug.js`   | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (utilise des classes CSS `dbg-*` à fournir) |
+| `debug.js`   | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (voir « Le debugger ») |
 
 ## Une feature
 
@@ -102,6 +102,25 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 - `embed` enveloppe les handlers d'une vue de feature ; un message déjà adressé (`to(...)`) est laissé tel quel.
 - **Feature `lazy`** : sa tranche n'existe pas à l'`init` ; elle est créée (avec `init(flags, model)`) au premier message ou événement auquel elle est abonnée. Un `update` ou une réaction qui renvoie `UNMOUNT` comme modèle supprime la tranche (les commandes et événements sont conservés) ; un nouveau message la recrée depuis `init`. Pendant ce temps `root[name]` est `undefined` : les autres features et la vue doivent le tolérer. Une réponse d'effet tardive la recrée aussi. Avec `lazy: { events: [types] }`, seuls un message ou ces événements créent la tranche ; les autres événements sont ignorés tant qu'elle est démontée.
 - `combine({ nom: feature })` renvoie `{ init, update, subscribe, effects }`, directement utilisables par `run`.
+
+## Le debugger
+
+`mountDebugger(slices, hide)` (`debug.js`) renvoie un **observateur** à passer à `run({ debug })`. Le debugger n'est pas dans la boucle : il l'écoute, et n'est chargé que si on le demande (pour Aikido Trainer : `?debug`).
+
+```mermaid
+flowchart LR
+    RUN["run"] -- "record({ msg, before, after, cmds, events })<br/>après chaque message" --> DBG["observateur (debug.js)"]
+    RUN -- "attach({ getModel, restore })<br/>une fois" --> DBG
+    DBG --> P["panneau (mini app Elm<br/>avec son propre model/update/view)"]
+    P -- "« Revenir à cet état »<br/>restore(after)" --> RUN
+    DBG --> W["window.__debug<br/>model, log, restore(id)"]
+```
+
+- **Journal** : chaque message est enregistré avec le modèle avant/après, les commandes émises et les événements publiés (200 derniers). Les messages de feature sont étiquetés `feature/Type`.
+- **État** : le modèle courant, une section par tranche de feature. `hide` résume les champs volumineux (ex. les données d'un grade).
+- **Diff** : les champs modifiés par un message, tranche par tranche (`video.prompt`).
+- **Voyage dans le temps** : `restore(after)` remet un ancien modèle et redessine la vue. Les effets ne sont **pas** rejoués. Possible car le modèle est une simple donnée immuable et la vue une fonction pure de celui-ci.
+- **Console** : `__debug.model`, `__debug.log`, `__debug.restore(id)`.
 
 ## Exemple
 
