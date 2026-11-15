@@ -1,3 +1,21 @@
+```text
+          _.-""""""-._
+        .'  ________  '.
+       /   /        \   \
+      |   |  ______  |   |
+      |  .-.--.  .--.-.  |
+      | ( o )--()--( o ) |
+      |  '-'--'  '--'-'  |
+      |        /\        |
+      |   .-~~~~~~~~-.   |
+      |  (~~~~~\/~~~~~)  |
+       \   '-.______.-'  /
+        '.     \__/    .'
+          '-.________.-'
+
+            E L M e r
+```
+
 # ELMer : framework Elm par features
 
 **ELMer** est un petit framework JS pur (ES modules, sans build ni dépendance).
