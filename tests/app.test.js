@@ -10,7 +10,7 @@ import { update, init, initialModel, debugHide } from "../src/update.js";
 import { view } from "../src/view.js";
 import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } from "../framework/elmer/debug.js";
 import { run } from "../framework/elmer/runtime.js";
-import { to } from "../framework/elmer/combine.js";
+import { to } from "../framework/elmer/feature.js";
 import { screenOf } from "../src/shared/screen.js";
 import { resolveGrade as resolveGradeFx } from "../src/features/catalog.js";
 

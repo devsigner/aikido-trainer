@@ -1,7 +1,7 @@
 // src/features/program.js
 
 // Feature "program": browsing attacks → techniques → card, in three levels.
-// Standalone feature (see framework/elmer/combine.js): its model, update, view and effects are all here.
+// Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Reads the grade data through the root model (read-only); keeps its own waza (the quiz session is over while the program is open).
 // Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: quiz starts a new session), `Navigated` (the URL must follow), `ViewChanged` (the card slides).
 // Closes when `HomeRequested`.
@@ -10,7 +10,7 @@ import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } 
 import { card } from "../layout/card.js";
 import { feature as navigation } from "./navigation.js";
 import { feature as slide } from "./slide.js";
-import { UNMOUNT, defineFeature, to } from "../../framework/elmer/combine.js";
+import { UNMOUNT, defineFeature, to } from "../../framework/elmer/feature.js";
 
 const { navigated } = navigation.events;
 const { viewChanged } = slide.events;

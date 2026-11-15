@@ -1,9 +1,9 @@
 // src/features/video.js
 
 // Feature "video": confirmation modal before opening a video.
-// Standalone feature (see framework/elmer/combine.js): its model, update, view and effects are all here.
+// Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 import { h } from "../../framework/elmer/vdom.js";
-import { defineFeature, to } from "../../framework/elmer/combine.js";
+import { defineFeature, to } from "../../framework/elmer/feature.js";
 
 export const SKIP_VIDEO_WARNING_KEY = "aikido.skipVideoWarning";
 

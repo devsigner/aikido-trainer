@@ -201,7 +201,7 @@ function consoleApi(getControl, getEntries, restore) {
 }
 
 // Mounts the panel and returns the observer expected by `run({ debug })`.
-// `slices` = names of the features that own a slice of the model (see framework/elmer/combine.js); `hide` = see `summarize`.
+// `slices` = names of the features that own a slice of the model (see framework/elmer/feature.js); `hide` = see `summarize`.
 export function mountDebugger(slices = [], hide = {}, doc = document) {
   const style = doc.createElement("style");
   style.textContent = STYLE;

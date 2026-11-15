@@ -1,7 +1,7 @@
 // src/features/quiz.js
 
 // Feature "quiz": a session of random techniques for one waza (pool without repetition).
-// Standalone feature (see framework/elmer/combine.js): its model, update, view and effects are all here.
+// Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
 import { h } from "../../framework/elmer/vdom.js";
@@ -10,7 +10,7 @@ import { card } from "../layout/card.js";
 import { feature as navigation } from "./navigation.js";
 import { feature as slide } from "./slide.js";
 import { screenOf } from "../shared/screen.js";
-import { UNMOUNT, defineFeature, to } from "../../framework/elmer/combine.js";
+import { UNMOUNT, defineFeature, to } from "../../framework/elmer/feature.js";
 
 const { navigated } = navigation.events;
 const { viewChanged } = slide.events;

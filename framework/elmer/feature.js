@@ -1,4 +1,4 @@
-// framework/elmer/combine.js
+// framework/elmer/feature.js
 
 // Generic composition of features (no knowledge of the application).
 //

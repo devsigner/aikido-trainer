@@ -3,7 +3,7 @@
 // view(model) → virtual tree (plain data). Handlers are messages.
 // The root view picks the screen; the pieces of the page are in src/layout/.
 import { h } from "../framework/elmer/vdom.js";
-import { embed } from "../framework/elmer/combine.js";
+import { embed } from "../framework/elmer/feature.js";
 import { feature as catalog } from "./features/catalog.js";
 import { feature as quiz } from "./features/quiz.js";
 import { feature as program } from "./features/program.js";

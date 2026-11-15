@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/combine.js";
+import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/feature.js";
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.

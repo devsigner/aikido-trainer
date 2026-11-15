@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEffects, createSubscriptions } from "../framework/elmer/effects.js";
-import { to } from "../framework/elmer/combine.js";
+import { to } from "../framework/elmer/feature.js";
 import { mergeGrades } from "../src/shared/logic.js";
 import { run } from "../framework/elmer/runtime.js";
 import { features, init, update } from "../src/update.js";

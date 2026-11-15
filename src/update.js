@@ -3,7 +3,7 @@
 // Model and pure update: update(model, msg) → [model, commands].
 // Effects (network, randomness, history) are described as commands run by the runtime.
 // Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):
-// its init, update, view and effects, composed by `combine` (framework/elmer/combine.js).
+// its init, update, view and effects, composed by `combine` (framework/elmer/feature.js).
 import { countTechniques } from "./shared/logic.js";
 import { feature as catalog } from "./features/catalog.js";
 import { feature as quiz } from "./features/quiz.js";
@@ -11,7 +11,7 @@ import { feature as program } from "./features/program.js";
 import { feature as navigation } from "./features/navigation.js";
 import { feature as video } from "./features/video.js";
 import { feature as slide } from "./features/slide.js";
-import { combine } from "../framework/elmer/combine.js";
+import { combine } from "../framework/elmer/feature.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
 export const features = {

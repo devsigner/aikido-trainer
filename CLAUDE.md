@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.65`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.66`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -127,7 +127,7 @@ Run the tests before every commit and add some for any new rule.
 
 Unidirectional flow, no dependencies and no build (native ES modules + versioned import map):
 
-- **Features** (`src/features/*.js`, composed by `combine` in `framework/elmer/combine.js`): each one exports `feature = defineFeature({ model, lazy?, init?(flags, model), messages, on, view, views, events, effects, subscribe })` and has its own model slice (`model.catalog`, `quiz`, `program`, `video`, `navigation`, `slide`; the name is its key in `features` of `src/update.js`; `messages` handlers are `(slice, msg, root)`; `views`/`events` expose view pieces and event builders to the others, e.g. `navigation.events.navigated`), `subscribe` (browser events, e.g. `popstate` in navigation). `quiz` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ catalog, quiz, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
+- **Features** (`src/features/*.js`, composed by `combine` in `framework/elmer/feature.js`): each one exports `feature = defineFeature({ model, lazy?, init?(flags, model), messages, on, view, views, events, effects, subscribe })` and has its own model slice (`model.catalog`, `quiz`, `program`, `video`, `navigation`, `slide`; the name is its key in `features` of `src/update.js`; `messages` handlers are `(slice, msg, root)`; `views`/`events` expose view pieces and event builders to the others, e.g. `navigation.events.navigated`), `subscribe` (browser events, e.g. `popstate` in navigation). `quiz` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ catalog, quiz, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
 - `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
 - `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `framework/elmer/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
@@ -152,7 +152,7 @@ src/update.js         features object, initialModel, init, update (= combine)
 src/features/*.js    one standalone feature per module (catalog, quiz, program, navigation, video, slide)
 src/shared/screen.js         `screenOf` (screen derived from the slices)
 src/layout/card.js           technique card shared by quiz and program (reads `root.video` and `root.slide`)
-framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
+framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `feature.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/view.js           view(model) → vnodes (chooses the screen)
 src/layout/          page pieces: `page`, `title`, `footer`, `home`
 data/grades.json      List of available grades

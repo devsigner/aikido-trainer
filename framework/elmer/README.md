@@ -5,7 +5,7 @@ Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut
 
 | Fichier      | Rôle                                                                                                                      |
 |--------------|---------------------------------------------------------------------------------------------------------------------------|
-| `combine.js` | `defineFeature(spec)`, `combine({ nom: feature })`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
+| `feature.js` | `defineFeature(spec)`, `combine({ nom: feature })`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
 | `effects.js` | `createEffects` / `createSubscriptions(features, overrides)` : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
