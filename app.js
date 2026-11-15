@@ -3,9 +3,8 @@ import { createRenderer } from "./src/framework/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
 import { debugHide, features, init, update } from "./src/update.js";
 import { run } from "./src/framework/runtime.js";
-import { createEffects } from "./src/framework/effects.js";
+import { createEffects, createSubscriptions } from "./src/framework/effects.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
-import { to } from "./src/framework/combine.js";
 import { view } from "./src/view.js";
 import { readFlag, writeFlag } from "./src/shared/logic.js";
 
@@ -41,7 +40,7 @@ run({
   update,
   view,
   render,
-  subscribe: subscriber,
+  subscribe: createSubscriptions(features),
   debug: debugObserver,
   effects: createEffects(features),
   flags: {
@@ -50,13 +49,3 @@ run({
     skipVideoWarning: readFlag(SKIP_VIDEO_WARNING_KEY)
   },
 });
-
-function subscriber(dispatch) {
-  window.addEventListener("popstate", () => {
-    return dispatch(to("navigation", {
-      type: "Popped",
-      hash: location.hash,
-      position: history.state?.position ?? 0
-    }))
-  });
-}

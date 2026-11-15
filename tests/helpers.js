@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createEffects } from "../src/framework/effects.js";
+import { createEffects, createSubscriptions } from "../src/framework/effects.js";
+import { to } from "../src/framework/combine.js";
 import { mergeGrades } from "../src/shared/logic.js";
 import { run } from "../src/framework/runtime.js";
-import { to } from "../src/framework/combine.js";
 import { features, init, update } from "../src/update.js";
 import { view } from "../src/view.js";
 
@@ -46,6 +46,7 @@ export async function createApp({ random = Math.random, hash = "", open, storage
   let tree;
   let model;
   let popstate;
+  const window = { addEventListener: (_type, listener) => (popstate = listener), location: { hash } };
   const states = [hash];
   let index = 0;
   const history = {
@@ -56,14 +57,21 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     replaceState(_state, _title, url) {
       states[index] = url;
     },
+    state: { position: 0 },
     back() {
       index = Math.max(0, index - 1);
-      popstate(to("navigation", { type: "Popped", hash: states[index], position: index }));
+      arrive();
     },
     forward() {
       index = Math.min(states.length - 1, index + 1);
-      popstate(to("navigation", { type: "Popped", hash: states[index], position: index }));
+      arrive();
     },
+  };
+  // The browser moved to another history entry.
+  const arrive = () => {
+    window.location.hash = states[index];
+    history.state = { position: index };
+    popstate();
   };
   const dispatch = run({
     init,
@@ -76,7 +84,7 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     flags: { hash, skipVideoWarning },
     render: (vnode) => (tree = vnode),
     effects: createEffects(features, { fetchJson: async (url) => readJson(url), random, history, open, storage }),
-    subscribe: (listener) => (popstate = listener),
+    subscribe: createSubscriptions(features, { history, window }),
   });
   await settle();
   const app = {

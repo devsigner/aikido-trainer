@@ -38,6 +38,12 @@ export const navigation = {
 
     Navigated: (model, event, root) => [model, [{ type: "Url", mode: event.mode, hash: toHash(root) }]],
   },
+  // Browser back/forward: the URL and the history position are read when the entry changes.
+  subscribe: (dispatch, { window, history }) => window.addEventListener("popstate", () => dispatch({
+    type: "Popped",
+    hash: window.location.hash,
+    position: history.state?.position ?? 0,
+  })),
   effects: ({ history }) => ({
     Url: ({ mode, hash, position }) => (mode === "push" ? history.pushState({ position }, "", hash) : history.replaceState({ position }, "", hash)),
   }),

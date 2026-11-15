@@ -6,7 +6,7 @@ Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut
 | Fichier      | Rôle                                                                                                                      |
 |--------------|---------------------------------------------------------------------------------------------------------------------------|
 | `combine.js` | `combine(features)`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
-| `effects.js` | `createEffects(features, overrides)` : table d'effets des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
+| `effects.js` | `createEffects` / `createSubscriptions(features, overrides)` : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
 | `debug.js`   | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (utilise des classes CSS `dbg-*` à fournir) |
@@ -20,6 +20,7 @@ Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut
   update(model, msg, root) → [model, cmds, events?],   // root = modèle complet, en lecture seule
   on: { EventType: (model, event, root) → [model, cmds, events?] },
   view?, effects?(deps) → { CmdType: (cmd, dispatch) => … },
+  subscribe?(dispatch, deps),                  // écoute le monde extérieur (popstate…) ; dispatch écrit à cette feature
 }
 ```
 

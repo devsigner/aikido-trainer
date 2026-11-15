@@ -7,6 +7,7 @@
 //     update(model, msg, root) → [model, cmds, events?],
 //     on: { EventType: (model, event, root) → [model, cmds, events?] },   // reactions to events of other features
 //     effects(deps) → { CmdType: (cmd, dispatch) => … },                 // `dispatch` sends messages to this feature
+//     subscribe(dispatch, deps),                                         // listens to the outside world (events of the browser…), `dispatch` sends messages to this feature
 //   }
 // `root` is the whole model, read-only: use it to read, never to write another slice.
 //
@@ -64,6 +65,9 @@ export function combine(features) {
       apply(state, name, feature.update(model[name], msg, model));
       return settle(state);
     },
+
+    // Starts the subscriptions of every feature; each one dispatches to its own feature.
+    subscribe: (deps) => (dispatch) => features.forEach((feature) => feature.subscribe?.((msg) => dispatch(to(feature.name, msg)), deps)),
 
     // Effects of every feature in one table; each effect answers to its own feature.
     effects(deps) {

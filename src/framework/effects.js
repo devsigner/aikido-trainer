@@ -1,4 +1,4 @@
-// Effects table of the features, with the browser services they may need (`deps`, passed to each feature's `effects(deps)`).
+// Effects and subscriptions of the features, with the browser services they may need (`deps`, passed to each feature).
 // Every service can be replaced (tests, other environments): `overrides` wins over the browser default.
 import { combine } from "./combine.js";
 
@@ -8,14 +8,17 @@ const defaultFetchJson = async (url) => {
   return res.json();
 };
 
-export function createEffects(features, overrides = {}) {
-  const deps = {
-    fetchJson: defaultFetchJson,
-    random: Math.random,
-    history: globalThis.history,
-    storage: globalThis.localStorage,
-    open: globalThis.open,
-    ...overrides,
-  };
-  return combine(features).effects(deps);
-}
+const servicesOf = (overrides) => ({
+  fetchJson: defaultFetchJson,
+  random: Math.random,
+  history: globalThis.history,
+  storage: globalThis.localStorage,
+  open: globalThis.open,
+  window: globalThis.window,
+  ...overrides,
+});
+
+export const createEffects = (features, overrides = {}) => combine(features).effects(servicesOf(overrides));
+
+// `subscribe` argument of `run`.
+export const createSubscriptions = (features, overrides = {}) => combine(features).subscribe(servicesOf(overrides));
