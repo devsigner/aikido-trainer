@@ -125,7 +125,7 @@ const logTab = (panel) => [
 // One foldable section per feature slice, then the fields of the model not owned by a feature yet.
 const section = (panel, name, content) => [
   h("button", { className: "dbg-fold", onClick: { type: "Fold", name } }, `${panel.folded.includes(name) ? "▸" : "▾"} ${name}`),
-  panel.folded.includes(name) ? null : h("pre", {}, json(content)),
+  panel.folded.includes(name) ? null : h("pre", {}, content === undefined ? "(non chargée)" : json(content)),
 ];
 
 const stateTab = (panel, model) => {

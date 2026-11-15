@@ -8,7 +8,7 @@ import { h } from "../framework/vdom.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card, slideProps } from "../shared/card.js";
 import { navigated } from "../update-history.js";
-import { to } from "../framework/combine.js";
+import { UNMOUNT, to } from "../framework/combine.js";
 
 // `at` = { level, attack?, technique? }, or null when the program is not open.
 export const initialModel = { at: null };
@@ -29,7 +29,7 @@ const messages = {
 
   Navigate: (_, msg) => open(msg.to),
 
-  CloseProgram: () => open(null),
+  CloseProgram: () => [UNMOUNT, [], [navigated("push")]],
 };
 
 const item = (label, target) => h("button", { className: "item", onClick: { type: "Navigate", to: target } }, label);
@@ -109,15 +109,19 @@ function view(model, root, header) {
 }
 
 // The URL changed: the program of the route, narrowed to what the data contains.
-const routeChanged = (_, { route }, root) => [{ at: WAZA_ORDER.includes(route.waza) ? validProgram(root.grade.data, route) : null }, []];
+function routeChanged(_, { route }, root) {
+  const at = WAZA_ORDER.includes(route.waza) ? validProgram(root.grade.data, route) : null;
+  return at ? [{ at }, []] : [UNMOUNT, []];
+}
 
 export const program = {
   name: "program",
+  lazy: { events: ["RouteChanged"] }, // the slice only exists while the program is open
   init: () => [initialModel, []],
   update(model, msg, root) {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
   },
-  on: { SessionReset: () => [initialModel, []], RouteChanged: routeChanged },
+  on: { SessionReset: () => [UNMOUNT, []], RouteChanged: routeChanged },
   view,
 };

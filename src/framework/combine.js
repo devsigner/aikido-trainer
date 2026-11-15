@@ -5,7 +5,9 @@
 // A feature is a small Elm program:
 //   {
 //     name,                              // key of its slice in the root model
-//     lazy?,                             // true: no slice until a message or a subscribed event reaches the feature (then `init` runs); an update or reaction returning `UNMOUNT` as model removes the slice
+//     lazy?,                             // true: no slice until a message or a subscribed event reaches the feature (then `init` runs);
+//                                        // { events: [types] }: only a message or these events create it, the other events are ignored while it is unmounted;
+//                                        // an update or reaction returning `UNMOUNT` as model removes the slice
 //     init(flags) → [model, cmds, events?],
 //     update(model, msg, root) → [model, cmds, events?],
 //     on: { EventType: (model, event, root) → [model, cmds, events?] },   // reactions to events of other features
@@ -47,6 +49,9 @@ export function combine(features) {
     state.events.push(...events.map((event) => ({ event, from: name })));
   };
 
+  // An unmounted lazy feature only reacts to the events that may mount it.
+  const awake = (state, feature, type) => !feature.lazy || feature.name in state.model || feature.lazy === true || feature.lazy.events?.includes(type);
+
   // A lazy feature without slice is mounted (with the flags of `init`) before it handles a message or an event.
   const mount = (state, feature) => {
     if (feature.lazy && !(feature.name in state.model)) apply(state, feature.name, feature.init(flags));
@@ -60,7 +65,7 @@ export function combine(features) {
       const handledBy = [];
       for (const feature of features) {
         const reaction = feature.on?.[event.type];
-        if (!reaction) continue;
+        if (!reaction || !awake(state, feature, event.type)) continue;
         handledBy.push(feature.name);
         mount(state, feature);
         apply(state, feature.name, reaction(state.model[feature.name], event, state.model));

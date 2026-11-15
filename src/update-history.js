@@ -5,7 +5,7 @@
 import { toHash } from "./route.js";
 
 // Screen shown, derived from the features: "home" (no session), "draw" (a session), "program" (program open).
-export const screenOf = (model) => (model.program.at ? "program" : model.draw.waza ? "draw" : "home");
+export const screenOf = (model) => (model.program ? "program" : model.draw ? "draw" : "home");
 
 // Event published by a feature when the URL must follow its change (`mode`: "push" | "replace"), see `reactions`.
 export const navigated = (mode) => ({ type: "Navigated", mode });
@@ -37,8 +37,8 @@ function sameProgram(from, to) {
 
 function sameView(before, after) {
   return screenOf(before) === screenOf(after)
-    && before.draw.current === after.draw.current
-    && sameProgram(before.program.at, after.program.at);
+    && before.draw?.current === after.draw?.current
+    && sameProgram(before.program?.at, after.program?.at);
 }
 
 // Direction of the card animation: a history pop follows the history (back or forward),
@@ -47,7 +47,7 @@ function slideDirection(before, after, msg) {
   if (msg.direction) return msg.direction;
   if (msg.type === "Popped" && msg.position !== before.position) return msg.position < before.position ? "back" : "forward";
 
-  const [from, to] = [before.program.at, after.program.at];
+  const [from, to] = [before.program?.at, after.program?.at];
   return from && (!to || to.level < from.level) ? "back" : "forward";
 }
 

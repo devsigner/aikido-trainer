@@ -91,6 +91,15 @@ describe("framework combine", () => {
     assert.deepEqual(lazyApp.update(freed, to("lazy", {}))[0].lazy, { n: 11 }, "mounted again from init");
   });
 
+  test("lazy: { events } ignores the other events while unmounted", () => {
+    const lazy = { name: "lazy", lazy: { events: ["Wake"] }, init: () => [{ n: 0 }, []], update: (model) => [model, []], on: { Wake: (model) => [{ n: model.n + 1 }, []], Other: (model) => [{ n: model.n + 10 }, []] } };
+    const eager = (type) => ({ name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type }]] });
+    const ignored = combine([eager("Other"), lazy]);
+    assert.equal("lazy" in ignored.update(ignored.init({})[0], to("eager", {}))[0], false);
+    const woken = combine([eager("Wake"), lazy]);
+    assert.deepEqual(woken.update(woken.init({})[0], to("eager", {}))[0].lazy, { n: 1 });
+  });
+
   test("an event mounts a lazy feature that subscribed to it", () => {
     const lazy = { name: "lazy", lazy: true, init: () => [{ seen: 0 }, []], update: (model) => [model, []], on: { Ping: (model) => [{ seen: model.seen + 1 }, []] } };
     const eager = { name: "eager", init: () => [{}, []], update: () => [{}, [], [{ type: "Ping" }]] };

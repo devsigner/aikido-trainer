@@ -9,7 +9,7 @@ import { badgesOf, buildPool, pickIndex } from "../shared/logic.js";
 import { card, slideProps } from "../shared/card.js";
 import { navigated, screenOf } from "../update-history.js";
 import { WAZA_ORDER } from "../shared/logic.js";
-import { to } from "../framework/combine.js";
+import { UNMOUNT, to } from "../framework/combine.js";
 
 // State of a draw session. The model is reset to this state when the user goes home or changes waza.
 // - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
@@ -37,12 +37,13 @@ const messages = {
 
   // Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
   Rolled(model, msg, root) {
+    if (!model.waza) return [UNMOUNT, []]; // answer of a session that is over
     if (screenOf(root) !== "draw" || model.pool.length === 0) return [model, []];
     const index = pickIndex(model.pool, msg.value);
     return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, []];
   },
 
-  GoHome: (model, _, root) => (screenOf(root) === "home" ? [model, []] : [initialModel, [], [SESSION_RESET, navigated("push")]]),
+  GoHome: (model) => (model.waza ? [UNMOUNT, [], [SESSION_RESET, navigated("push")]] : [UNMOUNT, []]), // no session: already home
 };
 
 // Draw screen: show a technique and ask if the user knows it.
@@ -80,7 +81,7 @@ function picker(root) {
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
 function routeChanged(model, { route }, root) {
-  if (!WAZA_ORDER.includes(route.waza)) return [initialModel, []];
+  if (!WAZA_ORDER.includes(route.waza)) return [UNMOUNT, []];
 
   const next = model.waza === route.waza ? model : startSession(root, route.waza);
   const needsDraw = !route.program && !next.current && !next.done && next.pool.length > 0;
@@ -89,6 +90,7 @@ function routeChanged(model, { route }, root) {
 
 export const draw = {
   name: "draw",
+  lazy: { events: ["RouteChanged"] }, // the slice only exists during a session
   init: () => [initialModel, []],
   update(model, msg, root) {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);

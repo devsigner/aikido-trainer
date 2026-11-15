@@ -78,7 +78,7 @@ describe("update (pure)", () => {
   test("Rolled is ignored outside a draw", () => {
     const [model] = init();
     const [next, cmds] = update(model, to("draw", { type: "Rolled", value: 0.5 }));
-    assert.equal(next.draw.current, model.draw.current);
+    assert.equal("draw" in next, false, "the draw feature stays unmounted");
     assert.deepEqual(cmds, []);
   });
 });
@@ -119,7 +119,7 @@ describe("application", () => {
 
   test("changing grade reloads the merged data", async () => {
     const app = await createApp();
-    const n1 = app.model.draw.total ?? 0;
+    const n1 = app.model.draw?.total ?? 0;
     await app.selectGrade("3eme-kyo");
     assert.equal(app.model.grade.id, "3eme-kyo");
     assert.equal(countTechniques(app.model.grade.data), 65);
@@ -357,6 +357,21 @@ describe("URL and history", () => {
 });
 
 describe("title and loading", () => {
+  test("the draw and program slices only exist while they are used", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    const slices = () => ["draw", "program"].filter((name) => name in app.model);
+    assert.deepEqual(slices(), []);
+    app.click("Tachi waza");
+    assert.deepEqual(slices(), ["draw"]);
+    app.click("prog-btn");
+    assert.deepEqual(slices(), ["draw", "program"]);
+    app.click("prog-back");
+    assert.deepEqual(slices(), ["draw"]);
+    app.fire(app.byId("title"));
+    assert.deepEqual(slices(), []);
+  });
+
   test("the title goes home, and does nothing when already home", async () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
