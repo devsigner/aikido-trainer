@@ -43,7 +43,7 @@ const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim(
 // 3/ then see other attacks with the same technique.
 const levels = {
   1(root, { waza }) {
-    const attacks = listAttacks(root.grade.data, waza);
+    const attacks = listAttacks(root.catalog.data, waza);
     return {
       back: "← Tirage",
       backMessage: { type: "CloseProgram" },
@@ -54,7 +54,7 @@ const levels = {
     };
   },
   2(root, { waza, at: { attack } }) {
-    const techniques = listTechniques(root.grade.data, waza, attack);
+    const techniques = listTechniques(root.catalog.data, waza, attack);
     return {
       back: "← Programme",
       backMessage: { type: "Navigate", to: { level: 1 } },
@@ -65,14 +65,14 @@ const levels = {
     };
   },
   3(root, { waza, at: { attack, technique } }) {
-    const siblings = listTechniques(root.grade.data, waza, attack);
+    const siblings = listTechniques(root.catalog.data, waza, attack);
     const position = siblings.findIndex((candidate) => candidate.name === technique);
     const current = siblings[position];
     // Neighbours wrap around the list; none when the attack has a single technique.
     const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
     const pagerButton = (id, label, target, direction) =>
       h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
-    const others = findSameTechnique(root.grade.data, waza, attack, current.name);
+    const others = findSameTechnique(root.catalog.data, waza, attack, current.name);
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
@@ -109,7 +109,7 @@ function view(model, root, header) {
 
 // The URL changed: the program of the route, narrowed to what the data contains.
 function routeChanged(model, { route, direction }, root) {
-  const at = WAZA_ORDER.includes(route.waza) ? validProgram(root.grade.data, route) : null;
+  const at = WAZA_ORDER.includes(route.waza) ? validProgram(root.catalog.data, route) : null;
   if (!at) return [UNMOUNT, [], model.at && direction ? [viewChanged(direction)] : []];
   const changed = model.waza !== route.waza || JSON.stringify(model.at) !== JSON.stringify(at);
   return [{ waza: route.waza, at }, [], changed && direction ? [viewChanged(direction)] : []];

@@ -1,6 +1,6 @@
-// src/features/grade.js
+// src/features/catalog.js
 
-// Feature "grade": the list of grades, the data of the selected grade, and the filters.
+// Feature "catalog": the list of grades, the data of the selected grade, and the filters.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
 import { h } from "../framework/vdom.js";
@@ -62,8 +62,8 @@ export async function resolveGrade(grade, fetchJson) {
 
 // Command asking this feature to load a grade (for the code that has no access to its messages).
 
-export const grade = {
-  name: "grade",
+export const catalog = {
+  name: "catalog",
   init: ({ hash = "" } = {}) => [initialModel, [{ type: "LoadGrades", gradeId: parseHash(hash).grade }]],
   update(model, msg, root) {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);

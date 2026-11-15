@@ -4,7 +4,7 @@
 // The root view picks the screen; the pieces of the page are in src/layout/.
 import { h } from "./framework/vdom.js";
 import { embed } from "./framework/combine.js";
-import { grade } from "./features/grade.js";
+import { catalog } from "./features/catalog.js";
 import { quiz } from "./features/quiz.js";
 import { program } from "./features/program.js";
 import { screenOf } from "./shared/screen.js";
@@ -18,8 +18,8 @@ export function view(model) {
   const header = title();
 
   // The other screens are stacked vertically, with the footer below the fold.
-  if (model.grade.status !== "ready") {
-    return page(model, header, grade.statusView(model.grade));
+  if (model.catalog.status !== "ready") {
+    return page(model, header, catalog.statusView(model.catalog));
   }
 
   // The program screen is a special case: the first page fills the viewport, the list is below.

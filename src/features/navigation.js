@@ -21,7 +21,7 @@ const routeChanged = (route, direction) => ({ type: "RouteChanged", route, direc
 
 // Applies a route: a route of another grade first loads that grade (the route waits in `pending`).
 function goTo(model, route, root, direction) {
-  if (route.grade && route.grade !== root.grade.id && root.grade.list.some((candidate) => candidate.id === route.grade)) {
+  if (route.grade && route.grade !== root.catalog.id && root.catalog.list.some((candidate) => candidate.id === route.grade)) {
     return [{ pending: route }, [], [{ type: "GradeWanted", id: route.grade }]];
   }
   return [model, [], [routeChanged(route, direction)]];
@@ -33,7 +33,7 @@ const messages = {
   // Browser navigation: the URL is the source of truth.
   Popped(model, msg, root) {
     const next = { ...model, position: msg.position };
-    return root.grade.status === "ready" ? goTo(next, parseHash(msg.hash), root, msg.position < model.position ? "back" : "forward") : [next, []];
+    return root.catalog.status === "ready" ? goTo(next, parseHash(msg.hash), root, msg.position < model.position ? "back" : "forward") : [next, []];
   },
 };
 

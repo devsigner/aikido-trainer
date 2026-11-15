@@ -5,7 +5,7 @@
 // Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):
 // its init, update, view and effects, composed by `combine` (src/framework/combine.js).
 import { countTechniques } from "./shared/logic.js";
-import { grade } from "./features/grade.js";
+import { catalog } from "./features/catalog.js";
 import { quiz } from "./features/quiz.js";
 import { program } from "./features/program.js";
 import { navigation } from "./features/navigation.js";
@@ -15,7 +15,7 @@ import { combine } from "./framework/combine.js";
 
 // Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
 export const features = [
-  grade,
+  catalog,
   quiz,
   program,
   video,

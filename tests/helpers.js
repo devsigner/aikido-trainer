@@ -130,7 +130,7 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     },
     // Loads test data in place of the JSON files.
     load(data) {
-      dispatch(to("grade", { type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data }));
+      dispatch(to("catalog", { type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data }));
     },
   };
   return app;

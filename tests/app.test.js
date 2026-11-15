@@ -12,7 +12,7 @@ import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } 
 import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
 import { screenOf } from "../src/shared/screen.js";
-import { resolveGrade as resolveGradeFx } from "../src/features/grade.js";
+import { resolveGrade as resolveGradeFx } from "../src/features/catalog.js";
 
 const DATA = {
   waza: {
@@ -121,8 +121,8 @@ describe("application", () => {
     const app = await createApp();
     const n1 = app.model.quiz?.total ?? 0;
     await app.selectGrade("3eme-kyo");
-    assert.equal(app.model.grade.id, "3eme-kyo");
-    assert.equal(countTechniques(app.model.grade.data), 65);
+    assert.equal(app.model.catalog.id, "3eme-kyo");
+    assert.equal(countTechniques(app.model.catalog.data), 65);
     assert.ok(n1 >= 0);
   });
 
@@ -284,7 +284,7 @@ describe("program", () => {
 
 describe("URL and history", () => {
   test("parseHash / toHash: round trip, accents and spaces encoded", () => {
-    const model = { grade: { id: "2eme-kyo" }, quiz: { waza: "Tachi waza" }, program: { at: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } } };
+    const model = { catalog: { id: "2eme-kyo" }, quiz: { waza: "Tachi waza" }, program: { at: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } } };
     assert.equal(toHash(model), "#/2eme-kyo/Tachi%20waza/program/A%C3%AF%20hammi%20katate%20dori/Nikkyo");
     assert.deepEqual(parseHash(toHash(model)), { grade: "2eme-kyo", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } });
     assert.deepEqual(parseHash("#/%E0%A4%A"), {});
@@ -317,7 +317,7 @@ describe("URL and history", () => {
   test("reloading on a program URL restores the same state", async () => {
     const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
     const app = await createApp({ hash });
-    assert.deepEqual([app.model.grade.id, app.model.program.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
+    assert.deepEqual([app.model.catalog.id, app.model.program.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
     assert.equal(app.model.program.at.technique, "Nikkyo");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     assert.equal(app.history.url, hash);
@@ -326,7 +326,7 @@ describe("URL and history", () => {
   test("reloading on a quiz URL starts a new quiz of that waza", async () => {
     const app = await createApp({ hash: "#/3eme-kyo/Tachi%20waza" });
     assert.equal(screenOf(app.model), "quiz");
-    assert.equal(app.model.grade.id, "3eme-kyo");
+    assert.equal(app.model.catalog.id, "3eme-kyo");
     assert.ok(app.model.quiz.current);
     assert.equal(app.card().waza, "Tachi waza");
   });
@@ -367,8 +367,8 @@ describe("URL and history", () => {
     const app = await createApp();
     app.dispatch(to("navigation", { type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" }));
     await settle();
-    assert.equal(app.model.grade.id, "3eme-kyo");
-    assert.equal(countTechniques(app.model.grade.data), 65);
+    assert.equal(app.model.catalog.id, "3eme-kyo");
+    assert.equal(countTechniques(app.model.catalog.data), 65);
     assert.equal(screenOf(app.model), "program");
   });
 });
@@ -442,13 +442,13 @@ describe("card transitions", () => {
     const app = await open();
     app.click("Tachi waza");
     const { count } = app.model.slide;
-    app.dispatch(to("grade", { type: "SetFilter", name: "isNew", checked: true }));
+    app.dispatch(to("catalog", { type: "SetFilter", name: "isNew", checked: true }));
     assert.equal(app.model.slide.count, count);
   });
 
   test("a message can force the direction", () => {
     const [model] = init();
-    const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA }, program: { waza: "Tachi waza", at: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
+    const ready = { ...model, catalog: { ...model.catalog, status: "ready", data: DATA }, program: { waza: "Tachi waza", at: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
     const [next] = update(ready, to("program", { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" }));
     assert.equal(next.slide.direction, "back");
   });
@@ -471,12 +471,12 @@ describe("history position", () => {
   test("Url commands carry the position; init restores it after a reload", () => {
     const [model] = init({ position: 3 });
     assert.equal(model.navigation.position, 3);
-    const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA, list: [], id: "t" } };
+    const ready = { ...model, catalog: { ...model.catalog, status: "ready", data: DATA, list: [], id: "t" } };
     const [pushed, pushes] = update(ready, to("quiz", { type: "StartSession", waza: "Tachi waza" }));
     const push = pushes.find((command) => command.type === "Url");
     assert.equal(pushed.navigation.position, 4);
     assert.deepEqual([push.type, push.mode, push.position], ["Url", "push", 4]);
-    const [selected, commands] = update({ ...ready, grade: { ...ready.grade, list: [{ id: "t" }] } }, to("grade", { type: "SelectGrade", id: "t" }));
+    const [selected, commands] = update({ ...ready, catalog: { ...ready.catalog, list: [{ id: "t" }] } }, to("catalog", { type: "SelectGrade", id: "t" }));
     const replace = commands.find((command) => command.type === "Url");
     assert.deepEqual([replace.mode, replace.position, selected.navigation.position], ["replace", 3, 3]);
   });
@@ -585,11 +585,11 @@ describe("video confirmation", () => {
 describe("debug mode", () => {
   test("summarize hides the bulky parts of the model", () => {
     const model = { ...initialModel(), pool: [1, 2, 3] };
-    model.grade = { ...model.grade, data: readJson("data/2eme-kyo.json") };
+    model.catalog = { ...model.catalog, data: readJson("data/2eme-kyo.json") };
     const summary = summarize(model, debugHide);
-    assert.match(summary.grade.data, /techniques/);
+    assert.match(summary.catalog.data, /techniques/);
     assert.equal(summary.pool, "[3 éléments]");
-    assert.equal(summary.grade.status, "loading");
+    assert.equal(summary.catalog.status, "loading");
   });
 
   test("diffModels lists only the changed fields", () => {

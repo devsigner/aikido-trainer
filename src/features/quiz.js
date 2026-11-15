@@ -2,7 +2,7 @@
 
 // Feature "quiz": a session of random techniques for one waza (pool without repetition).
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
-// Reads the data and filters of the grade feature through the root model (read-only).
+// Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
 import { h } from "../framework/vdom.js";
 import { badgesOf, buildPool, pickIndex } from "../shared/logic.js";
@@ -23,7 +23,7 @@ export const initialModel = { waza: "", pool: [], total: 0, current: null, done:
 
 // A new session of `waza` with the data and filters of the grade.
 export function startSession(root, waza) {
-  const pool = buildPool(root.grade.data, waza, root.grade.filters);
+  const pool = buildPool(root.catalog.data, waza, root.catalog.filters);
   return { ...initialModel, waza, pool, total: pool.length };
 }
 
@@ -69,7 +69,7 @@ function view(model, root) {
 
 // Waza buttons of the home screen: start a session (a waza with no technique for the filters is disabled).
 function picker(root) {
-  const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(root.grade.data, waza, root.grade.filters).length === 0]));
+  const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(root.catalog.data, waza, root.catalog.filters).length === 0]));
   return h("div", { className: "group grow" },
     h("p", { className: "hint" }, "Choisis un waza et teste-toi !"),
     h("div", { id: "waza-buttons", className: "buttons grow" },
