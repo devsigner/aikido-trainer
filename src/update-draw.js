@@ -66,6 +66,16 @@ function view(model, root) {
       h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram" }) }, "Voir le programme")));
 }
 
+// Waza buttons of the home screen: start a session (a waza with no technique for the filters is disabled).
+function picker(root) {
+  const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(root.grade.data, waza, root.grade.filters).length === 0]));
+  return h("div", { className: "group grow" },
+    h("p", { className: "hint" }, "Choisis un waza et teste-toi !"),
+    h("div", { id: "waza-buttons", className: "buttons grow" },
+      WAZA_ORDER.map((waza) => h("button", { disabled: empty[waza], onClick: { type: "StartSession", waza } }, waza))),
+    h("p", { id: "home-msg", className: "hint" }, Object.values(empty).some(Boolean) ? "Un waza grisé n'a aucune technique pour ces filtres." : ""));
+}
+
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
 function routeChanged(model, { route }, root) {
   if (!WAZA_ORDER.includes(route.waza)) return [initialModel, []];
@@ -84,6 +94,7 @@ export const draw = {
   },
   on: { RouteChanged: routeChanged },
   view,
+  picker,
   effects: ({ random }) => ({
     Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
   }),

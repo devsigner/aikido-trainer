@@ -46,6 +46,12 @@ function view(model) {
       h("label", {}, h("input", { type: "checkbox", id: "f-warning", checked: model.filters.isWarning, onChange: (event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked }) }), " ⚠️ Attention")));
 }
 
+// Shown instead of the app while the data is not available: a spinner, or the loading error.
+function statusView(model) {
+  if (model.status === "loading") return h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
+  return h("p", { className: "hint" }, model.error);
+}
+
 export async function resolveGrade(grade, fetchJson) {
   const files = [...(grade.includes || []), grade.file];
   const datas = await Promise.all(files.map((file) => fetchJson(`data/${file}`)));
@@ -69,6 +75,7 @@ export const grade = {
     },
   },
   view,
+  statusView,
   // Loading the data. Any loading error becomes a `Failed` message.
   effects({ fetchJson }) {
     const loading = (fn) => async (cmd, dispatch) => {
