@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { combine, to } from "../src/framework/combine.js";
+import { combine, embed, to } from "../src/framework/combine.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
 const counter = {
@@ -50,5 +50,15 @@ describe("framework combine", () => {
     assert.throws(() => combine([counter, counter]), /Duplicate feature/);
     assert.throws(() => combine([counter, { ...counter, name: "other" }]).effects(), /Duplicate effect/);
     assert.throws(() => app.update({}, to("nope", {})), /Unknown feature/);
+  });
+
+  test("embed envelops the handlers of a feature view, messages and functions alike", () => {
+    const vnode = { tag: "div", props: { id: "x", onClick: { type: "A" }, onChange: (event) => ({ type: "B", value: event.v }) }, children: [{ tag: "b", props: { onClick: { type: "C" } }, children: ["text"] }] };
+    const mapped = embed("counter", vnode);
+    assert.deepEqual(mapped.props.onClick, to("counter", { type: "A" }));
+    assert.deepEqual(mapped.props.onChange({ v: 1 }), to("counter", { type: "B", value: 1 }));
+    assert.deepEqual(mapped.children[0].props.onClick, to("counter", { type: "C" }));
+    assert.equal(mapped.props.id, "x");
+    assert.equal(embed("counter", null), null);
   });
 });

@@ -2,7 +2,9 @@
 // Each feature module (src/update-*.js) defines its own effects (`effectHandler`); this file only composes them.
 import { effectHandler as gradeEffects, resolveGrade } from "./update-grade.js";
 import { effectHandler as drawEffects } from "./update-draw.js";
-import { effectHandler as videoEffects, SKIP_VIDEO_WARNING_KEY } from "./update-video.js";
+import { SKIP_VIDEO_WARNING_KEY } from "./update-video.js";
+import { features } from "./update.js";
+import { combine } from "./framework/combine.js";
 import { effectHandler as historyEffects } from "./update-history.js";
 
 export { resolveGrade, SKIP_VIDEO_WARNING_KEY };
@@ -16,5 +18,5 @@ const defaultFetchJson = async (url) => {
 
 export function createEffects({ fetchJson = defaultFetchJson, random = Math.random, history = globalThis.history, storage = globalThis.localStorage, open = globalThis.open } = {}) {
   const deps = { fetchJson, random, history, storage, open };
-  return { ...gradeEffects(deps), ...drawEffects(deps), ...videoEffects(deps), ...historyEffects(deps) };
+  return { ...gradeEffects(deps), ...drawEffects(deps), ...combine(features).effects(deps), ...historyEffects(deps) };
 }

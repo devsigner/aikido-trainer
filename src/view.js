@@ -1,15 +1,11 @@
 // view(model) → virtual tree (plain data). Handlers are messages.
 import { h } from "./vdom.js";
+import { embed } from "./framework/combine.js";
+import { askVideo, video } from "./update-video.js";
 import { WAZA_ORDER, badgesOf, buildPool, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
 
 // Key and class of the animated card: a new key replaces the element and restarts the animation.
 const slideProps = ({ direction, count }) => ({ key: count, className: direction ? `card slide-${direction}` : "card" });
-
-// Intercepts the link to ask for confirmation first.
-const askVideo = (url) => (event) => {
-  event.preventDefault?.();
-  return { type: "AskVideo", url };
-};
 
 // Card of a technique, used in the draw and program screens.
 // The `prefix` is used to generate the element ids.
@@ -53,7 +49,7 @@ const draw = (model) => {
     badges: badgesOf(current.technique),
     note: current.technique.note || "",
     video: current.technique.video || "",
-    warnVideo: !model.skipVideoWarning,
+    warnVideo: !model.video.skipWarning,
   };
   return h("section", { id: "draw" },
     h("button", { id: "home-btn", className: "secondary", onClick: { type: "GoHome" } }, "Retour à l'accueil"),
@@ -108,7 +104,7 @@ const levels = {
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
-      fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "", warnVideo: !model.skipVideoWarning },
+      fields: { waza: model.waza, attack, technique: current.name, form: current.forms.join(" · "), badges: badgesOf(current), note: current.note || "", video: current.video || "", warnVideo: !model.video.skipWarning },
       // Last row of the first screen (see `.screen.full`).
       actions: h("div", { className: "pager" },
         h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
@@ -144,17 +140,7 @@ const footer = () => h("footer", {},
   h("p", {}, "Développé par amour de l'Aïkido 🙏"),
   h("p", {}, h("a", { href: "manual.html" }, "Manuel d'utilisation")));
 
-const videoModal = (prompt) => prompt && h("div", { id: "video-modal", className: "modal-backdrop" },
-  h("div", { className: "modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "video-modal-text" },
-    h("p", { id: "video-modal-text" }, "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?"),
-    h("label", { className: "field" },
-      h("input", { type: "checkbox", id: "video-dont-ask", checked: prompt.dontAsk, onChange: (event) => ({ type: "SetDontAsk", checked: event.target.checked }) }),
-      " Ne plus afficher ce message"),
-    h("div", { className: "buttons" },
-      h("button", { id: "video-confirm", onClick: { type: "ConfirmVideo" } }, "Voir la vidéo"),
-      h("button", { id: "video-cancel", className: "secondary", onClick: { type: "CancelVideo" } }, "Annuler"))));
-
-const page = (model, ...children) => h("main", {}, ...children, footer(), videoModal(model.videoPrompt));
+const page = (model, ...children) => h("main", {}, ...children, footer(), embed("video", video.view(model.video)));
 
 const loadingView = () => h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
 
