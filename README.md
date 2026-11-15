@@ -114,7 +114,7 @@ flowchart LR
 - **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
 - **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…).
 - **`update(model, msg) → [model, cmds]`** : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
-- **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par `src/effects.js`, qui renvoie son résultat sous la forme d'un nouveau message.
+- **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`src/framework/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
 - **`view(model) → vnode`** : fonction **pure** qui produit un arbre de données. Les gestionnaires d'événements sont eux aussi des messages, pas des fonctions qui modifient l'état.
 
 #### Qui fait quoi
@@ -132,7 +132,7 @@ flowchart TB
     end
     subgraph impure["Frontière avec le monde extérieur"]
         RUN["src/runtime.js<br/>boucle update → view → render"]
-        EFF["src/effects.js<br/>fetch, hasard, historique, localStorage"]
+        EFF["src/framework/effects.js<br/>effets des features (fetch, hasard, historique, localStorage)"]
         VDOM["src/vdom.js<br/>h() + diff du DOM"]
     end
     APP --> RUN
@@ -250,7 +250,7 @@ Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module 
 
 1. Ajouter les champs nécessaires au **Model** (`initialModel` dans `src/update.js`).
 2. Définir le **Msg** et son cas dans `step` (`update`) : renvoyer le nouveau modèle et, si besoin, des `cmds`.
-3. Si un effet est nécessaire, l'ajouter dans `src/effects.js` (il renvoie son résultat par un nouveau message).
+3. Si un effet est nécessaire, l'ajouter dans la feature concernée (`effects` de `src/update-*.js`, il renvoie son résultat par un nouveau message).
 4. Afficher le résultat dans `view` (`src/view.js`) et, si besoin, le style dans `style.css`.
 5. Écrire le test, puis incrémenter la version (voir `CLAUDE.md`).
 

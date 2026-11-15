@@ -10,7 +10,7 @@ import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } 
 import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
 import { screenOf } from "../src/update-history.js";
-import { resolveGrade as resolveGradeFx } from "../src/effects.js";
+import { resolveGrade as resolveGradeFx } from "../src/update-grade.js";
 
 const DATA = {
   waza: {
@@ -89,7 +89,7 @@ describe("vdom", () => {
   });
 });
 
-describe("effects.resolveGrade", () => {
+describe("resolveGrade", () => {
   test("merges the parents then the grade", async () => {
     const grades = readJson("data/grades.json");
     const data = await resolveGradeFx(grades.find((grade) => grade.id === "2eme-kyo"), async (url) => readJson(url));

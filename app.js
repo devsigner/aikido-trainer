@@ -3,7 +3,8 @@ import { createRenderer } from "./src/framework/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
 import { debugHide, features, init, update } from "./src/update.js";
 import { run } from "./src/framework/runtime.js";
-import { DEBUG_KEY, SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
+import { createEffects } from "./src/framework/effects.js";
+import { SKIP_VIDEO_WARNING_KEY } from "./src/update-video.js";
 import { to } from "./src/framework/combine.js";
 import { view } from "./src/view.js";
 
@@ -27,6 +28,7 @@ const render = (vnode, dispatch) => {
 };
 
 // Debug mode: `?debug` turns it on (and remembers it), `?debug=0` turns it off. The module is loaded only when on.
+const DEBUG_KEY = "aikido.debug";
 const debugParam = new URLSearchParams(location.search).get("debug");
 if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
 const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
@@ -40,7 +42,7 @@ run({
   render,
   subscribe: subscriber,
   debug: debugObserver,
-  effects: createEffects(),
+  effects: createEffects(features),
   flags: {
     hash: location.hash,
     position: history.state?.position ?? 0,

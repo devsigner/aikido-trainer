@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.39`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.40`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -130,7 +130,7 @@ Unidirectional flow, no dependencies and no build (native ES modules + versioned
 - **Features** (`src/update-*.js`, composed by `combine` in `src/framework/combine.js`): each one has its own model slice (`model.grade`, `draw`, `program`, `video`, `navigation`), `init`, `update(slice, msg, root)`, `view`, `effects`. The root model is `{ grade, draw, program, video, navigation, position, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`SessionReset`, `Navigated`, `RouteChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
 - `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
-- `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by `src/effects.js` which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
+- `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `src/framework/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
 - `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `src/framework/vdom.js` provides `h()` and diff-based rendering; `src/framework/runtime.js` loops `update → effects → view → render`.
 - **Debug mode** (`src/framework/debug.js`): `?debug` in the URL (remembered in `localStorage` under `aikido.debug`, `?debug=0` turns it off) mounts a panel (its own tiny Elm app, outside the app tree) with the current model, the message log, the commands and model changes of each message, and time travel (`restore`). The panel floats (`position: fixed`), starts on the left, and is moved/resized with pointer events (state `box` and `drag`, listeners on the document while dragging). `run` takes an optional `debug` observer (`attach({ getModel, restore })`, `record({ msg, before, after, cmds })`); the module is dynamically imported by `app.js` only when the mode is on. Console helper: `__debug`.
 - **URL** (`src/route.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new draw (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
@@ -151,10 +151,9 @@ src/logic.js          Pure functions (merge, pool, weighting, sorting)
 src/update.js         features list, initialModel, init, update (combine + position/slide)
 src/update-*.js       one standalone feature per module (grade, draw, program, navigation, video); update-history.js: position, slide, `screenOf`
 src/card.js           card view shared by draw and program
-src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `vdom.js`, `runtime.js`, `debug.js`
+src/framework/       generic, app-independent Elm framework (see its README.md): `combine.js`, `effects.js`, `vdom.js`, `runtime.js`, `debug.js`
 src/route.js          URL (hash) ⇄ model
 src/view.js           view(model) → vnodes
-src/effects.js        Command execution (fetch, randomness, history)
 data/grades.json      List of available grades
 data/3eme-kyo.json    3rd Kyo program (complete, without `includes`)
 data/2eme-kyo.json    2nd Kyo additions and overrides (inherits from the 3rd)

@@ -1,13 +1,15 @@
 # Framework Elm par features
 
-Petit framework JS pur (ES modules, sans build ni dépendance), extrait d'Aikido Trainer. Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut le copier tel quel dans un autre projet.
+Petit framework JS pur (ES modules, sans build ni dépendance).
+Aucun fichier de ce dossier n'importe quoi que ce soit hors du dossier : on peut le copier tel quel dans un autre projet.
 
-| Fichier | Rôle |
-|---|---|
-| `combine.js` | `combine(features)`, `to(feature, msg)`, `embed(feature, vnode)` |
-| `vdom.js` | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages) |
-| `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm |
-| `debug.js` | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (utilise des classes CSS `dbg-*` à fournir) |
+| Fichier      | Rôle                                                                                                                      |
+|--------------|---------------------------------------------------------------------------------------------------------------------------|
+| `combine.js` | `combine(features)`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
+| `effects.js` | `createEffects(features, overrides)` : table d'effets des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
+| `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
+| `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
+| `debug.js`   | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (utilise des classes CSS `dbg-*` à fournir) |
 
 ## Une feature
 
