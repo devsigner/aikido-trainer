@@ -180,7 +180,7 @@ const STYLE = `
 #debug .dbg-change { word-break: break-all; }
 `;
 
-// Console helpers added to `__elmer` while the panel is mounted: `log` (message entries), `restore(id)` (time travel; returns the restored model, or null for an unknown id).
+// Console helpers added to `__elmer.debug` while the panel is mounted: `log` (message entries), `restore(id)` (time travel; returns the restored model, or null for an unknown id).
 function consoleApi(getControl, getEntries, restore) {
   return {
     log: { configurable: true, get: () => getEntries() },
@@ -188,7 +188,7 @@ function consoleApi(getControl, getEntries, restore) {
       configurable: true,
       value(id) {
         if (!getEntries().some((entry) => entry.id === id)) {
-          console.warn(`__elmer.restore: unknown id ${id} (see __elmer.log)`);
+          console.warn(`__elmer.debug.restore: unknown id ${id} (see __elmer.debug.log)`);
           return null;
         }
         restore(id);
@@ -244,7 +244,7 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
   return {
     attach(handle) {
       control = handle;
-      if (globalThis.__elmer) Object.defineProperties(globalThis.__elmer, consoleApi(() => control, () => panel.entries, (id) => dispatch({ type: "Restore", id })));
+      if (globalThis.__elmer) Object.defineProperties(globalThis.__elmer.debug, consoleApi(() => control, () => panel.entries, (id) => dispatch({ type: "Restore", id })));
     },
     record(entry) {
       panel = panelUpdate(panel, { type: "Recorded", entry, time: entry.time ?? clock() });
@@ -255,8 +255,8 @@ export function mountDebugger(slices = [], hide = {}, doc = document) {
       style.remove();
       root.remove();
       if (globalThis.__elmer) {
-        delete globalThis.__elmer.log;
-        delete globalThis.__elmer.restore;
+        delete globalThis.__elmer.debug.log;
+        delete globalThis.__elmer.debug.restore;
       }
     },
   };

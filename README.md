@@ -240,12 +240,12 @@ Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). La 
 
 #### Mode debug
 
-En local (`localhost`), le debugger est monté automatiquement ; ailleurs, tape `__elmer.debug()` dans la console du navigateur (de même pour le démonter). Un bouton 🐞 ouvre un panneau flottant, à la manière du debugger d'Elm. Il s'ouvre à gauche de l'écran ; on le **déplace** en glissant sa barre rouge et on le **redimensionne** avec le coin en bas à droite (souris ou doigt).
+En local (`localhost`), le debugger est monté automatiquement ; ailleurs, tape `__elmer.debug.on()` dans la console du navigateur (`__elmer.debug.off()` pour le démonter ; `__elmer.help` liste l'API). Un bouton 🐞 ouvre un panneau flottant, à la manière du debugger d'Elm. Il s'ouvre à gauche de l'écran ; on le **déplace** en glissant sa barre rouge et on le **redimensionne** avec le coin en bas à droite (souris ou doigt).
 
 - **État** : le modèle courant en JSON (les données des grades et le pool de tirage sont résumés).
 - **Messages** : le journal de tous les messages (200 derniers). Un clic affiche le message, les **commandes** qu'il a produites et les **champs du modèle modifiés**.
 - **Voyage dans le temps** : « Revenir à l'état après ce message » remet le modèle d'alors (les effets ne sont pas rejoués ; l'URL n'est pas modifiée).
-- **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__elmer.model`, `__elmer.log`, `__elmer.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
+- **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__elmer.model`, `__elmer.debug.log`, `__elmer.debug.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
 
 Le module `framework/elmer/debug.js` n'est chargé que lorsqu'il est monté ; `run` garde seulement les 200 derniers messages en mémoire et les rejoue dans le panneau au montage. L'app le configure par `devtools: { slices, hide }` (voir `framework/elmer/README.md`).
 

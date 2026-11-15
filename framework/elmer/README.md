@@ -108,23 +108,23 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 Le debugger est **inclus d'office** : `run({ …, devtools: { slices, hide } })` suffit (`slices` = noms des features, `hide` = résumés des champs volumineux). Il n'est pas dans la boucle : il l'écoute.
 
 - **Local** (`localhost`, `127.x`, `*.local`) : monté automatiquement.
-- **Ailleurs** : dans la console, `__elmer.debug()` le monte ou le démonte (`debug(true)` / `debug(false)`). Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
+- **Ailleurs** : dans la console, `__elmer.debug.on()` le monte, `__elmer.debug.off()` le démonte. Le module `debug.js` n'est chargé qu'à ce moment, et le journal des 200 derniers messages (toujours conservé en mémoire) y est rejoué.
 
 ```mermaid
 flowchart LR
     RUN["run"] -- "record({ msg, before, after, cmds, events })<br/>après chaque message" --> DBG["observateur (debug.js)"]
     RUN -- "attach({ getModel, restore })<br/>au montage" --> DBG
-    CON["console<br/>__elmer.debug()"] -- "monte / démonte" --> DBG
+    CON["console<br/>__elmer.debug.on() / .off()"] -- "monte / démonte" --> DBG
     DBG --> P["panneau (mini app Elm<br/>avec son propre model/update/view)"]
     P -- "« Revenir à cet état »<br/>restore(after)" --> RUN
-    DBG --> W["__elmer<br/>model, log, restore(id)"]
+    DBG --> W["__elmer.debug<br/>log, restore(id)"]
 ```
 
 - **Journal** : chaque message est enregistré avec le modèle avant/après, les commandes émises et les événements publiés (200 derniers). Les messages de feature sont étiquetés `feature/Type`.
 - **État** : le modèle courant, une section par tranche de feature. `hide` résume les champs volumineux (ex. les données d'un grade).
 - **Diff** : les champs modifiés par un message, tranche par tranche (`video.prompt`).
 - **Voyage dans le temps** : `restore(after)` remet un ancien modèle et redessine la vue. Les effets ne sont **pas** rejoués. Possible car le modèle est une simple donnée immuable et la vue une fonction pure de celui-ci.
-- **Console** : `__elmer.model`, `__elmer.debug(on?)` ; une fois monté, `__elmer.log` et `__elmer.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
+- **Console** : `__elmer.model`, `__elmer.debug.on()` / `.off()` ; une fois monté, `__elmer.debug.log` et `__elmer.debug.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
 
 ### L'API `__elmer` (console du navigateur)
 
@@ -133,17 +133,17 @@ flowchart LR
 | Appel | Disponible | Effet |
 |-------|------------|-------|
 | `__elmer.model` | toujours | modèle courant (la racine : une tranche par feature) |
-| `__elmer.debug()` | toujours | monte le panneau s'il est démonté, le démonte sinon ; renvoie une promesse de `true` (monté) / `false` |
-| `__elmer.debug(true)` / `__elmer.debug(false)` | toujours | force le montage / le démontage |
-| `__elmer.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
+| `__elmer.debug.on()` | toujours | monte le panneau ; renvoie une promesse de `true` |
+| `__elmer.debug.off()` | toujours | le démonte ; renvoie une promesse de `false` |
+| `__elmer.debug.log` | panneau monté | entrées du journal : `{ id, msg, before, after, cmds, events, changes, time }` |
+| `__elmer.debug.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |
 | `__elmer.help` | toujours | affiche cette liste dans la console (et la renvoie) |
-| `__elmer.restore(id)` | panneau monté | voyage dans le temps vers l'état *après* l'entrée `id` ; renvoie le modèle restauré, ou `null` (avec un avertissement) si l'id est inconnu |
 
 ```js
-await __elmer.debug();            // ouvre le panneau (déjà fait sur localhost)
+await __elmer.debug.on();         // ouvre le panneau (déjà fait sur localhost)
 __elmer.model.quiz;               // une tranche
-__elmer.log.at(-1).changes;       // ce que le dernier message a modifié
-__elmer.restore(3);               // revient à l'état après l'entrée 3
+__elmer.debug.log.at(-1).changes; // ce que le dernier message a modifié
+__elmer.debug.restore(3);         // revient à l'état après l'entrée 3
 ```
 
 ### Fonctionnement
@@ -151,7 +151,7 @@ __elmer.restore(3);               // revient à l'état après l'entrée 3
 1. `run` appelle `update` puis `view`, puis **avant** d'exécuter les commandes crée une entrée `{ msg, before, after, cmds, events, time }` : les messages issus des effets viennent donc après celui qui les a causés.
 2. L'entrée est ajoutée à un historique en mémoire (200 max) et transmise aux observateurs (le panneau, s'il est monté). Garder les modèles est peu coûteux : ils sont immuables et partagent leur structure.
 3. Au montage, `debug.js` est importé à la demande, `attach({ getModel, restore })` lui donne la main sur la boucle, et l'historique y est rejoué ; le panneau calcule le diff (`changes`) par tranche.
-4. `restore` remet un ancien modèle et redessine ; les commandes ne sont pas rejouées. Au démontage, le panneau, son style et `log` / `restore` disparaissent ; `model` et `debug` restent.
+4. `restore` remet un ancien modèle et redessine ; les commandes ne sont pas rejouées. Au démontage, le panneau, son style et `debug.log` / `debug.restore` disparaissent ; `model`, `debug.on` / `debug.off` et `help` restent.
 5. Le panneau est une mini-app Elm indépendante (son propre model / update / view), rendue hors de l'arbre de l'app.
 
 - `run` accepte aussi un observateur `debug` explicite (`attach`, `record`), utile pour les tests ; `mountDebugger(slices, hide)` en construit un avec le panneau.

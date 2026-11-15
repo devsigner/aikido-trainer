@@ -3,15 +3,16 @@
 // Elm loop: message → update → view → render, then run the commands.
 // The `run` function returns the `dispatch` function, which can be used to send messages to the loop.
 // Optional `debug` observer: `record({ msg, before, after, cmds, events })` (`events`: published by the features, optional) after each step, and `attach({ getModel, restore })` once.
-// Dev tools (browser): the last steps are always kept, and `__elmer.debug(on?)` mounts or unmounts the debugger panel (module loaded on demand,
+// Dev tools (browser): the last steps are always kept, and `__elmer.debug.on()` / `.off()` mount or unmount the debugger panel (module loaded on demand,
 // the log is replayed into it). `devtools: { slices, hide }` configures it (see debug.js); it is mounted by default on a local host.
 const MAX_HISTORY = 200;
 const HELP = [
-  "__elmer.model            current model (one slice per feature)",
-  "__elmer.debug()          mounts / unmounts the debugger panel (debug(true) / debug(false) to force)",
-  "__elmer.log              (panel mounted) log entries { id, msg, before, after, cmds, events, changes, time }",
-  "__elmer.restore(id)      (panel mounted) time travel to the state after entry `id`; returns the model, or null",
-  "__elmer.help             this help",
+  "__elmer.model              current model (one slice per feature)",
+  "__elmer.debug.on()         mounts the debugger panel",
+  "__elmer.debug.off()        unmounts it",
+  "__elmer.debug.log          (panel mounted) log entries { id, msg, before, after, cmds, events, changes, time }",
+  "__elmer.debug.restore(id)  (panel mounted) time travel to the state after entry `id`; returns the model, or null",
+  "__elmer.help               this help",
 ].join("\n");
 const isLocal = () => /^(localhost|127\..*|\[::1\]|.*\.local)$/.test(globalThis.location?.hostname ?? "");
 
@@ -57,7 +58,7 @@ export function run({ init, update, view, render, effects, subscribe, flags, deb
 
   if (devtools && typeof document !== "undefined") {
     let mounted = null;
-    const toggle = async (on = !mounted) => {
+    const toggle = async (on) => {
       if (on && !mounted) {
         mounted = true; // guards against a second call while the module loads
         const panel = (await import("./debug.js")).mountDebugger(devtools.slices, devtools.hide);
@@ -74,7 +75,7 @@ export function run({ init, update, view, render, effects, subscribe, flags, deb
     };
     globalThis.__elmer = {
       get model() { return model; },
-      debug: toggle,
+      debug: { on: () => toggle(true), off: () => toggle(false) },
       get help() { console.log(HELP); return HELP; },
     };
     if (isLocal()) toggle(true);
