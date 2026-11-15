@@ -107,7 +107,7 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 
 ## La feature `elmer`
 
-`combine` ajoute d'office une feature nommée `elmer` (nom réservé, dernière tranche du modèle) : elle porte les réglages du framework, `model.elmer = { debug: "on" | "off", persist: false, historySize: 200 }`. Au démarrage, `run` lui donne `flags.elmer` (choix mémorisé s'il y en a un, sinon `"on"` en local). Changer un réglage = envoyer un message (`to("elmer", { type: "DebugOn" })`) ; la commande `SaveSetting` le mémorise tant que `persist` est vrai (`__elmer.debug.unpersist()` l'oublie via `ForgetSetting` ; `persist` n'est pas mémorisé lui-même : faux par défaut, vrai au démarrage si un choix a été mémorisé). Le voyage dans le temps (`restore`) **préserve** `model.elmer`.
+`combine` ajoute d'office une feature nommée `elmer` (nom réservé, dernière tranche du modèle) : elle porte les réglages du framework, `model.elmer = { debug: "on" | "off", persist: false, historySize: 200 }`. Au démarrage, son `init` lit l'environnement (`settingsFromEnvironment` : choix mémorisé s'il y en a un, sinon `"on"` en local) ; `flags.elmer` peut le remplacer (tests). Changer un réglage = envoyer un message (`to("elmer", { type: "DebugOn" })`) ; la commande `SaveSetting` le mémorise tant que `persist` est vrai (`__elmer.debug.unpersist()` l'oublie via `ForgetSetting` ; `persist` n'est pas mémorisé lui-même : faux par défaut, vrai au démarrage si un choix a été mémorisé). Le voyage dans le temps (`restore`) **préserve** `model.elmer`.
 
 ## Le debugger
 

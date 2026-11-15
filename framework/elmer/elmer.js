@@ -13,7 +13,7 @@ const STORAGE_PREFIX = "elmer.";
 const isLocal = () => /^(localhost|127\..*|\[::1\]|.*\.local)$/.test(globalThis.location?.hostname ?? "");
 
 // Settings that depend on the environment: the saved choice, else the default (the debugger is on for a local host).
-// Called by `run`, which gives them to the feature as `flags.elmer`.
+// Read by the `init` of the feature; `flags.elmer` (tests, other environments) wins over it.
 export function settingsFromEnvironment() {
   let debug = null;
   try { debug = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}debug`); } catch { /* storage unavailable */ }
@@ -25,7 +25,7 @@ const setDebug = (debug) => (model) => [{ ...model, debug }, model.persist ? [{ 
 
 export const feature = {
   model: { debug: "off", persist: false, historySize: 200 },
-  init: (flags, model) => [{ ...model, ...flags?.elmer }, []],
+  init: (flags, model) => [{ ...model, ...settingsFromEnvironment(), ...flags?.elmer }, []],
   messages: {
     DebugOn: setDebug("on"),
     DebugOff: setDebug("off"),
@@ -41,3 +41,6 @@ export const feature = {
     },
   }),
 };
+
+// Time travel puts a past model back but keeps the current settings of the framework (the state of the debugger must not travel).
+export const keepSettings = (model, past) => (model.elmer ? { ...past, elmer: model.elmer } : past);
