@@ -8,9 +8,9 @@
   <div id="app"></div>
   <!-- Serve the repository root (e.g. `python3 -m http.server`) and open /examples/counter/ -->
   <script type="module">
-    import { combine } from "../../src/framework/combine.js";
-    import { createRenderer } from "../../src/framework/vdom.js";
-    import { run } from "../../src/framework/runtime.js";
+    import { combine } from "../../src/elmer/combine.js";
+    import { createRenderer } from "../../src/elmer/vdom.js";
+    import { run } from "../../src/elmer/runtime.js";
     import { features, view } from "./features.js";
 
     const app = combine(features);

@@ -1,11 +1,11 @@
 // app.js
 
 // Entry point: wires the model, the view and the effects together (see src/).
-import { createRenderer } from "./src/framework/vdom.js";
+import { createRenderer } from "./src/elmer/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
 import { debugHide, features, init, update } from "./src/update.js";
-import { run } from "./src/framework/runtime.js";
-import { createEffects, createSubscriptions } from "./src/framework/effects.js";
+import { run } from "./src/elmer/runtime.js";
+import { createEffects, createSubscriptions } from "./src/elmer/effects.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
 import { view } from "./src/view.js";
 import { readFlag, writeFlag } from "./src/shared/logic.js";
@@ -34,7 +34,7 @@ const DEBUG_KEY = "aikido.debug";
 const debugParam = new URLSearchParams(location.search).get("debug");
 if (debugParam !== null) writeFlag(DEBUG_KEY, debugParam !== "0");
 const debug = debugParam === null ? readFlag(DEBUG_KEY) : debugParam !== "0";
-const debugObserver = debug ? (await import("./src/framework/debug.js")).mountDebugger(Object.keys(features), debugHide) : undefined;
+const debugObserver = debug ? (await import("./src/elmer/debug.js")).mountDebugger(Object.keys(features), debugHide) : undefined;
 
 // launch the app with the initial flags (hash, history position, skip video warning).
 run({

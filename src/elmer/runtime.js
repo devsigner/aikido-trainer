@@ -1,4 +1,4 @@
-// src/framework/runtime.js
+// src/elmer/runtime.js
 
 // Elm loop: message → update → view → render, then run the commands.
 // The `run` function returns the `dispatch` function, which can be used to send messages to the loop.

@@ -1,4 +1,4 @@
-// src/framework/effects.js
+// src/elmer/effects.js
 
 // Effects and subscriptions of the features, with the browser services they may need (`deps`, passed to each feature).
 // Every service can be replaced (tests, other environments): `overrides` wins over the browser default.

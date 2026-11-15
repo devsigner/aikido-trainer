@@ -40,7 +40,7 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 
 ## Exemple
 
-`examples/counter/` : deux features (compteur, journal qui réagit à un événement). Servir la racine du dépôt (`python3 -m http.server`) et ouvrir `/examples/counter/`. Le test `tests/framework.test.js` l'exerce.
+`examples/counter/` : deux features (compteur, journal qui réagit à un événement). Servir la racine du dépôt (`python3 -m http.server`) et ouvrir `/examples/counter/`. Le test `tests/elmer.test.js` l'exerce.
 
 ## Extraire en dépôt séparé
 

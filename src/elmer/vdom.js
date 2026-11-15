@@ -1,4 +1,4 @@
-// src/framework/vdom.js
+// src/elmer/vdom.js
 
 const PROPS_DOM = new Set(["hidden", "disabled", "checked", "selected", "value"]);
 

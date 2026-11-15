@@ -1,9 +1,9 @@
-// tests/framework.test.js
+// tests/elmer.test.js
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { UNMOUNT, combine, defineFeature, embed, to } from "../src/framework/combine.js";
+import { UNMOUNT, combine, defineFeature, embed, to } from "../src/elmer/combine.js";
 import { features as exampleFeatures, view as exampleView } from "../examples/counter/features.js";
 
 // Two fake features: a counter that publishes an event, and a log that listens to it.
@@ -19,7 +19,7 @@ const log = defineFeature({
   effects: () => ({ Ping: () => {} }),
 });
 
-describe("framework combine", () => {
+describe("elmer combine", () => {
   const app = combine({ counter, log });
 
   test("init builds one slice per feature and tags the commands with their feature", () => {
@@ -124,8 +124,8 @@ describe("framework combine", () => {
     assert.deepEqual(tree.children[0].children[1].props.onClick, to("counter", { type: "Increment" }));
   });
 
-  test("the framework folder does not depend on the application", () => {
-    const dir = new URL("../src/framework/", import.meta.url);
+  test("the elmer folder does not depend on the application", () => {
+    const dir = new URL("../src/elmer/", import.meta.url);
     for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".js"))) {
       const imports = [...fs.readFileSync(new URL(file, dir), "utf8").matchAll(/from "([^"]+)"/g)].map((match) => match[1]);
       assert.ok(imports.every((path) => path.startsWith("./")), `${file} imports outside the framework: ${imports}`);
