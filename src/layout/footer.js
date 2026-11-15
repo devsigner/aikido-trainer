@@ -1,3 +1,4 @@
+// src/layout/footer.js
 import { h } from "../framework/vdom.js";
 
 export const footer = () => h("footer", {},

@@ -1,3 +1,4 @@
+// src/framework/combine.js
 // Generic composition of features (no knowledge of the application).
 //
 // A feature is a small Elm program:
@@ -21,6 +22,10 @@ const MAX_EVENTS = 1000; // an event loop is a bug: fail loudly rather than free
 // Message addressed to a feature.
 export const to = (feature, msg) => ({ feature, msg });
 
+// Composes several features into one root program: the slices of every feature are merged in the root model,
+// and the messages of every feature are enveloped in `{ feature, msg }`.
+//
+// The root program is used by the runtime (src/framework/runtime.js) to run the Elm loop.
 export function combine(features) {
   const byName = new Map(features.map((feature) => [feature.name, feature]));
   if (byName.size !== features.length) throw new Error("Duplicate feature name");

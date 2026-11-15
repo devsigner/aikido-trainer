@@ -1,3 +1,4 @@
+// src/features/grade.js
 // Feature "grade": the list of grades, the data of the selected grade, and the filters.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.

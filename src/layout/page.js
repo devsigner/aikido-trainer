@@ -1,3 +1,4 @@
+// src/layout/page.js
 import { h } from "../framework/vdom.js";
 import { embed } from "../framework/combine.js";
 import { video } from "../features/video.js";

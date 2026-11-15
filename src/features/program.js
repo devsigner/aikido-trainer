@@ -1,3 +1,4 @@
+// src/features/program.js
 // Feature "program": browsing attacks → techniques → card, in three levels.
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the grade data and the waza of the draw through the root model (read-only).

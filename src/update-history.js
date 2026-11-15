@@ -1,3 +1,4 @@
+// src/update-history.js
 // Cross-cutting concern of `update`: browser history and card animation.
 // Not a feature of its own: it wraps the result of every feature handler (see `update` in update.js).
 import { toHash } from "./route.js";

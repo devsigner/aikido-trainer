@@ -1,3 +1,4 @@
+// app.js
 // Entry point: wires the model, the view and the effects together (see src/).
 import { createRenderer } from "./src/framework/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.

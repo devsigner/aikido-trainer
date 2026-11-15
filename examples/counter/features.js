@@ -1,3 +1,4 @@
+// examples/counter/features.js
 // Two features composed with the framework: a counter, and a log that reacts to the counter's events.
 import { h } from "../../src/framework/vdom.js";
 import { embed, to } from "../../src/framework/combine.js";

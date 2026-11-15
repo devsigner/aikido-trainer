@@ -1,3 +1,4 @@
+// src/framework/debug.js
 // Debug mode (`?debug` in the URL): a panel with the current model, the message log,
 // the commands and events each message produced, a diff of the model (per feature slice), and time travel.
 // Loaded only when the mode is on. The panel is its own tiny Elm app, rendered outside the app tree.

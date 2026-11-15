@@ -1,3 +1,4 @@
+// src/view.js
 // view(model) → virtual tree (plain data). Handlers are messages.
 // The root view picks the screen; the pieces of the page are in src/layout/.
 import { h } from "./framework/vdom.js";
@@ -6,6 +7,8 @@ import { grade } from "./features/grade.js";
 import { draw } from "./features/draw.js";
 import { program } from "./features/program.js";
 import { screenOf } from "./update-history.js";
+
+// Layout
 import { home } from "./layout/home.js";
 import { page } from "./layout/page.js";
 import { title } from "./layout/title.js";

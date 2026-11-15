@@ -1,3 +1,4 @@
+// src/shared/logic.js
 // Shared functions: pure (no dependency on the DOM, the network or randomness), except the localStorage flags at the end.
 export const WEIGHT_NEW = 1.5;
 export const WEIGHT_WARNING = 1.5;
