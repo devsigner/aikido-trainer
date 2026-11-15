@@ -3,7 +3,7 @@
 // Reads the grade data and the waza of the draw through the root model (read-only).
 // Publishes `Navigated` (the URL must follow); closes when the draw session is reset.
 import { h } from "./vdom.js";
-import { badgesOf, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
+import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
 import { card, slideProps } from "./card.js";
 import { navigated } from "./update-history.js";
 import { to } from "./framework/combine.js";
@@ -106,6 +106,9 @@ function view(model, root, header) {
       h("div", { id: "prog-list", className: "buttons" }, items)));
 }
 
+// The URL changed: the program of the route, narrowed to what the data contains.
+const routeChanged = (_, { route }, root) => [{ at: WAZA_ORDER.includes(route.waza) ? validProgram(root.grade.data, route) : null }, []];
+
 export const program = {
   name: "program",
   init: () => [initialModel, []],
@@ -113,6 +116,6 @@ export const program = {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
   },
-  on: { SessionReset: () => [initialModel, []] },
+  on: { SessionReset: () => [initialModel, []], RouteChanged: routeChanged },
   view,
 };

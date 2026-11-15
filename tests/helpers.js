@@ -58,11 +58,11 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     },
     back() {
       index = Math.max(0, index - 1);
-      popstate({ type: "Popped", hash: states[index], position: index });
+      popstate(to("navigation", { type: "Popped", hash: states[index], position: index }));
     },
     forward() {
       index = Math.min(states.length - 1, index + 1);
-      popstate({ type: "Popped", hash: states[index], position: index });
+      popstate(to("navigation", { type: "Popped", hash: states[index], position: index }));
     },
   };
   const dispatch = run({

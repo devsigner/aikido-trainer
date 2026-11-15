@@ -3,6 +3,7 @@
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
 import { h } from "./vdom.js";
 import { countTechniques, mergeGrades } from "./logic.js";
+import { parseHash } from "./route.js";
 import { url } from "./update-history.js";
 
 export const initialModel = {
@@ -52,14 +53,20 @@ export async function resolveGrade(grade, fetchJson) {
 }
 
 // Command asking this feature to load a grade (for the code that has no access to its messages).
-export const loadGrade = (grade) => ({ type: "LoadGrade", grade, feature: "grade" });
 
 export const grade = {
   name: "grade",
-  init: ({ gradeId } = {}) => [initialModel, [{ type: "LoadGrades", gradeId }]],
+  init: ({ hash = "" } = {}) => [initialModel, [{ type: "LoadGrades", gradeId: parseHash(hash).grade }]],
   update(model, msg, root) {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
+  },
+  // The navigation needs another grade: select it and load its data.
+  on: {
+    GradeWanted(model, event) {
+      const selected = model.list.find((candidate) => candidate.id === event.id);
+      return selected ? [{ ...model, id: selected.id }, [{ type: "LoadGrade", grade: selected }]] : [model, []];
+    },
   },
   view,
   // Loading the data. Any loading error becomes a `Failed` message.

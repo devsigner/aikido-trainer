@@ -6,6 +6,7 @@ import { h } from "./vdom.js";
 import { badgesOf, buildPool, pickIndex } from "./logic.js";
 import { card, slideProps } from "./card.js";
 import { navigated, screenOf } from "./update-history.js";
+import { WAZA_ORDER } from "./logic.js";
 import { to } from "./framework/combine.js";
 
 // State of a draw session. The model is reset to this state when the user goes home or changes waza.
@@ -65,6 +66,15 @@ function view(model, root) {
       h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram" }) }, "Voir le programme")));
 }
 
+// The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
+function routeChanged(model, { route }, root) {
+  if (!WAZA_ORDER.includes(route.waza)) return [initialModel, []];
+
+  const next = model.waza === route.waza ? model : startSession(root, route.waza);
+  const needsDraw = !route.program && !next.current && !next.done && next.pool.length > 0;
+  return [next, needsDraw ? [{ type: "Random" }] : []];
+}
+
 export const draw = {
   name: "draw",
   init: () => [initialModel, []],
@@ -72,6 +82,7 @@ export const draw = {
     if (!messages[msg.type]) throw new Error(`Unknown message : ${msg.type}`);
     return messages[msg.type](model, msg, root);
   },
+  on: { RouteChanged: routeChanged },
   view,
   effects: ({ random }) => ({
     Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),

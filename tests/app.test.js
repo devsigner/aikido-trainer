@@ -332,7 +332,7 @@ describe("URL and history", () => {
   test("after reloading on the program, going back to the draw starts a draw", async () => {
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program" });
     assert.equal(app.model.draw.current, null);
-    app.dispatch({ type: "Popped", hash: "#/1er-kyo/Tachi%20waza" });
+    app.dispatch(to("navigation", { type: "Popped", hash: "#/1er-kyo/Tachi%20waza" }));
     assert.equal(screenOf(app.model), "draw");
     assert.ok(app.model.draw.current);
   });
@@ -346,7 +346,7 @@ describe("URL and history", () => {
 
   test("popstate to another grade loads its data", async () => {
     const app = await createApp();
-    app.dispatch({ type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" });
+    app.dispatch(to("navigation", { type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" }));
     await settle();
     assert.equal(app.model.grade.id, "3eme-kyo");
     assert.equal(countTechniques(app.model.grade.data), 65);
@@ -438,7 +438,8 @@ describe("history position", () => {
     const [model] = init({ position: 3 });
     assert.equal(model.position, 3);
     const ready = { ...model, grade: { ...model.grade, status: "ready", data: DATA, list: [], id: "t" } };
-    const [pushed, [push]] = update(ready, to("draw", { type: "StartSession", waza: "Tachi waza" }));
+    const [pushed, pushes] = update(ready, to("draw", { type: "StartSession", waza: "Tachi waza" }));
+    const push = pushes.find((command) => command.type === "Url");
     assert.equal(pushed.position, 4);
     assert.deepEqual([push.type, push.mode, push.position], ["Url", "push", 4]);
     const [selected, commands] = update({ ...ready, grade: { ...ready.grade, list: [{ id: "t" }] } }, to("grade", { type: "SelectGrade", id: "t" }));

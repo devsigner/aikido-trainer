@@ -4,6 +4,7 @@ import { createRenderer } from "./src/vdom.js";
 import { features, init, update } from "./src/update.js";
 import { run } from "./src/runtime.js";
 import { DEBUG_KEY, SKIP_VIDEO_WARNING_KEY, createEffects } from "./src/effects.js";
+import { to } from "./src/framework/combine.js";
 import { view } from "./src/view.js";
 
 // Render, and scroll back to the top when the displayed tree actually changed.
@@ -49,11 +50,11 @@ run({
 
 function subscriber(dispatch) {
   window.addEventListener("popstate", () => {
-    return dispatch({
+    return dispatch(to("navigation", {
       type: "Popped",
       hash: location.hash,
       position: history.state?.position ?? 0
-    })
+    }))
   });
 }
 
