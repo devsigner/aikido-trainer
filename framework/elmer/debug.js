@@ -110,6 +110,9 @@ const detail = (entry) => h("div", { className: "dbg-detail" },
   h("div", { className: "dbg-actions" },
     h("button", { onClick: { type: "Copy", text: json({ msg: entry.msg, cmds: entry.cmds, events: entry.events, changes: entry.changes }) } }, "Copier")));
 
+// The nodes separated by " - ".
+const joined = (nodes) => nodes.flatMap((node, i) => (i ? [" - ", node] : [node]));
+
 const logTab = (panel) => [
   h("div", { className: "dbg-actions" },
     h("button", { onClick: { type: "Clear" } }, "Vider"),
@@ -117,13 +120,16 @@ const logTab = (panel) => [
   [...panel.entries].reverse().map((entry) => [
     h("div", { className: "dbg-row" },
       h("button", { className: `dbg-entry${panel.selected === entry.id ? " on" : ""}`, onClick: { type: "Select", id: entry.id } },
-        h("span", { className: "dbg-id" }, `#${entry.id}`),
-        h("b", {}, labelOf(entry.msg)),
-        h("span", { className: "dbg-meta" },
-          h("span", {}, entry.time),
+        h("p", {},
+          h("span", { className: "dbg-id" }, `#${entry.id}`),
+          h("b", {}, labelOf(entry.msg)),
+          h("span", { className: "dbg-time" }, entry.time)
+        ),
+        h("span", { className: "dbg-meta" }, joined([
           h("span", {}, `${entry.cmds.length} cmd`),
           h("span", {}, `${(entry.events ?? []).length} evt`),
-          entry.changes.length ? entry.changes.map((change) => h("span", {}, change.key)) : h("span", {}, "—"))),
+          ...(entry.changes.length ? entry.changes.map((change) => h("span", {}, change.key)) : [h("span", {}, "—")]),
+        ]))),
       h("button", { className: "dbg-restore", title: "Revenir à l'état après ce message", onClick: { type: "Restore", id: entry.id } }, "⏪")),
     panel.selected === entry.id ? detail(entry) : null,
   ]),
@@ -178,13 +184,13 @@ const STYLE = `
 #debug .dbg-fold { display: block; width: 100%; margin-bottom: .2rem; background: #161b22; color: #e8a39b; }
 #debug .dbg-actions { display: flex; gap: .4rem; margin-bottom: .5rem; }
 #debug pre { margin: 0 0 .5rem; white-space: pre-wrap; word-break: break-all; }
-#debug .dbg-row { display: flex; align-items: flex-start; gap: .2rem; margin-bottom: .2rem; }
-#debug .dbg-entry { display: flex; gap: .5rem; flex: 1; min-width: 0; background: #161b22; }
+#debug .dbg-row { display: flex; width: 100%;  align-items: flex-start; gap: .2rem; margin-bottom: .2rem; }
+#debug .dbg-entry { background: #161b22; flex-grow: 1; }
 #debug .dbg-restore { flex: none; background: #161b22; }
 #debug .dbg-entry.on { background: #30363d; }
 #debug .dbg-id { color: #8b95a5; }
+#debug .dbg-time { color: #8b95a5; }
 #debug .dbg-meta { min-width: 0; margin-left: auto; color: #8b95a5; text-align: right; overflow-wrap: anywhere; }
-#debug .dbg-meta > span { display: block; }
 #debug .dbg-detail { margin: 0 0 .6rem; padding: .5rem; border-left: 2px solid #c0392b; }
 #debug .dbg-title { margin: .3rem 0; color: #e8a39b; }
 #debug .dbg-change { word-break: break-all; }
