@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.92`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.93`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -120,6 +120,9 @@ A `pre-commit` hook (`.githooks/`, enabled by `yarn install` through the `prepar
 
 - `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache, `src/` modules).
 - `tests/app.test.js`: pure logic (pool, weighting, sorting, merging), `update`, `h()`, `resolveGrade`, and a full walkthrough using the real runtime with `tests/helpers.js` (virtual tree, simulated history: home, quiz without repetition, progress, program, back).
+
+- `tests/elmer.test.js`: the framework (`combine`, features, lazy, effects, the `elmer` feature, `defineFeature`).
+- `tests/elmer-debug.test.js`: the debugger (panel state and view, slices, log, restore, runtime hooks).
 
 Run the tests before every commit and add some for any new rule.
 
