@@ -236,8 +236,8 @@ describe("program", () => {
     app.click("prog-prev");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 2);
-    assert.equal(app.model.program.at.attack, "Katate dori");
+    assert.equal(app.model.program.current.level, 2);
+    assert.equal(app.model.program.current.attack, "Katate dori");
   });
 
   test("level 2 back button always lists the attacks, even after other navigation", async () => {
@@ -245,9 +245,9 @@ describe("program", () => {
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 1);
+    assert.equal(app.model.program.current.level, 1);
     assert.equal(app.model.slide.direction, "back");
   });
 
@@ -256,9 +256,9 @@ describe("program", () => {
     app.click("Katate dori");
     app.click("Nikkyo");
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 1);
+    assert.equal(app.model.program.current.level, 1);
     app.click("prog-back");
     assert.equal(screenOf(app.model), "quiz");
     assert.ok(byId(app.tree, "card"));
@@ -271,20 +271,20 @@ describe("program", () => {
     app.click(app.list()[0]);
     assert.equal(app.model.slide.direction, "forward");
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     assert.equal(app.model.slide.direction, "back");
     app.history.back();
-    assert.equal(app.model.program.at.level, 3);
+    assert.equal(app.model.program.current.level, 3);
     assert.equal(app.model.slide.direction, "back");
     app.history.forward();
-    assert.equal(app.model.program.at.level, 2);
+    assert.equal(app.model.program.current.level, 2);
     assert.equal(app.model.slide.direction, "forward");
   });
 });
 
 describe("URL and history", () => {
   test("parseHash / toHash: round trip, accents and spaces encoded", () => {
-    const model = { catalog: { id: "2eme-kyo" }, quiz: { waza: "Tachi waza" }, program: { at: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } } };
+    const model = { catalog: { id: "2eme-kyo" }, quiz: { waza: "Tachi waza" }, program: { current: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } } };
     assert.equal(toHash(model), "#/2eme-kyo/Tachi%20waza/program/A%C3%AF%20hammi%20katate%20dori/Nikkyo");
     assert.deepEqual(parseHash(toHash(model)), { grade: "2eme-kyo", waza: "Tachi waza", program: { level: 3, attack: "Aï hammi katate dori", technique: "Nikkyo" } });
     assert.deepEqual(parseHash("#/%E0%A4%A"), {});
@@ -318,7 +318,7 @@ describe("URL and history", () => {
     const hash = "#/2eme-kyo/Suwari%20waza/program/Katate%20dori/Nikkyo";
     const app = await createApp({ hash });
     assert.deepEqual([app.model.catalog.id, app.model.program.waza, screenOf(app.model)], ["2eme-kyo", "Suwari waza", "program"]);
-    assert.equal(app.model.program.at.technique, "Nikkyo");
+    assert.equal(app.model.program.current.technique, "Nikkyo");
     assert.equal(app.text("prog-technique"), "Nikkyo");
     assert.equal(app.history.url, hash);
   });
@@ -359,7 +359,7 @@ describe("URL and history", () => {
   test("invalid URL: unknown grade or waza → home, unknown attack → level 1", async () => {
     assert.equal(screenOf((await createApp({ hash: "#/xx/Foo" })).model), "home");
     const app = await createApp({ hash: "#/1er-kyo/Tachi%20waza/program/Nimporte/Quoi" });
-    assert.deepEqual(app.model.program.at, { level: 1 });
+    assert.deepEqual(app.model.program?.current, { level: 1 });
     assert.equal(app.history.url, "#/1er-kyo/Tachi%20waza/program");
   });
 
@@ -448,7 +448,7 @@ describe("card transitions", () => {
 
   test("a message can force the direction", () => {
     const [model] = init();
-    const ready = { ...model, catalog: { ...model.catalog, status: "ready", data: DATA }, program: { waza: "Tachi waza", at: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
+    const ready = { ...model, catalog: { ...model.catalog, status: "ready", data: DATA }, program: { waza: "Tachi waza", current: { level: 3, attack: "Katate dori", technique: "Nikkyo" } } };
     const [next] = update(ready, to("program", { type: "Navigate", to: { level: 3, attack: "Katate dori", technique: "Kote gaeshi" }, direction: "back" }));
     assert.equal(next.slide.direction, "back");
   });
@@ -497,10 +497,10 @@ describe("program buttons", () => {
     app.click("Nikkyo");
     app.click("prog-next");
     app.click("prog-back");
-    assert.deepEqual([app.model.program.at.level, app.model.program.at.attack], [2, "Katate dori"]);
+    assert.deepEqual([app.model.program.current.level, app.model.program.current.attack], [2, "Katate dori"]);
     assert.equal(app.model.slide.direction, "back");
     app.click("prog-back");
-    assert.equal(app.model.program.at.level, 1);
+    assert.equal(app.model.program.current.level, 1);
     app.click("prog-back");
     assert.equal(screenOf(app.model), "quiz");
     assert.equal(app.history.url, "#/t/Tachi%20waza");

@@ -12,8 +12,8 @@ import { navigated } from "./navigation.js";
 import { viewChanged } from "./slide.js";
 import { UNMOUNT, to } from "../framework/combine.js";
 
-// `waza` = the waza being browsed; `at` = { level, attack?, technique? }, or null when the program is not open.
-export const initialModel = { waza: "", at: null };
+// `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
+export const initialModel = { waza: "", current: null };
 
 // URL route narrowed to what the data contains (unknown attack or technique → level above).
 export function validProgram(data, { waza, program }) {
@@ -25,10 +25,10 @@ export function validProgram(data, { waza, program }) {
 }
 
 const messages = {
-  OpenProgram: (_, msg) => [{ waza: msg.waza, at: { level: 1 } }, [], [{ type: "ProgramOpened" }, navigated("push"), viewChanged("forward")]],
+  OpenProgram: (_, msg) => [{ waza: msg.waza, current: { level: 1 } }, [], [{ type: "ProgramOpened" }, navigated("push"), viewChanged("forward")]],
 
   // Going up a level slides back, unless the message forces the direction.
-  Navigate: (model, msg) => [{ ...model, at: msg.to }, [], [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.at.level ? "back" : "forward"))]],
+  Navigate: (model, msg) => [{ ...model, current: msg.to }, [], [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]],
 
   CloseProgram: (model) => [UNMOUNT, [], [{ type: "ProgramClosed", waza: model.waza }, navigated("push"), viewChanged("back")]],
 };
@@ -53,7 +53,7 @@ const levels = {
       items: attacks.map((attack) => item(attack.name, { level: 2, attack: attack.name })),
     };
   },
-  2(root, { waza, at: { attack } }) {
+  2(root, { waza, current: { attack } }) {
     const techniques = listTechniques(root.catalog.data, waza, attack);
     return {
       back: "← Programme",
@@ -64,15 +64,15 @@ const levels = {
       items: techniques.map((technique) => item(withBadges(technique.name, technique), { level: 3, attack, technique: technique.name })),
     };
   },
-  3(root, { waza, at: { attack, technique } }) {
+  3(root, { waza, current: { attack, technique } }) {
     const siblings = listTechniques(root.catalog.data, waza, attack);
     const position = siblings.findIndex((candidate) => candidate.name === technique);
-    const current = siblings[position];
+    const entry = siblings[position];
     // Neighbours wrap around the list; none when the attack has a single technique.
     const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
     const pagerButton = (id, label, target, direction) =>
       h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
-    const others = findSameTechnique(root.catalog.data, waza, attack, current.name);
+    const others = findSameTechnique(root.catalog.data, waza, attack, entry.name);
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
@@ -92,7 +92,7 @@ const levels = {
 
 // The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
 function view(model, root, header) {
-  const { back, backMessage, fields, actions, title, sub, items } = levels[model.at.level](root, model);
+  const { back, backMessage, fields, actions, title, sub, items } = levels[model.current.level](root, model);
   return h("section", { id: "program" },
     h("div", { className: actions ? "screen full" : "screen" },
       header,
@@ -109,10 +109,10 @@ function view(model, root, header) {
 
 // The URL changed: the program of the route, narrowed to what the data contains.
 function routeChanged(model, { route, direction }, root) {
-  const at = WAZA_ORDER.includes(route.waza) ? validProgram(root.catalog.data, route) : null;
-  if (!at) return [UNMOUNT, [], model.at && direction ? [viewChanged(direction)] : []];
-  const changed = model.waza !== route.waza || JSON.stringify(model.at) !== JSON.stringify(at);
-  return [{ waza: route.waza, at }, [], changed && direction ? [viewChanged(direction)] : []];
+  const current = WAZA_ORDER.includes(route.waza) ? validProgram(root.catalog.data, route) : null;
+  if (!current) return [UNMOUNT, [], model.current && direction ? [viewChanged(direction)] : []];
+  const changed = model.waza !== route.waza || JSON.stringify(model.current) !== JSON.stringify(current);
+  return [{ waza: route.waza, current }, [], changed && direction ? [viewChanged(direction)] : []];
 }
 
 export const program = {

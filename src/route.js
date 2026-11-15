@@ -5,8 +5,8 @@ export function toHash(model) {
   const parts = [model.catalog.id];
   const waza = model.program?.waza || model.quiz?.waza;
   if (waza) parts.push(waza);
-  if (model.program?.at) {
-    const { level, attack, technique } = model.program.at;
+  if (model.program?.current) {
+    const { level, attack, technique } = model.program.current;
     parts.push("program");
     if (level >= 2) parts.push(attack);
     if (level === 3) parts.push(technique);

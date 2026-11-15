@@ -193,7 +193,7 @@ stateDiagram-v2
     }
 ```
 
-Les trois niveaux du programme sont stockés dans `model.program = { waza, at: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `quiz` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
+Les trois niveaux du programme sont stockés dans `model.program = { waza, current: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `quiz` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
 
 #### Principaux messages et effets
 
