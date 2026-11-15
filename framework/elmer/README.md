@@ -74,6 +74,7 @@ En trois règles :
 | `effects.js` | `createEffects` / `createSubscriptions(features, overrides)` : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm                                      |
+| `devtools.js` | historique des messages, API console `__elmer`, montage à la demande du panneau (appelé par `run`) |
 | `debug.js`   | `mountDebugger(slices, hide)` : panneau d'état, journal, voyage dans le temps (voir « Le debugger ») |
 
 ## Une feature
@@ -149,8 +150,8 @@ __elmer.debug.restore(3);         // revient à l'état après l'entrée 3
 
 ### Fonctionnement
 
-1. `run` appelle `update` puis `view`, puis **avant** d'exécuter les commandes crée une entrée `{ msg, before, after, cmds, events, time }` : les messages issus des effets viennent donc après celui qui les a causés.
-2. L'entrée est ajoutée à un historique en mémoire (200 max) et transmise aux observateurs (le panneau, s'il est monté). Garder les modèles est peu coûteux : ils sont immuables et partagent leur structure.
+1. `run` (`runtime.js`) ne fait que la boucle ; tout le reste est dans `devtools.js`. Après `update` et `view`, et **avant** d'exécuter les commandes, `run` lui confie une entrée `{ msg, before, after, cmds, events, time }` : les messages issus des effets viennent donc après celui qui les a causés.
+2. `devtools.js` l'ajoute à un historique en mémoire (200 max) et transmise aux observateurs (le panneau, s'il est monté). Garder les modèles est peu coûteux : ils sont immuables et partagent leur structure.
 3. Au montage, `debug.js` est importé à la demande, `attach({ getModel, restore })` lui donne la main sur la boucle, et l'historique y est rejoué ; le panneau calcule le diff (`changes`) par tranche.
 4. `restore` remet un ancien modèle et redessine ; les commandes ne sont pas rejouées. Au démontage, le panneau, son style et `debug.log` / `debug.restore` disparaissent ; `model`, `debug.on` / `debug.off` et `help` restent.
 5. Le panneau est une mini-app Elm indépendante (son propre model / update / view), rendue hors de l'arbre de l'app.
