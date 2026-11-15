@@ -10,6 +10,7 @@ const HELP = [
   "__elmer.model              current model (one slice per feature)",
   "__elmer.debug.on()         mounts the debugger panel",
   "__elmer.debug.off()        unmounts it",
+  "__elmer.debug.status       \"on\" or \"off\"",
   "__elmer.debug.log          (panel mounted) log entries { id, msg, before, after, cmds, events, changes, time }",
   "__elmer.debug.restore(id)  (panel mounted) time travel to the state after entry `id`; returns the model, or null",
   "__elmer.help               this help",
@@ -75,7 +76,7 @@ export function run({ init, update, view, render, effects, subscribe, flags, deb
     };
     globalThis.__elmer = {
       get model() { return model; },
-      debug: { on: () => toggle(true), off: () => toggle(false) },
+      debug: { on: () => toggle(true), off: () => toggle(false), get status() { return mounted ? "on" : "off"; } },
       get help() { console.log(HELP); return HELP; },
     };
     if (isLocal()) toggle(true);
