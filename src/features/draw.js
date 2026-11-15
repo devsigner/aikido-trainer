@@ -2,12 +2,12 @@
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the data and filters of the grade feature through the root model (read-only).
 // Publishes `SessionReset` (the session is over: the program closes) and `Navigated` (the URL must follow).
-import { h } from "./framework/vdom.js";
-import { badgesOf, buildPool, pickIndex } from "./logic.js";
-import { card, slideProps } from "./card.js";
-import { navigated, screenOf } from "./update-history.js";
-import { WAZA_ORDER } from "./logic.js";
-import { to } from "./framework/combine.js";
+import { h } from "../framework/vdom.js";
+import { badgesOf, buildPool, pickIndex } from "../logic.js";
+import { card, slideProps } from "../card.js";
+import { navigated, screenOf } from "../update-history.js";
+import { WAZA_ORDER } from "../logic.js";
+import { to } from "../framework/combine.js";
 
 // State of a draw session. The model is reset to this state when the user goes home or changes waza.
 // - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)

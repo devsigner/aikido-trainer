@@ -1,13 +1,13 @@
 // Model and pure update: update(model, msg) → [model, commands].
 // Effects (network, randomness, history) are described as commands run by the runtime.
-// Each feature lives in its own module (src/update-*.js) and owns a slice of the model (`model.<name>`):
+// Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):
 // its init, update, view and effects, composed by `combine` (src/framework/combine.js).
 import { countTechniques } from "./logic.js";
-import { grade } from "./update-grade.js";
-import { draw } from "./update-draw.js";
-import { program } from "./update-program.js";
-import { navigation } from "./update-navigation.js";
-import { video } from "./update-video.js";
+import { grade } from "./features/grade.js";
+import { draw } from "./features/draw.js";
+import { program } from "./features/program.js";
+import { navigation } from "./features/navigation.js";
+import { video } from "./features/video.js";
 import { combine } from "./framework/combine.js";
 import { initialModel as history, withPosition, withSlide } from "./update-history.js";
 

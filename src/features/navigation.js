@@ -2,7 +2,7 @@
 // Owns: pending (the route waiting for the data). Does not write other slices: it publishes events.
 // Publishes `RouteChanged` ({ route }: draw and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
 // Reacts to `Navigated` (a feature changed what the URL shows) by writing the URL.
-import { parseHash, toHash } from "./route.js";
+import { parseHash, toHash } from "../route.js";
 
 export const initialModel = {
   pending: null, // route from the URL, applied once the data is loaded

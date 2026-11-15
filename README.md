@@ -250,7 +250,7 @@ Le mode est mémorisé dans le navigateur ; `?debug=0` le désactive. Le module 
 
 1. Ajouter les champs nécessaires au **Model** (`initialModel` dans `src/update.js`).
 2. Définir le **Msg** et son cas dans `step` (`update`) : renvoyer le nouveau modèle et, si besoin, des `cmds`.
-3. Si un effet est nécessaire, l'ajouter dans la feature concernée (`effects` de `src/update-*.js`, il renvoie son résultat par un nouveau message).
+3. Si un effet est nécessaire, l'ajouter dans la feature concernée (`effects` de `src/features/*.js`, il renvoie son résultat par un nouveau message).
 4. Afficher le résultat dans `view` (`src/view.js`) et, si besoin, le style dans `style.css`.
 5. Écrire le test, puis incrémenter la version (voir `CLAUDE.md`).
 

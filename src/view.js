@@ -2,11 +2,11 @@
 // The root view only composes the views of the features (see `embed`) and holds the page skeleton.
 import { h } from "./framework/vdom.js";
 import { embed, to } from "./framework/combine.js";
-import { grade } from "./update-grade.js";
-import { draw } from "./update-draw.js";
-import { program } from "./update-program.js";
+import { grade } from "./features/grade.js";
+import { draw } from "./features/draw.js";
+import { program } from "./features/program.js";
 import { screenOf } from "./update-history.js";
-import { video } from "./update-video.js";
+import { video } from "./features/video.js";
 
 // Home screen: choose a grade and filters (grade), then a waza to start a session (draw).
 const home = (model) => h("section", { id: "home" }, embed("grade", grade.view(model.grade)), embed("draw", draw.picker(model)));

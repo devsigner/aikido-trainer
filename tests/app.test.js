@@ -10,7 +10,7 @@ import { summarize, diffModels, labelOf, panelUpdate, panelView, initialPanel } 
 import { run } from "../src/framework/runtime.js";
 import { to } from "../src/framework/combine.js";
 import { screenOf } from "../src/update-history.js";
-import { resolveGrade as resolveGradeFx } from "../src/update-grade.js";
+import { resolveGrade as resolveGradeFx } from "../src/features/grade.js";
 
 const DATA = {
   waza: {

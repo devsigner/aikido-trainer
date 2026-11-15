@@ -2,11 +2,11 @@
 // Standalone feature (see src/framework/combine.js): its model, update, view and effects are all here.
 // Reads the grade data and the waza of the draw through the root model (read-only).
 // Publishes `Navigated` (the URL must follow); closes when the draw session is reset.
-import { h } from "./framework/vdom.js";
-import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "./logic.js";
-import { card, slideProps } from "./card.js";
-import { navigated } from "./update-history.js";
-import { to } from "./framework/combine.js";
+import { h } from "../framework/vdom.js";
+import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../logic.js";
+import { card, slideProps } from "../card.js";
+import { navigated } from "../update-history.js";
+import { to } from "../framework/combine.js";
 
 // `at` = { level, attack?, technique? }, or null when the program is not open.
 export const initialModel = { at: null };

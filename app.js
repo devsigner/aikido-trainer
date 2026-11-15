@@ -4,7 +4,7 @@ import { createRenderer } from "./src/framework/vdom.js";
 import { debugHide, features, init, update } from "./src/update.js";
 import { run } from "./src/framework/runtime.js";
 import { createEffects } from "./src/framework/effects.js";
-import { SKIP_VIDEO_WARNING_KEY } from "./src/update-video.js";
+import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
 import { to } from "./src/framework/combine.js";
 import { view } from "./src/view.js";
 
