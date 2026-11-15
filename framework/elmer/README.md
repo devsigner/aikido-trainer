@@ -113,21 +113,23 @@ Le debugger est **inclus d'office** : `run({ …, devtools: { slices, hide } })`
 ```mermaid
 flowchart LR
     RUN["run"] -- "record({ msg, before, after, cmds, events })<br/>après chaque message" --> DBG["observateur (debug.js)"]
-    RUN -- "attach({ getModel, restore })<br/>une fois" --> DBG
+    RUN -- "attach({ getModel, restore })<br/>au montage" --> DBG
+    CON["console<br/>__elmer.debug()"] -- "monte / démonte" --> DBG
     DBG --> P["panneau (mini app Elm<br/>avec son propre model/update/view)"]
     P -- "« Revenir à cet état »<br/>restore(after)" --> RUN
-    DBG --> W["window.__debug<br/>model, log, restore(id)"]
+    DBG --> W["__elmer<br/>model, log, restore(id)"]
 ```
 
 - **Journal** : chaque message est enregistré avec le modèle avant/après, les commandes émises et les événements publiés (200 derniers). Les messages de feature sont étiquetés `feature/Type`.
 - **État** : le modèle courant, une section par tranche de feature. `hide` résume les champs volumineux (ex. les données d'un grade).
 - **Diff** : les champs modifiés par un message, tranche par tranche (`video.prompt`).
 - **Voyage dans le temps** : `restore(after)` remet un ancien modèle et redessine la vue. Les effets ne sont **pas** rejoués. Possible car le modèle est une simple donnée immuable et la vue une fonction pure de celui-ci.
-- **Console** : `__debug.model`, `__debug.log`, `__debug.restore(id)`.
+- **Console** : `__elmer.model`, `__elmer.debug(on?)` ; une fois monté, `__elmer.log` et `__elmer.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
+- `run` accepte aussi un observateur `debug` explicite (`attach`, `record`), utile pour les tests ; `mountDebugger(slices, hide)` en construit un avec le panneau.
 
 ## Exemple
 
-`examples/counter/` : deux features (compteur, journal qui réagit à un événement), avec le debugger (bouton 🐞). Servir la racine du dépôt (`python3 -m http.server`) et ouvrir `/examples/counter/`. Le test `tests/elmer.test.js` l'exerce.
+`examples/counter/` : deux features (compteur, journal qui réagit à un événement), avec le debugger (bouton 🐞, monté d'office en local). Servir la racine du dépôt (`python3 -m http.server`) et ouvrir `/examples/counter/`. Le test `tests/elmer.test.js` l'exerce.
 
 ## Extraire en dépôt séparé
 

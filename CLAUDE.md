@@ -4,7 +4,7 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.70`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.71`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
 1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
@@ -132,7 +132,7 @@ Unidirectional flow, no dependencies and no build (native ES modules + versioned
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
 - `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `framework/elmer/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
 - `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `framework/elmer/vdom.js` provides `h()` and diff-based rendering; `framework/elmer/runtime.js` loops `update → effects → view → render`.
-- **Debug mode** (`framework/elmer/debug.js`): `?debug` in the URL (remembered in `localStorage` under `aikido.debug`, `?debug=0` turns it off) mounts a panel (its own tiny Elm app, outside the app tree) with the current model, the message log, the commands and model changes of each message, and time travel (`restore`). The panel floats (`position: fixed`), starts on the left, and is moved/resized with pointer events (state `box` and `drag`, listeners on the document while dragging). `run` takes an optional `debug` observer (`attach({ getModel, restore })`, `record({ msg, before, after, cmds })`); the module is dynamically imported by `app.js` only when the mode is on. Console helper: `__debug`.
+- **Debug mode** (`framework/elmer/debug.js`): built into `run` (`devtools: { slices, hide }`): mounted automatically on a local host (`localhost`, `127.x`, `*.local`), elsewhere `__elmer.debug()` in the console mounts/unmounts it (module loaded on demand, last 200 steps always kept and replayed). The panel (its own tiny Elm app, outside the app tree) with the current model, the message log, the commands and model changes of each message, and time travel (`restore`). The panel floats (`position: fixed`), starts on the left, and is moved/resized with pointer events (state `box` and `drag`, listeners on the document while dragging). `run` also takes an optional explicit `debug` observer (`attach({ getModel, restore })`, `record({ msg, before, after, cmds })`). Console helper: `__elmer` (`model`, `debug(on?)`, then `log`, `restore(id)`).
 - **URL** (`toHash`/`parseHash` in `src/features/navigation.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new quiz (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
 - The ids and CSS classes of the views are stable (used by `style.css` and the tests).
 
