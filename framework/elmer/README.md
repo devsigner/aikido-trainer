@@ -72,7 +72,7 @@ En trois règles :
 |--------------|---------------------------------------------------------------------------------------------------------------------------|
 | `feature.js` | `defineFeature(spec)`, `combine({ nom: feature })`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
 | `effects.js` | `createEffects` / `createSubscriptions(program, overrides)` (`program` = résultat de `combine`) : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
-| `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (les handlers sont des messages)                                       |
+| `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (voir « Le mini DOM »)                                                 |
 | `index.js`   | l'API publique : `h`, `createRenderer`, `defineFeature`, `combine`, `to`, `embed`, `UNMOUNT`, `run`, `createEffects`, `createSubscriptions` (une application n'importe que ça) |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm ; un effet qui échoue n'arrête pas les suivants, l'erreur indique la commande et la feature |
 | `elmer.js`   | la feature `elmer` (réglages du framework, ajoutée d'office par `combine`) : `model.elmer = { debug: "on"\|"off", historySize }` |
@@ -108,6 +108,50 @@ Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ c
 - `embed` enveloppe les handlers d'une vue de feature ; un message déjà adressé (`to(...)`) est laissé tel quel.
 - **Feature `lazy`** : sa tranche n'existe pas à l'`init` ; elle est créée (avec `init(flags, model)`) au premier message ou événement auquel elle est abonnée. Un `update` ou une réaction qui renvoie `UNMOUNT` comme modèle supprime la tranche (les commandes et événements sont conservés) ; un nouveau message la recrée depuis `init`. Pendant ce temps `root[name]` est `undefined` : les autres features et la vue doivent le tolérer. Une réponse d'effet tardive la recrée aussi. Avec `lazy: { events: [types] }`, seuls un message ou ces événements créent la tranche ; les autres événements sont ignorés tant qu'elle est démontée.
 - `combine({ nom: feature })` renvoie `{ init, update, subscribe, effects }`, directement utilisables par `run`.
+
+## Le mini DOM (`vdom.js`)
+
+La vue est une fonction pure `model → arbre`, l'arbre étant décrit avec `h()` ; `createRenderer` met à jour le vrai DOM en comparant avec l'arbre précédent.
+
+```mermaid
+flowchart LR
+    V["view(model)"] -- "h('div', props, ...enfants)" --> T["arbre virtuel<br/>{ tag, props, children }"]
+    T --> R["createRenderer(root)<br/>diff avec l'arbre précédent"]
+    R -- "ne touche que ce qui change" --> D["vrai DOM"]
+    D -- "clic, saisie…" --> H["handler = message<br/>ou fonction(event) → message"]
+    H -- "dispatch" --> L["boucle Elm"]
+```
+
+```js
+const view = (model) =>
+  h("div", { className: "counter" },
+    h("button", { onClick: { type: "Dec" }, disabled: model.n === 0 }, "−"),
+    h("span", {}, model.n),
+    h("input", { value: model.name, onInput: (event) => ({ type: "Rename", name: event.target.value }) }));
+
+const render = createRenderer(document.getElementById("app"));
+run({ …, view, render });
+```
+
+**`h(tag, props, ...children)`**
+- Les enfants `null`, `undefined` et `false` sont ignorés (`cond && h(…)` marche), les tableaux sont aplatis, le reste devient du texte (un nombre est converti en chaîne).
+- Une prop `null` ou `undefined` est ignorée.
+
+**Les props**
+
+| Prop | Effet |
+|------|-------|
+| `onXxx` (`onClick`, `onInput`…) | un **message** (`{ type: "Dec" }`) ou une **fonction** `event → message` ; le renderer l'envoie à `dispatch`. Un seul handler par événement. Dans une feature, `embed` l'adresse à sa feature |
+| `className` | classe CSS |
+| `key` | identité de l'élément : si elle change, l'élément est **remplacé** (utile pour relancer une animation CSS) |
+| `value`, `checked`, `selected`, `disabled`, `hidden` | propriétés « vivantes » du DOM, comparées à l'état réel du DOM (pas à l'arbre précédent), pour suivre la saisie de l'utilisateur |
+| autres (`id`, `style`, `title`, `aria-*`…) | attributs HTML (`style` est une chaîne) |
+
+**Le diff** (volontairement simple)
+- Premier rendu : création complète. Ensuite : même `tag` et même `key` → le nœud est **réutilisé** et ses props sont mises à jour ; sinon il est remplacé.
+- Les enfants sont comparés **par position** : pas de réordonnancement par clé, pas de fragments, pas de composants. Les éléments en trop sont supprimés, les manquants ajoutés.
+- Les handlers sont réaffectés à chaque rendu (`element.onclick = …`) : pas d'écouteurs qui s'accumulent.
+- `createRenderer(root, doc)` accepte un `document` (tests, autre environnement).
 
 ## La feature `elmer`
 
