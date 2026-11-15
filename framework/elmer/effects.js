@@ -1,9 +1,7 @@
 // framework/elmer/effects.js
 
-// Effects and subscriptions of the features, with the browser services they may need (`deps`, passed to each feature).
+// Effects and subscriptions of the features of a program (the result of `combine`), with the browser services they may need (`deps`, passed to each feature).
 // Every service can be replaced (tests, other environments): `overrides` wins over the browser default.
-import { combine } from "./feature.js";
-
 const defaultFetchJson = async (url) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url} : ${res.status}`);
@@ -20,7 +18,7 @@ const servicesOf = (overrides) => ({
   ...overrides,
 });
 
-export const createEffects = (features, overrides = {}) => combine(features).effects(servicesOf(overrides));
+export const createEffects = (program, overrides = {}) => program.effects(servicesOf(overrides));
 
 // `subscribe` argument of `run`.
-export const createSubscriptions = (features, overrides = {}) => combine(features).subscribe(servicesOf(overrides));
+export const createSubscriptions = (program, overrides = {}) => program.subscribe(servicesOf(overrides));

@@ -3,7 +3,7 @@
 // Entry point: wires the model, the view and the effects together (see src/).
 import { createRenderer } from "./framework/elmer/vdom.js";
 // Elmish architecture: init, update, view, render, effects, subscribe.
-import { debugHide, features, init, update } from "./src/update.js";
+import { application, debugHide, init, update } from "./src/update.js";
 import { run } from "./framework/elmer/runtime.js";
 import { createEffects, createSubscriptions } from "./framework/elmer/effects.js";
 import { SKIP_VIDEO_WARNING_KEY } from "./src/features/video.js";
@@ -35,9 +35,9 @@ run({
   update,
   view,
   render,
-  subscribe: createSubscriptions(features),
+  subscribe: createSubscriptions(application),
   devtools: { hide: debugHide },
-  effects: createEffects(features),
+  effects: createEffects(application),
   flags: {
     hash: location.hash,
     position: history.state?.position ?? 0,

@@ -7,7 +7,7 @@ import { createEffects, createSubscriptions } from "../framework/elmer/effects.j
 import { to } from "../framework/elmer/feature.js";
 import { mergeGrades } from "../src/shared/logic.js";
 import { run } from "../framework/elmer/runtime.js";
-import { features, init, update } from "../src/update.js";
+import { application, init, update } from "../src/update.js";
 import { view } from "../src/view.js";
 
 export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -85,8 +85,8 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     view,
     flags: { hash, skipVideoWarning },
     render: (vnode) => (tree = vnode),
-    effects: createEffects(features, { fetchJson: async (url) => readJson(url), random, history, open, storage }),
-    subscribe: createSubscriptions(features, { history, window }),
+    effects: createEffects(application, { fetchJson: async (url) => readJson(url), random, history, open, storage }),
+    subscribe: createSubscriptions(application, { history, window }),
   });
   await settle();
   const app = {

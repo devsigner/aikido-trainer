@@ -22,7 +22,8 @@ export const features = {
   navigation,
   slide
 };
-const standalone = combine(features);
+// The program of the app: init, update, effects and subscriptions of all the features.
+export const application = combine(features);
 
 // Bulky fields of the model shown as a summary in the debug panel.
 export const debugHide = {
@@ -32,13 +33,13 @@ export const debugHide = {
 
 // Initial model: the slices of every feature (see each module for the field details).
 export function initialModel() {
-  return standalone.init({})[0];
+  return application.init({})[0];
 }
 
 // Initializes the model from the URL hash and history position, and starts loading the grades.
 export function init({ hash = "", position = 0, skipVideoWarning = false } = {}) {
-  return standalone.init({ skipVideoWarning, hash, position });
+  return application.init({ skipVideoWarning, hash, position });
 }
 
 // Main update function: dispatches to the feature.
-export const update = standalone.update;
+export const update = application.update;

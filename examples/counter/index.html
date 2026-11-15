@@ -17,7 +17,7 @@
     const app = combine(features);
     const renderer = createRenderer(document.getElementById("app"));
     // Debugger (🐞): on by default on localhost; elsewhere, `__elmer.debug.on()` / `.off()` in the console mount or unmount it.
-    run({ init: app.init, update: app.update, view, render: renderer, effects: createEffects(features), devtools: {} });
+    run({ init: app.init, update: app.update, view, render: renderer, effects: createEffects(app), devtools: {} });
   </script>
 </body>
 </html>
