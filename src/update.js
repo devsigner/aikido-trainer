@@ -4,7 +4,6 @@
 // Effects (network, randomness, history) are described as commands run by the runtime.
 // Each feature lives in its own module (src/features/*.js) and owns a slice of the model (`model.<name>`):
 // its init, update, view and effects, composed by `combine` (framework/elmer/feature.js).
-import { countTechniques } from "./shared/logic.js";
 import { feature as catalog } from "./features/catalog.js";
 import { feature as quiz } from "./features/quiz.js";
 import { feature as program } from "./features/program.js";
@@ -27,7 +26,6 @@ export const application = combine(features);
 
 // Bulky fields of the model shown as a summary in the debug panel.
 export const debugHide = {
-  data: (data) => (data ? `[...données : ${countTechniques(data)} techniques]` : data),
   pool: (pool) => (Array.isArray(pool) ? `[...${pool.length} éléments]` : pool),
 };
 

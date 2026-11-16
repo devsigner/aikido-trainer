@@ -586,9 +586,7 @@ describe("video confirmation", () => {
 describe("debug mode", () => {
   test("summarize hides the bulky parts of the model", () => {
     const model = { ...initialModel(), pool: [1, 2, 3] };
-    model.catalog = { ...model.catalog, data: readJson("data/2eme-kyo.json") };
     const summary = summarize(model, debugHide);
-    assert.match(summary.catalog.data, /techniques/);
     assert.equal(summary.pool, "[...3 éléments]");
     assert.equal(summary.catalog.status, "loading");
   });
