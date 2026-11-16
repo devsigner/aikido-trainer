@@ -5,7 +5,7 @@
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
 import { defineFeature, h } from "../../framework/elmer/index.js";
-import { cacheGrade } from "../shared/grades.js";
+import { cacheGrade, clearGrades } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 
@@ -87,6 +87,7 @@ export const feature = defineFeature({
         const grades = await fetchJson("data/grades.json");
         const first = Math.max(0, grades.findIndex((candidate) => candidate.id === gradeId));
         const resolved = await Promise.all(grades.map((candidate) => resolveGrade(candidate, fetchJson)));
+        clearGrades();
         grades.forEach((candidate, index) => cacheGrade(candidate.id, resolved[index]));
         return {
           type: "GradesLoaded",
