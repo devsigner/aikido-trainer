@@ -1,0 +1,460 @@
+module Grade exposing
+    ( Attack
+    , FilePatch
+    , Filters
+    , GradeData
+    , GradeInfo
+    , PoolEntry
+    , Technique
+    , WazaName
+    , badgesOf
+    , buildPool
+    , countTechniques
+    , fileDecoder
+    , findSameTechnique
+    , findTechnique
+    , gradeInfoDecoder
+    , listAttacks
+    , listTechniques
+    , mergeFile
+    , norm
+    , pickIndex
+    , wazaOrder
+    , weightNew
+    , weightWarning
+    )
+
+{-| Data of the grades (techniques of each waza) and the pure functions on it:
+merging of the JSON files, pool of techniques, weighted draw, sorting.
+-}
+
+import Array exposing (Array)
+import Dict exposing (Dict)
+import Json.Decode as Decode exposing (Decoder)
+
+
+
+-- TYPES
+
+
+type alias WazaName =
+    String
+
+
+type alias Technique =
+    { name : String
+    , order : Int
+    , forms : Array String
+    , isNew : Bool
+    , isWarning : Bool
+    , note : Maybe String
+    , video : Maybe String
+    }
+
+
+type alias Attack =
+    { name : String
+    , order : Int
+    , techniques : Array Technique
+    }
+
+
+{-| Attacks of each waza.
+-}
+type alias GradeData =
+    Dict WazaName (Array Attack)
+
+
+{-| An entry of `grades.json`.
+-}
+type alias GradeInfo =
+    { id : String
+    , label : String
+    , file : String
+    , includes : Array String
+    }
+
+
+type alias Filters =
+    { isNew : Bool
+    , isWarning : Bool
+    }
+
+
+{-| A combination to draw, by names (the rest is looked up in the data).
+-}
+type alias PoolEntry =
+    { attack : String
+    , technique : String
+    , form : Maybe String
+    , weight : Float
+    }
+
+
+weightNew : Float
+weightNew =
+    1.5
+
+
+weightWarning : Float
+weightWarning =
+    1.5
+
+
+wazaOrder : Array WazaName
+wazaOrder =
+    [ "Tachi waza", "Hanmi Handachi waza", "Suwari waza" ]
+
+
+defaultOrder : Int
+defaultOrder =
+    42
+
+
+
+-- JSON FILES (partial: a grade file only contains additions and overrides)
+
+
+type alias TechniquePatch =
+    { name : String
+    , order : Maybe Int
+    , forms : Maybe (Array String)
+    , isNew : Maybe Bool
+    , isWarning : Maybe Bool
+    , note : Maybe (Maybe String)
+    , video : Maybe (Maybe String)
+    }
+
+
+type alias AttackPatch =
+    { name : String
+    , order : Maybe Int
+    , techniques : Array TechniquePatch
+    }
+
+
+type alias FilePatch =
+    Dict WazaName (Array AttackPatch)
+
+
+{-| Field that may be absent (`Nothing`); an explicit `null` gives `Just Nothing` when decoded with `nullable`.
+-}
+optional : String -> Decoder a -> Decoder (Maybe a)
+optional name decoder =
+    Decode.maybe (Decode.field name decoder)
+
+
+techniquePatchDecoder : Decoder TechniquePatch
+techniquePatchDecoder =
+    Decode.map7
+        (\name order forms isNew isWarning note video -> { name = name, order = order, forms = forms, isNew = isNew, isWarning = isWarning, note = note, video = video })
+        (Decode.field "name" Decode.string)
+        (optional "order" Decode.int)
+        (optional "forms" (Decode.array Decode.string))
+        (optional "isNew" Decode.bool)
+        (optional "isWarning" Decode.bool)
+        (optional "note" (Decode.nullable Decode.string))
+        (optional "video" (Decode.nullable Decode.string))
+
+
+attackPatchDecoder : Decoder AttackPatch
+attackPatchDecoder =
+    Decode.map3
+        (\name order techniques -> { name = name, order = order, techniques = techniques })
+        (Decode.field "name" Decode.string)
+        (optional "order" Decode.int)
+        (Decode.field "techniques" (Decode.array techniquePatchDecoder))
+
+
+fileDecoder : Decoder FilePatch
+fileDecoder =
+    Decode.field "waza" (Decode.dict (Decode.array attackPatchDecoder))
+
+
+gradeInfoDecoder : Decoder GradeInfo
+gradeInfoDecoder =
+    Decode.map4
+        (\id label file includes -> { id = id, label = label, file = file, includes = includes })
+        (Decode.field "id" Decode.string)
+        (Decode.field "label" Decode.string)
+        (Decode.field "file" Decode.string)
+        (Decode.map (Maybe.withDefault []) (optional "includes" (Decode.array Decode.string)))
+
+
+
+-- MERGE
+
+
+{-| Merges a file into the data: attacks and techniques are matched by name,
+the fields present in the file override those already known.
+-}
+mergeFile : FilePatch -> GradeData -> GradeData
+mergeFile patch base =
+    Dict.foldl
+        (\waza attackPatches data ->
+            Dict.set waza
+                (Array.foldl mergeAttack (Maybe.withDefault [] (Dict.get waza data)) attackPatches)
+                data
+        )
+        base
+        patch
+
+
+mergeAttack : AttackPatch -> Array Attack -> Array Attack
+mergeAttack patch attacks =
+    when found (\attack -> attack.name == patch.name) attacks is
+        Nothing ->
+            Array.pushLast
+                { name = patch.name
+                , order = Maybe.withDefault defaultOrder patch.order
+                , techniques = Array.foldl mergeTechnique [] patch.techniques
+                }
+                attacks
+
+        Just known ->
+            let
+                merged =
+                    { name = known.name
+                    , order = Maybe.withDefault known.order patch.order
+                    , techniques = Array.foldl mergeTechnique known.techniques patch.techniques
+                    }
+            in
+            Array.map
+                (\attack ->
+                    if attack.name == patch.name then
+                        merged
+
+                    else
+                        attack
+                )
+                attacks
+
+
+mergeTechnique : TechniquePatch -> Array Technique -> Array Technique
+mergeTechnique patch techniques =
+    when found (\technique -> technique.name == patch.name) techniques is
+        Nothing ->
+            Array.pushLast (applyPatch defaultTechnique patch) techniques
+
+        Just known ->
+            Array.map
+                (\technique ->
+                    if technique.name == patch.name then
+                        applyPatch known patch
+
+                    else
+                        technique
+                )
+                techniques
+
+
+defaultTechnique : Technique
+defaultTechnique =
+    { name = ""
+    , order = defaultOrder
+    , forms = []
+    , isNew = False
+    , isWarning = False
+    , note = Nothing
+    , video = Nothing
+    }
+
+
+applyPatch : Technique -> TechniquePatch -> Technique
+applyPatch base patch =
+    { name = patch.name
+    , order = Maybe.withDefault base.order patch.order
+    , forms = Maybe.withDefault base.forms patch.forms
+    , isNew = Maybe.withDefault base.isNew patch.isNew
+    , isWarning = Maybe.withDefault base.isWarning patch.isWarning
+    , note = Maybe.withDefault base.note patch.note
+    , video = Maybe.withDefault base.video patch.video
+    }
+
+
+
+-- QUERIES
+
+
+countTechniques : GradeData -> Int
+countTechniques data =
+    Dict.foldl
+        (\_ attacks total ->
+            Array.foldl (\attack sum -> sum + Array.length attack.techniques) total attacks
+        )
+        0
+        data
+
+
+attacksOf : GradeData -> WazaName -> Array Attack
+attacksOf data waza =
+    Maybe.withDefault [] (Dict.get waza data)
+
+
+{-| Techniques to draw for a waza: uniform over attack × technique × form, weighted.
+No filter checked = everything; one = techniques with that marker; both = one OR the other.
+-}
+buildPool : GradeData -> WazaName -> Filters -> Array PoolEntry
+buildPool data waza filters =
+    let
+        filtering =
+            filters.isNew || filters.isWarning
+
+        selected technique =
+            not filtering || (filters.isNew && technique.isNew) || (filters.isWarning && technique.isWarning)
+
+        weightOf technique =
+            (if technique.isNew then
+                weightNew
+
+             else
+                1
+            )
+                * (if technique.isWarning then
+                    weightWarning
+
+                   else
+                    1
+                  )
+
+        entriesOf attack technique =
+            if Array.isEmpty technique.forms then
+                [ { attack = attack.name, technique = technique.name, form = Nothing, weight = weightOf technique } ]
+
+            else
+                Array.map (\form -> { attack = attack.name, technique = technique.name, form = Just form, weight = weightOf technique }) technique.forms
+    in
+    Array.mapAndFlatten
+        (\attack ->
+            Array.mapAndFlatten (entriesOf attack) (Array.keepIf selected attack.techniques)
+        )
+        (attacksOf data waza)
+
+
+{-| Weighted draw: `random` ∈ [0, 1[ comes from a command (Random), so the function stays pure.
+Returns the index of the drawn entry in the pool.
+-}
+pickIndex : Array PoolEntry -> Float -> Int
+pickIndex pool random =
+    let
+        total =
+            Array.foldl (\entry sum -> sum + entry.weight) 0 pool
+    in
+    pickFrom pool (random * total) 0
+
+
+pickFrom : Array PoolEntry -> Float -> Int -> Int
+pickFrom pool left index =
+    when Array.get index pool is
+        Nothing ->
+            max 0 (Array.length pool - 1)
+
+        Just entry ->
+            if left - entry.weight <= 0 then
+                index
+
+            else
+                pickFrom pool (left - entry.weight) (index + 1)
+
+
+{-| Lowercase, without accents, trimmed: to compare names.
+-}
+norm : String -> String
+norm text =
+    text
+        |> String.toLower
+        |> String.map unaccent
+        |> String.trim
+
+
+unaccent : Char -> Char
+unaccent char =
+    if String.contains (String.fromChar char) "àáâãä" then
+        'a'
+
+    else if String.contains (String.fromChar char) "èéêë" then
+        'e'
+
+    else if String.contains (String.fromChar char) "ìíîï" then
+        'i'
+
+    else if String.contains (String.fromChar char) "òóôõö" then
+        'o'
+
+    else if String.contains (String.fromChar char) "ùúûü" then
+        'u'
+
+    else if char == 'ç' then
+        'c'
+
+    else
+        char
+
+
+{-| Ascending `order`, then alphabetical order.
+-}
+byOrder : { a | order : Int, name : String } -> { a | order : Int, name : String } -> Order
+byOrder first second =
+    when compare first.order second.order is
+        EQ ->
+            compare (norm first.name) (norm second.name)
+
+        other ->
+            other
+
+
+badgesOf : Technique -> String
+badgesOf technique =
+    String.trim
+        (String.join " "
+            [ if technique.isNew then
+                "🆕"
+
+              else
+                ""
+            , if technique.isWarning then
+                "⚠️"
+
+              else
+                ""
+            ]
+        )
+
+
+findTechnique : GradeData -> WazaName -> String -> String -> Maybe Technique
+findTechnique data waza attackName techniqueName =
+    attacksOf data waza
+        |> found (\attack -> attack.name == attackName)
+        |> Maybe.andThen (\attack -> found (\technique -> technique.name == techniqueName) attack.techniques)
+
+
+listAttacks : GradeData -> WazaName -> Array Attack
+listAttacks data waza =
+    Array.sortWith byOrder (attacksOf data waza)
+
+
+listTechniques : GradeData -> WazaName -> String -> Array Technique
+listTechniques data waza attackName =
+    attacksOf data waza
+        |> found (\attack -> attack.name == attackName)
+        |> Maybe.map (\attack -> Array.sortWith byOrder attack.techniques)
+        |> Maybe.withDefault []
+
+
+{-| The same technique (normalized name) under the other attacks of the waza.
+-}
+findSameTechnique : GradeData -> WazaName -> String -> String -> Array { attack : String, technique : Technique }
+findSameTechnique data waza attackName techniqueName =
+    attacksOf data waza
+        |> Array.keepIf (\other -> other.name /= attackName)
+        |> Array.mapAndFlatten
+            (\other ->
+                other.techniques
+                    |> Array.keepIf (\technique -> norm technique.name == norm techniqueName)
+                    |> Array.map (\technique -> { attack = other.name, technique = technique })
+            )
+
+
+found : (a -> Bool) -> Array a -> Maybe a
+found predicate array =
+    Maybe.map .value (Array.findFirst predicate array)

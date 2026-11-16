@@ -79,182 +79,46 @@ Une fois ouverte une première fois avec du réseau, tout le contenu est mis en 
 
 ## Pour les développeurs
 
-Application 100 % statique, **sans dépendance ni build** : HTML, CSS et JavaScript natif (modules ES), organisée selon le pattern Elm (modèle, messages, `update` pure, vue pure, effets). Les données sont de simples fichiers JSON, un par grade, dans `data/`.
+Application statique écrite en **[Gren](https://gren-lang.org)** (un langage fonctionnel typé dans la lignée d'Elm, compilateur 0.6.6) : modèle, messages, `update` pure, vue pure, commandes. Elle est compilée en un seul `app.js`, **commité** (GitHub Pages sert des fichiers statiques). Les données sont de simples fichiers JSON, un par grade, dans `data/`.
 
 ```
-python3 -m http.server 8000   # puis http://localhost:8000
-yarn test                     # tests (runner natif de Node ≥ 20)
-yarn lint                     # ESLint
+yarn install                  # une fois (compilateur Gren, serveur local)
+yarn build                    # compile src/*.gren → app.js
+yarn server                   # http://localhost:8000
+yarn test                     # compilation, tests Gren, app.js à jour, données, PWA
 ```
 
-Un hook Git `pre-commit` (dossier `.githooks/`, activé automatiquement par `yarn install`) lance le lint puis les tests avant chaque commit, et bloque le commit en cas d'échec. Pour le contourner exceptionnellement :
+Un hook Git `pre-commit` (dossier `.githooks/`, activé automatiquement par `yarn install`) lance les tests avant chaque commit, et bloque le commit en cas d'échec. Pour le contourner exceptionnellement : `git commit --no-verify`.
 
-```
-git commit --no-verify
-```
+Pour le time-travel debugger de Gren, compile en mode debug : `node_modules/.bin/gren make Main --debug --output=app.js` (ne pas commiter ce build).
 
 ### L'architecture Elm
 
-[Elm](https://elm-lang.org) impose un flux de données **unidirectionnel** : tout l'état vit dans un seul objet, il ne change que par des **messages**, et l'affichage est une **fonction pure** de cet état. Ici le pattern est réimplémenté en JavaScript natif, dans le petit framework **ELMer** (`framework/elmer/`), en ~700 lignes.
+Tout l'état vit dans un seul `Model`, ne change que par des `Msg`, et l'affichage est une fonction pure de cet état. Les effets (réseau, hasard, URL, `localStorage`) sont des `Cmd` : `update` reste pure.
 
-#### La boucle
+| Module | Rôle |
+|---|---|
+| `src/Main.gren` | `Browser.application` : `init`, `update`, chargement HTTP des JSON, URL |
+| `src/Types.gren` | `Model`, `Msg`, `Screen` (Home, Quiz, Program), `routeOf` |
+| `src/Grade.gren` | données des grades : décodeurs JSON, fusion (héritage), pool pondéré, tirage, tri |
+| `src/Route.gren` | lecture et écriture de l'URL `#/grade/waza/program/attack/technique` |
+| `src/View.gren` | toute la vue (mêmes ids et classes CSS que `style.css`) |
 
-```mermaid
-flowchart LR
-    U([Utilisateur / navigateur]) -- "clic, popstate" --> M["Msg adressé<br/>{ feature, msg }"]
-    M --> UP["update(model, msg)<br/>fonction pure (combine)"]
-    UP -. "événements publiés<br/>(FIFO)" .-> UP
-    UP -- "nouveau Model" --> V["view(model)<br/>fonction pure"]
-    V -- "vnodes" --> R["rendu<br/>(diff du DOM)"]
-    R --> D[(DOM)]
-    D -. "événements" .-> U
-    UP -- "Cmd[ ]" --> E["effets<br/>(réseau, hasard, historique…)"]
-    E -- "résultat = nouveau Msg" --> M
-```
+- **Hasard** : `Random.generate Rolled` ; `Rolled` retire l'entrée tirée du pool (pas de répétition).
+- **URL** : chaque écran a sa route. Une action de l'utilisateur fait un `pushUrl`, et `UrlChanged` (retour/avance du navigateur, rechargement) réapplique la route, corrigée si besoin (grade, waza, attaque ou technique inconnus). La direction du glissement se déduit de la profondeur de la route.
+- **Données** : chargées au démarrage (`data/grades.json`, puis chaque fichier une fois) et fusionnées par grade ; le service worker les met en cache pour le hors-ligne.
+- **Vidéo** : la modale de confirmation contient un lien `target=_blank` ; la préférence « ne plus demander » est écrite dans `localStorage` (lue au démarrage par `index.html`, passée en flag).
 
-- **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
-- **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…). À la racine il est adressé à une feature : `{ feature, msg }` (`to("quiz", msg)`).
-- **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ model, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`framework/elmer/README.md`](framework/elmer/README.md).
-- **`update(model, msg) → [model, cmds, events?]`** (par feature, via `messages`) : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
-- **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`framework/elmer/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
-- **`view(model) → vnode`** : fonction **pure** qui produit un arbre de données. Les gestionnaires d'événements sont eux aussi des messages, pas des fonctions qui modifient l'état.
+#### Tests
 
-#### Qui fait quoi
-
-```mermaid
-flowchart TB
-    subgraph entry["Point d'entrée"]
-        APP["app.js<br/>assemble tout, branche popstate"]
-    end
-    subgraph pure["Cœur pur (testable sans navigateur)"]
-        UPD["src/update.js<br/>features + combine"]
-        FEAT["src/features/*.js<br/>model, messages, on, view, effects"]
-        VIEW["src/view.js + src/layout/*<br/>view → vnodes"]
-        LOG["src/shared/logic.js<br/>fusion des grades, pool, pondération"]
-    end
-    subgraph impure["Frontière avec le monde extérieur"]
-        RUN["framework/elmer/runtime.js<br/>boucle update → view → render"]
-        EFF["framework/elmer/effects.js<br/>effets des features (fetch, hasard, historique, localStorage)"]
-        VDOM["framework/elmer/vdom.js<br/>h() + diff du DOM"]
-    end
-    APP --> RUN
-    RUN --> UPD
-    RUN --> VIEW
-    RUN --> EFF
-    RUN --> VDOM
-    UPD --> FEAT
-    FEAT --> LOG
-    VIEW --> FEAT
-```
-
-Les modules du cœur pur n'ont aucun effet de bord : ils sont testés directement avec `node:test`. Les tests d'intégration (`tests/helpers.js`) font tourner la **vraie** boucle avec le vrai JSON et un historique simulé.
-
-#### Un aller-retour complet : « Technique suivante »
-
-Le hasard est lui-même un effet : `update` ne tire jamais au sort, ce qui rend les tirages **reproductibles dans les tests** (on injecte un `random` fixe).
-
-```mermaid
-sequenceDiagram
-    actor U as Utilisateur
-    participant V as Vue (DOM)
-    participant R as Runtime
-    participant UP as update
-    participant E as Effets
-    U->>V: touche « Technique suivante »
-    V->>R: dispatch(to("quiz", { type: "Next" }))
-    R->>UP: update(model, Next)
-    UP-->>R: [model, [{ type: "Random" }]]
-    R->>V: view(model) puis diff du DOM
-    R->>E: exécute Random
-    E->>R: dispatch({ type: "Rolled", value: 0.42 })
-    R->>UP: update(model, Rolled)
-    UP-->>R: [model avec current et pool mis à jour, []]
-    R->>V: view(model) puis diff du DOM
-```
-
-#### Les écrans et leurs transitions
-
-```mermaid
-stateDiagram-v2
-    [*] --> chargement
-    chargement --> accueil: GradesLoaded
-    chargement --> erreur: Failed
-    accueil --> tirage: StartSession
-    tirage --> tirage: Next / Rolled
-    tirage --> accueil: GoHome → HomeRequested
-    tirage --> programme: OpenProgram → ProgramOpened
-    programme --> tirage: CloseProgram → ProgramClosed
-    programme --> accueil: GoHome → HomeRequested
-    state programme {
-        [*] --> attaques
-        attaques --> techniques: Navigate
-        techniques --> fiche: Navigate
-        fiche --> fiche: Précédente / Suivante
-        fiche --> techniques: Navigate (retour)
-        techniques --> attaques: Navigate (retour)
-    }
-```
-
-Les trois niveaux du programme sont stockés dans `model.program = { waza, current: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `quiz` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
-
-#### Principaux messages et effets
-
-| Feature | Message | Déclenché par | Effet produit (`cmds`) / événement publié |
-|---------|---------|---------------|-------------------------------------------|
-| `catalog` | `GradesLoaded` / `GradeLoaded` | fin du chargement des JSON | événements `GradesLoaded` / `GradeLoaded` |
-| `catalog` | `SelectGrade` | liste des grades | `LoadGrade`, `Navigated` |
-| `catalog` | `SetFilter` | cases 🆕 / ⚠️ | — |
-| `quiz` | `StartSession` | bouton d'un waza | `Random`, `Navigated`, `ViewChanged` |
-| `quiz` | `Next` | « Technique suivante » | `Random` |
-| `quiz` | `Rolled` | retour de l'effet `Random` | `ViewChanged` |
-| `program` | `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `ProgramOpened` / `ProgramClosed`, `Navigated`, `ViewChanged` |
-| `navigation` | `GoHome` | « Retour à l'accueil », titre | `HomeRequested` |
-| `navigation` | `Popped` | précédent/suivant du navigateur | `RouteChanged` (l'URL fait foi) |
-| `navigation` | (événement `Navigated`) | une feature change ce que l'URL montre | `Url` (écrit l'URL) |
-| `video` | `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |
-| `video` | `ConfirmVideo` | « Voir la vidéo » dans la modale | `OpenUrl`, `SaveSkipVideoWarning` |
-
-#### Le rendu : un mini DOM virtuel
-
-`view` produit des `vnode` (objets simples) avec `h(tag, props, ...enfants)`. `framework/elmer/vdom.js` compare l'arbre précédent au nouveau et ne modifie dans le DOM réel que ce qui a changé :
-
-```mermaid
-flowchart LR
-    A["vnode précédent"] --> D{"diff"}
-    B["vnode nouveau"] --> D
-    D -- "même balise, même key" --> P["met à jour les propriétés<br/>et les enfants"]
-    D -- "balise ou key différente" --> N["remplace l'élément"]
-```
-
-Une `key` différente force le remplacement de l'élément : c'est ce qui relance l'animation de glissement de la carte à chaque changement de technique.
-
-#### L'URL, source de vérité de la navigation
-
-```mermaid
-flowchart LR
-    MOD["Model"] -- "toHash" --> URL["#/2eme-kyo/Tachi waza/program/<br/>Katate dori/Sankyo"]
-    URL -- "parseHash (chargement, popstate)" --> MOD
-```
-
-Chaque changement d'écran ajoute une entrée d'historique (commande `Url`). La feature `navigation` retient la position dans l'historique (`model.navigation.position`), ce qui permet de savoir si un `popstate` est un retour ou une avance ; la direction est transmise dans `RouteChanged`. Les features `quiz` et `program` publient `ViewChanged` quand la carte change, et la feature `slide` en tire l'animation.
-
-#### Mode debug
-
-En local (`localhost`), le debugger est monté automatiquement ; ailleurs, tape `__elmer.debug.on()` dans la console du navigateur (`__elmer.debug.off()` pour le démonter et ne plus le monter automatiquement, même en local ; `__elmer.help` liste l'API). Un bouton 🐞 ouvre un panneau flottant, à la manière du debugger d'Elm. Il s'ouvre à gauche de l'écran ; on le **déplace** en glissant sa barre rouge et on le **redimensionne** avec le coin en bas à droite (souris ou doigt).
-
-- **État** : le modèle courant en JSON (les données des grades et le pool de tirage sont résumés).
-- **Messages** : le journal de tous les messages (200 derniers). Un clic affiche le message, les **commandes** qu'il a produites et les **champs du modèle modifiés**.
-- **Voyage dans le temps** : « Revenir à l'état après ce message » remet le modèle d'alors (les effets ne sont pas rejoués ; l'URL n'est pas modifiée).
-- **Copier** l'état ou le journal pour un rapport de bug. Dans la console : `__elmer.model`, `__elmer.debug.log`, `__elmer.debug.restore(id)` (renvoie le modèle restauré, `null` si l'id est inconnu).
-
-Le dossier `framework/elmer/debug/` n'est chargé que lorsqu'il est monté ; `run` garde seulement les 200 derniers messages en mémoire et les rejoue dans le panneau au montage. L'app le configure par `devtools: { hide }` (voir `framework/elmer/README.md`).
+- `tests/gren/Main.gren` : tests unitaires Gren (`Grade`, `Route`), lancés par `tests/gren.test.js` avec le vérificateur « `app.js` est à jour ».
+- `tests/data.test.js` : validité des JSON, héritage, ordres, version, PWA.
 
 #### Ajouter une fonctionnalité
 
-1. Choisir la feature concernée (`src/features/*.js`) ou en créer une avec `defineFeature` (puis l'ajouter à l'objet `features` de `src/update.js`, à l'import map de `index.html` et au précache de `sw.js`).
-2. Ajouter les champs nécessaires à son **`model`**, et le **Msg** dans `messages` : renvoyer le nouveau modèle et, si besoin, des `cmds` ou des événements à publier.
-3. Si un effet est nécessaire, l'ajouter dans `effects` de la feature (il renvoie son résultat par un nouveau message).
-4. Afficher le résultat dans sa `view` / `views` (ou `src/layout/*`) et, si besoin, le style dans `style.css`.
-5. Écrire le test, puis incrémenter la version (voir `CLAUDE.md`).
+1. Ajouter les champs au `Model` et le `Msg` dans `src/Types.gren`.
+2. Traiter le `Msg` dans `update` (`src/Main.gren`) ; un effet est une `Cmd` qui renvoie un `Msg`.
+3. Afficher le résultat dans `src/View.gren` et, si besoin, le style dans `style.css`.
+4. Écrire le test, `yarn build`, puis incrémenter la version (voir `CLAUDE.md`).
 
 Le détail du format des données JSON, de l'héritage entre grades, de l'ordre d'affichage et de la procédure de version est dans [`CLAUDE.md`](CLAUDE.md).

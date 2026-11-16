@@ -1,0 +1,547 @@
+module Main exposing (main)
+
+{-| Aikido Trainer: draws random aikido techniques, and browses the program of a grade.
+-}
+
+import Array exposing (Array)
+import Browser
+import Browser.Dom as Dom
+import Browser.Navigation as Navigation
+import Dict
+import Grade exposing (GradeData, GradeInfo)
+import Http
+import Json.Decode as Decode exposing (Decoder)
+import LocalStorage
+import Random
+import Route exposing (ProgramLevel(..), Route)
+import Task exposing (Task)
+import Types exposing (Direction(..), LoadedGrade, Model, Msg(..), Screen(..), Status(..), currentData, routeOf)
+import Url exposing (Url)
+import View
+
+
+type alias Flags =
+    { skipVideoWarning : Bool }
+
+
+skipVideoWarningKey : String
+skipVideoWarningKey =
+    "aikido.skipVideoWarning"
+
+
+main : Program Flags Model Msg
+main =
+    Browser.application
+        { init = init
+        , view = View.view
+        , update = update
+        , subscriptions = \_ -> Sub.none
+        , onUrlRequest = UrlRequested
+        , onUrlChange = UrlChanged
+        }
+
+
+init : Flags -> Url -> Navigation.Key -> { model : Model, command : Cmd Msg }
+init flags url key =
+    { model =
+        { key = key
+        , status = Loading
+        , grades = []
+        , gradeId = ""
+        , filters = { isNew = False, isWarning = False }
+        , screen = Home
+        , initialRoute = Route.parse (Maybe.withDefault "" url.fragment)
+        , slide = { direction = Still, count = 0 }
+        , skipVideoWarning = flags.skipVideoWarning
+        , videoPrompt = Nothing
+        }
+    , command = Task.attempt GradesLoaded loadGrades
+    }
+
+
+
+-- LOADING THE DATA
+
+
+{-| `grades.json`, then every data file once; each grade merges the files it includes, then its own.
+-}
+loadGrades : Task String (Array LoadedGrade)
+loadGrades =
+    fetchJson "data/grades.json" (Decode.array Grade.gradeInfoDecoder)
+        |> Task.andThen
+            (\infos ->
+                let
+                    files =
+                        Array.foldl
+                            (\info known ->
+                                Array.foldl
+                                    (\file list ->
+                                        if Array.member file list then
+                                            list
+
+                                        else
+                                            Array.pushLast file list
+                                    )
+                                    known
+                                    (Array.pushLast info.file info.includes)
+                            )
+                            []
+                            infos
+                in
+                files
+                    |> Array.map (\file -> Task.map (\patch -> { file = file, patch = patch }) (fetchJson ("data/" ++ file) Grade.fileDecoder))
+                    |> Task.sequence
+                    |> Task.map (\loaded -> Array.map (assemble loaded) infos)
+            )
+
+
+assemble : Array { file : String, patch : Grade.FilePatch } -> GradeInfo -> LoadedGrade
+assemble loaded info =
+    let
+        patchOf file =
+            loaded
+                |> Array.findFirst (\entry -> entry.file == file)
+                |> Maybe.map (\found -> found.value.patch)
+
+        data =
+            Array.pushLast info.file info.includes
+                |> Array.mapAndKeepJust patchOf
+                |> Array.foldl Grade.mergeFile Dict.empty
+    in
+    { info = info, data = data, count = Grade.countTechniques data }
+
+
+fetchJson : String -> Decoder a -> Task String a
+fetchJson url decoder =
+    Http.task
+        { method = "GET"
+        , headers = []
+        , url = url
+        , body = Http.emptyBody
+        , timeout = Nothing
+        , resolver =
+            Http.stringResolver
+                (\response ->
+                    when response is
+                        Http.GoodStatus_ good ->
+                            Decode.decodeString decoder good.body
+                                |> Result.mapError Decode.errorToString
+
+                        Http.BadStatus_ bad ->
+                            Err ("HTTP " ++ String.fromInt bad.metadata.statusCode ++ " : " ++ url)
+
+                        Http.BadUrl_ bad ->
+                            Err ("URL invalide : " ++ bad)
+
+                        Http.Timeout_ ->
+                            Err "délai dépassé"
+
+                        Http.NetworkError_ ->
+                            Err "réseau indisponible"
+                )
+        }
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg }
+update msg model =
+    when msg is
+        GradesLoaded (Err message) ->
+            stay { model | status = Failed ("Chargement impossible (" ++ message ++ ")") }
+
+        GradesLoaded (Ok grades) ->
+            let
+                route =
+                    model.initialRoute
+
+                known id =
+                    Array.any (\grade -> grade.info.id == id) grades
+
+                gradeId =
+                    when route.grade is
+                        Just id ->
+                            if known id then
+                                id
+
+                            else
+                                firstGrade grades
+
+                        Nothing ->
+                            firstGrade grades
+
+                loaded =
+                    { model | status = Ready, grades = grades, gradeId = gradeId }
+            in
+            -- The route of the URL is applied, and written back without a history entry (it may have been narrowed).
+            applyRoute route Still loaded
+                |> andReplaceUrl
+
+        SelectGrade id ->
+            if Array.any (\grade -> grade.info.id == id) model.grades then
+                replaceUrl { model | gradeId = id }
+
+            else
+                stay model
+
+        FilterNew checked ->
+            stay { model | filters = { isNew = checked, isWarning = model.filters.isWarning } }
+
+        FilterWarning checked ->
+            stay { model | filters = { isNew = model.filters.isNew, isWarning = checked } }
+
+        StartSession waza ->
+            let
+                started =
+                    startSession model waza
+            in
+            pushUrl
+                { model = slide Forward started.model
+                , command = Cmd.batch [ started.command, scrollTop ]
+                }
+
+        Next ->
+            when model.screen is
+                Quiz quiz ->
+                    if Array.isEmpty quiz.pool then
+                        { model = slide Forward { model | screen = Quiz { quiz | current = Nothing, done = True } }
+                        , command = scrollTop
+                        }
+
+                    else
+                        { model = model, command = roll }
+
+                _ ->
+                    stay model
+
+        -- Randomness is a command (so `update` stays pure): the answer is the draw.
+        Rolled random ->
+            when model.screen is
+                Quiz quiz ->
+                    if Array.isEmpty quiz.pool then
+                        stay model
+
+                    else
+                        let
+                            index =
+                                Grade.pickIndex quiz.pool random
+                        in
+                        { model =
+                            slide Forward
+                                { model
+                                    | screen =
+                                        Quiz
+                                            { quiz
+                                                | current = Array.get index quiz.pool
+                                                , pool = Array.remove index quiz.pool
+                                            }
+                                }
+                        , command = scrollTop
+                        }
+
+                _ ->
+                    stay model
+
+        OpenProgram ->
+            when model.screen is
+                Quiz quiz ->
+                    pushUrl
+                        { model = slide Forward { model | screen = Program { waza = quiz.waza, level = Attacks } }
+                        , command = scrollTop
+                        }
+
+                _ ->
+                    stay model
+
+        Navigate target ->
+            when model.screen is
+                Program program ->
+                    let
+                        direction =
+                            when target.direction is
+                                Just given ->
+                                    given
+
+                                Nothing ->
+                                    if levelDepth target.to < levelDepth program.level then
+                                        Back
+
+                                    else
+                                        Forward
+                    in
+                    pushUrl
+                        { model = slide direction { model | screen = Program { program | level = target.to } }
+                        , command = scrollTop
+                        }
+
+                _ ->
+                    stay model
+
+        -- Back from the program: a fresh session of the same waza.
+        CloseProgram ->
+            when model.screen is
+                Program program ->
+                    let
+                        started =
+                            startSession model program.waza
+                    in
+                    pushUrl
+                        { model = slide Back started.model
+                        , command = Cmd.batch [ started.command, scrollTop ]
+                        }
+
+                _ ->
+                    stay model
+
+        GoHome ->
+            when model.screen is
+                Home ->
+                    stay model
+
+                Quiz _ ->
+                    pushUrl { model = slide Forward { model | screen = Home }, command = scrollTop }
+
+                Program _ ->
+                    pushUrl { model = slide Back { model | screen = Home }, command = scrollTop }
+
+        -- The only internal link is the manual: it leaves the app.
+        UrlRequested (Browser.Internal url) ->
+            { model = model, command = Navigation.load (Url.toString url) }
+
+        UrlRequested (Browser.External url) ->
+            { model = model, command = Navigation.load url }
+
+        -- The browser went back or forward (or the URL was edited): the URL is the source of truth.
+        UrlChanged url ->
+            let
+                route =
+                    Route.parse (Maybe.withDefault "" url.fragment)
+            in
+            if model.status /= Ready || route == routeOf model then
+                stay model
+
+            else
+                let
+                    direction =
+                        if Route.depth route < Route.depth (routeOf model) then
+                            Back
+
+                        else
+                            Forward
+                in
+                applyRoute route direction model
+                    |> andReplaceUrl
+
+        AskVideo url ->
+            stay { model | videoPrompt = Just { url = url, dontAsk = False } }
+
+        SetDontAsk checked ->
+            stay { model | videoPrompt = Maybe.map (\prompt -> { prompt | dontAsk = checked }) model.videoPrompt }
+
+        -- The link of the modal opens the video by itself: only the preference remains to be saved.
+        ConfirmVideo ->
+            let
+                dontAsk =
+                    model.videoPrompt
+                        |> Maybe.map .dontAsk
+                        |> Maybe.withDefault False
+            in
+            { model = { model | videoPrompt = Nothing, skipVideoWarning = model.skipVideoWarning || dontAsk }
+            , command =
+                if dontAsk then
+                    LocalStorage.set skipVideoWarningKey "1"
+                        |> Task.attempt (\_ -> NoOp)
+
+                else
+                    Cmd.none
+            }
+
+        CancelVideo ->
+            stay { model | videoPrompt = Nothing }
+
+        NoOp ->
+            stay model
+
+
+stay : Model -> { model : Model, command : Cmd Msg }
+stay model =
+    { model = model, command = Cmd.none }
+
+
+firstGrade : Array LoadedGrade -> String
+firstGrade grades =
+    Array.get 0 grades
+        |> Maybe.map (\grade -> grade.info.id)
+        |> Maybe.withDefault ""
+
+
+levelDepth : ProgramLevel -> Int
+levelDepth level =
+    when level is
+        Attacks ->
+            1
+
+        Techniques _ ->
+            2
+
+        TechniqueCard _ ->
+            3
+
+
+{-| The cards slide in the given direction (a new `count` creates them again).
+-}
+slide : Direction -> Model -> Model
+slide direction model =
+    { model | slide = { direction = direction, count = model.slide.count + 1 } }
+
+
+scrollTop : Cmd Msg
+scrollTop =
+    Task.perform (\_ -> NoOp) (Dom.setViewport 0 0)
+
+
+roll : Cmd Msg
+roll =
+    Random.generate Rolled (Random.float 0 1)
+
+
+
+-- SESSION
+
+
+{-| A new session of `waza`, with the data and the filters of the grade; draws the first technique.
+-}
+startSession : Model -> String -> { model : Model, command : Cmd Msg }
+startSession model waza =
+    let
+        pool =
+            Grade.buildPool (currentData model) waza model.filters
+
+        quiz =
+            { waza = waza, pool = pool, total = Array.length pool, current = Nothing, done = Array.isEmpty pool }
+    in
+    { model = { model | screen = Quiz quiz }
+    , command =
+        if Array.isEmpty pool then
+            Cmd.none
+
+        else
+            roll
+    }
+
+
+
+-- URL
+
+
+{-| The route narrowed to what the data contains: an unknown waza gives the home, an unknown attack or technique the level above.
+-}
+applyRoute : Route -> Direction -> Model -> { model : Model, command : Cmd Msg }
+applyRoute route direction model =
+    let
+        data =
+            currentData model
+
+        validWaza =
+            route.waza
+                |> Maybe.andThen
+                    (\waza ->
+                        if Array.member waza Grade.wazaOrder then
+                            Just waza
+
+                        else
+                            Nothing
+                    )
+
+        result =
+            when validWaza is
+                Nothing ->
+                    stay { model | screen = Home }
+
+                Just waza ->
+                    when route.program is
+                        Just wanted ->
+                            stay { model | screen = Program { waza = waza, level = validLevel data waza wanted } }
+
+                        Nothing ->
+                            when model.screen is
+                                Quiz quiz ->
+                                    if quiz.waza == waza then
+                                        stay model
+
+                                    else
+                                        startSession model waza
+
+                                _ ->
+                                    startSession model waza
+
+        changed =
+            routeOf result.model /= routeOf model
+    in
+    { model =
+        if changed then
+            slide direction result.model
+
+        else
+            result.model
+    , command = result.command
+    }
+
+
+validLevel : GradeData -> String -> ProgramLevel -> ProgramLevel
+validLevel data waza wanted =
+    let
+        attackExists name =
+            Array.any (\attack -> attack.name == name) (Grade.listAttacks data waza)
+
+        techniqueExists attack name =
+            Array.any (\technique -> technique.name == name) (Grade.listTechniques data waza attack)
+    in
+    when wanted is
+        Attacks ->
+            Attacks
+
+        Techniques attack ->
+            if attackExists attack then
+                Techniques attack
+
+            else
+                Attacks
+
+        TechniqueCard card ->
+            if not (attackExists card.attack) then
+                Attacks
+
+            else if techniqueExists card.attack card.technique then
+                TechniqueCard card
+
+            else
+                Techniques card.attack
+
+
+urlOf : Model -> String
+urlOf model =
+    Route.toHash (routeOf model)
+
+
+{-| A user action changed what the screen shows: the URL follows, with a history entry.
+-}
+pushUrl : { model : Model, command : Cmd Msg } -> { model : Model, command : Cmd Msg }
+pushUrl result =
+    { model = result.model
+    , command = Cmd.batch [ result.command, Navigation.pushUrl result.model.key (urlOf result.model) ]
+    }
+
+
+replaceUrl : Model -> { model : Model, command : Cmd Msg }
+replaceUrl model =
+    { model = model, command = Navigation.replaceUrl model.key (urlOf model) }
+
+
+andReplaceUrl : { model : Model, command : Cmd Msg } -> { model : Model, command : Cmd Msg }
+andReplaceUrl result =
+    { model = result.model
+    , command = Cmd.batch [ result.command, Navigation.replaceUrl result.model.key (urlOf result.model) ]
+    }

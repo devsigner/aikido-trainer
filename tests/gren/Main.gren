@@ -1,0 +1,142 @@
+module Main exposing (main)
+
+import Array
+import Dict
+import Expect
+import Grade exposing (GradeData)
+import Json.Decode as Decode
+import Route exposing (ProgramLevel(..))
+import Test exposing (Test)
+import Test.Runner.Node
+
+
+main : Test.Runner.Node.Program
+main =
+    Test.Runner.Node.run
+        (Test.describe "Aikido Trainer"
+            [ gradeTests
+            , routeTests
+            ]
+        )
+
+
+patch : String -> Grade.FilePatch
+patch json =
+    when Decode.decodeString Grade.fileDecoder json is
+        Ok parsed ->
+            parsed
+
+        Err _ ->
+            -- An invalid fixture gives empty data: the assertions on it fail.
+            Dict.empty
+
+
+base : GradeData
+base =
+    Grade.mergeFile
+        (patch """
+{"waza":{"Tachi waza":[
+            {"name":"Katate dori","order":2,"techniques":[
+                {"name":"Ikkyo","order":1,"forms":["Omote","Ura"]},
+                {"name":"Nikkyo","order":2,"isNew":true,"video":"https://v"}]},
+            {"name":"Ai hanmi","order":1,"techniques":[
+                {"name":"Nikkyo","order":1,"isWarning":true,"isNew":true}]}]}}
+""")
+        Dict.empty
+
+
+gradeTests : Test
+gradeTests =
+    Test.describe "Grade"
+        [ Test.test "counts the techniques" (\_ -> Expect.equal 3 (Grade.countTechniques base))
+        , Test.test "the pool has one entry per form, weighted 1 / 1.5 / 2.25" <|
+            \_ ->
+                Grade.buildPool base "Tachi waza" { isNew = False, isWarning = False }
+                    |> Array.map .weight
+                    |> Array.sort
+                    |> Expect.equal [ 1, 1, 1.5, 2.25 ]
+        , Test.test "filters are OR-ed" <|
+            \_ ->
+                Expect.equal
+                    [ 1.5, 2.25 ]
+                    (Grade.buildPool base "Tachi waza" { isNew = True, isWarning = True }
+                        |> Array.map .weight
+                        |> Array.sort
+                    )
+        , Test.test "warning filter alone" <|
+            \_ ->
+                Grade.buildPool base "Tachi waza" { isNew = False, isWarning = True }
+                    |> Array.map .technique
+                    |> Expect.equal [ "Nikkyo" ]
+        , Test.test "an unknown waza has an empty pool" <|
+            \_ -> Expect.equal 0 (Array.length (Grade.buildPool base "Suwari waza" { isNew = False, isWarning = False }))
+        , Test.test "pickIndex follows the weights" <|
+            \_ ->
+                let
+                    pool =
+                        [ { attack = "a", technique = "x", form = Nothing, weight = 1 }
+                        , { attack = "a", technique = "y", form = Nothing, weight = 3 }
+                        ]
+                in
+                Expect.equal [ 0, 1, 1, 1 ] (Array.map (Grade.pickIndex pool) [ 0, 0.3, 0.5, 0.999 ])
+        , Test.test "lists are sorted by order, then by name" <|
+            \_ ->
+                Grade.listAttacks base "Tachi waza"
+                    |> Array.map .name
+                    |> Expect.equal [ "Ai hanmi", "Katate dori" ]
+        , Test.test "norm ignores case and accents" <|
+            \_ -> Expect.equal "aiki otoshi" (Grade.norm " Aïki Otoshi ")
+        , Test.test "the same technique is found under other attacks" <|
+            \_ ->
+                Grade.findSameTechnique base "Tachi waza" "Katate dori" "nikkyo"
+                    |> Array.map .attack
+                    |> Expect.equal [ "Ai hanmi" ]
+        , Test.test "a later file overrides fields, keeping the others" <|
+            \_ ->
+                let
+                    merged =
+                        Grade.mergeFile
+                            (patch """
+{"waza":{"Tachi waza":[{"name":"Katate dori","techniques":[{"name":"Nikkyo","isNew":false}]}]}}
+""")
+                            base
+                in
+                Grade.findTechnique merged "Tachi waza" "Katate dori" "Nikkyo"
+                    |> Maybe.map (\technique -> { isNew = technique.isNew, video = technique.video })
+                    |> Expect.equal (Just { isNew = False, video = Just "https://v" })
+        ]
+
+
+routeTests : Test
+routeTests =
+    Test.describe "Route"
+        [ Test.test "round trip, accents and spaces encoded" <|
+            \_ ->
+                let
+                    route =
+                        { grade = Just "2eme-kyo"
+                        , waza = Just "Tachi waza"
+                        , program = Just (TechniqueCard { attack = "Aï hammi", technique = "Nikkyo" })
+                        }
+                in
+                Expect.equal route (Route.parse (String.dropFirst 1 (Route.toHash route)))
+        , Test.test "levels of the program" <|
+            \_ ->
+                Expect.equal
+                    [ Just Attacks, Just (Techniques "Katate dori"), Nothing ]
+                    [ (Route.parse "/g/Tachi%20waza/program").program
+                    , (Route.parse "/g/Tachi%20waza/program/Katate%20dori").program
+                    , (Route.parse "/g/Tachi%20waza").program
+                    ]
+        , Test.test "an unreadable URL gives the home" <|
+            \_ -> Expect.equal { grade = Nothing, waza = Nothing, program = Nothing } (Route.parse "/%E0%A4%A")
+        , Test.test "depth grows with the level" <|
+            \_ ->
+                Expect.equal
+                    [ 1, 2, 3, 4 ]
+                    [ Route.depth (Route.parse "/g")
+                    , Route.depth (Route.parse "/g/w")
+                    , Route.depth (Route.parse "/g/w/program")
+                    , Route.depth (Route.parse "/g/w/program/a")
+                    ]
+        ]

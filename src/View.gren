@@ -1,0 +1,451 @@
+module View exposing (view)
+
+{-| `view : Model -> Document Msg`. The ids and CSS classes are stable (used by `style.css`).
+-}
+
+import Array exposing (Array)
+import Browser exposing (Document)
+import Grade exposing (Technique, badgesOf, findSameTechnique, findTechnique, listAttacks, listTechniques)
+import Html exposing (Html, a, button, div, footer, h1, h2, h3, input, label, main_, option, p, section, select, span, text)
+import Html.Attributes as Attr exposing (class, id)
+import Html.Events as Events
+import Html.Keyed as Keyed
+import Json.Decode as Decode
+import Route exposing (ProgramLevel(..))
+import Types exposing (Direction(..), Model, Msg(..), QuizState, Screen(..), Status(..), currentData)
+
+
+view : Model -> Document Msg
+view model =
+    { title = "Aïkido – Entraînement"
+    , body = [ page model (screens model) ]
+    }
+
+
+screens : Model -> Array (Html Msg)
+screens model =
+    when model.status is
+        Loading ->
+            [ title
+            , div [ id "loading", class "loading", Attr.attribute "role" "status", Attr.attribute "aria-label" "Chargement" ]
+                [ div [ class "spinner" ] [] ]
+            ]
+
+        Failed message ->
+            [ title, p [ class "hint" ] [ text message ] ]
+
+        Ready ->
+            when model.screen is
+                Home ->
+                    [ title, homeView model ]
+
+                Quiz quiz ->
+                    [ div [ class "screen full" ] [ title, quizView model quiz ] ]
+
+                Program program ->
+                    [ programView model program ]
+
+
+page : Model -> Array (Html Msg) -> Html Msg
+page model content =
+    main_ []
+        (Array.prepend content
+            [ pageFooter
+            , videoModal model
+            ]
+        )
+
+
+title : Html Msg
+title =
+    h1 [ id "title", Events.onClick GoHome ] [ text "合気道 Aïkido" ]
+
+
+pageFooter : Html Msg
+pageFooter =
+    footer []
+        [ p [] [ text "© 2026 Aïkido Trainer. Tous droits réservés." ]
+        , p [] [ text "Développé par amour de l'Aïkido 🙏" ]
+        , p [] [ a [ Attr.href "manual.html" ] [ text "Manuel d'utilisation" ] ]
+        ]
+
+
+
+-- HOME
+
+
+homeView : Model -> Html Msg
+homeView model =
+    section [ id "home" ] [ catalogView model, wazaPicker model ]
+
+
+{-| Selector of the grade and filters.
+-}
+catalogView : Model -> Html Msg
+catalogView model =
+    div [ class "group settings" ]
+        [ label [ class "field" ]
+            [ text "Grade"
+            , select [ id "grade", Events.onInput SelectGrade ]
+                (Array.map
+                    (\grade ->
+                        option
+                            [ Attr.value grade.info.id, Attr.selected (grade.info.id == model.gradeId) ]
+                            [ text (grade.info.label ++ " (" ++ String.fromInt grade.count ++ " techniques)") ]
+                    )
+                    model.grades
+                )
+            ]
+        , div [ class "filters" ]
+            [ label [] [ input [ Attr.type_ "checkbox", id "f-new", Attr.checked model.filters.isNew, Events.onCheck FilterNew ] [], text " 🆕 Nouveautés" ]
+            , label [] [ input [ Attr.type_ "checkbox", id "f-warning", Attr.checked model.filters.isWarning, Events.onCheck FilterWarning ] [], text " ⚠️ Attention" ]
+            ]
+        ]
+
+
+{-| One button per waza; a waza with no technique for the filters is disabled.
+-}
+wazaPicker : Model -> Html Msg
+wazaPicker model =
+    let
+        data =
+            currentData model
+
+        isEmpty waza =
+            Array.isEmpty (Grade.buildPool data waza model.filters)
+
+        anyEmpty =
+            Array.any isEmpty Grade.wazaOrder
+    in
+    div [ class "group grow" ]
+        [ p [ class "hint" ] [ text "Choisis un waza et teste-toi !" ]
+        , div [ id "waza-buttons", class "buttons grow" ]
+            (Array.map (\waza -> button [ Attr.disabled (isEmpty waza), Events.onClick (StartSession waza) ] [ text waza ]) Grade.wazaOrder)
+        , p [ id "home-msg", class "hint" ]
+            [ text
+                (if anyEmpty then
+                    "Un waza grisé n'a aucune technique pour ces filtres."
+
+                 else
+                    ""
+                )
+            ]
+        ]
+
+
+
+-- CARD
+
+
+{-| Card of a technique, shared by the quiz and the program.
+`form`: the form drawn (by default all the forms of the technique). The `prefix` generates the ids.
+-}
+card :
+    Model
+    -> { prefix : String, id : String, waza : String, attack : String, technique : String, form : Maybe String }
+    -> Html Msg
+card model fields =
+    let
+        found =
+            if fields.technique == "" then
+                Nothing
+
+            else
+                findTechnique (currentData model) fields.waza fields.attack fields.technique
+
+        slideClass =
+            when model.slide.direction is
+                Back ->
+                    " slide-back"
+
+                Forward ->
+                    " slide-forward"
+
+                Still ->
+                    ""
+
+        formText =
+            when fields.form is
+                Just form ->
+                    form
+
+                Nothing ->
+                    found
+                        |> Maybe.map (\technique -> String.join " · " technique.forms)
+                        |> Maybe.withDefault ""
+
+        cell suffix name content =
+            div [ id (fields.prefix ++ "-" ++ suffix), class name ] [ text content ]
+
+        videoLink =
+            when Maybe.andThen .video found is
+                Just url ->
+                    [ videoAnchor model (fields.prefix ++ "-video") url ]
+
+                Nothing ->
+                    []
+    in
+    -- The key changes with each slide, so that the element is created again and its CSS animation restarts.
+    Keyed.node "div"
+        [ Attr.style "display" "contents" ]
+        [ { key = String.fromInt model.slide.count
+          , node =
+                div [ id fields.id, class ("card" ++ slideClass) ]
+                    (Array.prepend
+                        [ cell "waza" "waza" fields.waza
+                        , cell "attack" "attack" fields.attack
+                        , cell "technique" "technique" fields.technique
+                        , cell "form" "form" formText
+                        , cell "badges" "badges" (found |> Maybe.map badgesOf |> Maybe.withDefault "")
+                        , cell "note" "note" (found |> Maybe.andThen .note |> Maybe.withDefault "")
+                        ]
+                        videoLink
+                    )
+          }
+        ]
+
+
+
+-- VIDEO
+
+
+{-| Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
+-}
+videoAnchor : Model -> String -> String -> Html Msg
+videoAnchor model anchorId url =
+    let
+        attributes =
+            [ id anchorId, class "video", Attr.href url, Attr.target "_blank", Attr.rel "noopener" ]
+    in
+    a
+        (if model.skipVideoWarning then
+            attributes
+
+         else
+            Array.pushLast
+                (Events.preventDefaultOn "click" (Decode.succeed { message = AskVideo url, preventDefault = True }))
+                attributes
+        )
+        [ text "▶ Voir la vidéo" ]
+
+
+videoModal : Model -> Html Msg
+videoModal model =
+    when model.videoPrompt is
+        Nothing ->
+            text ""
+
+        Just prompt ->
+            div [ id "video-modal", class "modal-backdrop" ]
+                [ div [ class "modal", Attr.attribute "role" "dialog", Attr.attribute "aria-modal" "true", Attr.attribute "aria-labelledby" "video-modal-text" ]
+                    [ p [ id "video-modal-text" ] [ text "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?" ]
+                    , label [ class "field" ]
+                        [ input [ Attr.type_ "checkbox", id "video-dont-ask", Attr.checked prompt.dontAsk, Events.onCheck SetDontAsk ] []
+                        , text " Ne plus afficher ce message"
+                        ]
+                    , div [ class "buttons" ]
+                        -- A link, so that the browser opens the video in a new tab by itself.
+                        [ a [ id "video-confirm", class "button", Attr.href prompt.url, Attr.target "_blank", Attr.rel "noopener", Events.onClick ConfirmVideo ] [ text "Voir la vidéo" ]
+                        , button [ id "video-cancel", class "secondary", Events.onClick CancelVideo ] [ text "Annuler" ]
+                        ]
+                    ]
+                ]
+
+
+
+-- QUIZ
+
+
+quizView : Model -> QuizState -> Html Msg
+quizView model quiz =
+    let
+        shown =
+            when quiz.current is
+                Just current ->
+                    { waza = quiz.waza, attack = current.attack, technique = current.technique, form = Just (Maybe.withDefault "" current.form) }
+
+                Nothing ->
+                    { waza = "", attack = "", technique = "", form = Just "" }
+    in
+    section [ id "quiz" ]
+        [ button [ id "home-btn", class "secondary", Events.onClick GoHome ] [ text "Retour à l'accueil" ]
+        , p [ id "progress", class "hint" ]
+            [ text (quiz.waza ++ " : " ++ String.fromInt (quiz.total - Array.length quiz.pool) ++ " / " ++ String.fromInt quiz.total) ]
+        , h3 [ class "hint" ] [ text "Connais-tu cette technique ?" ]
+        , if quiz.done then
+            div [ id "done" ] [ text "Waza terminé 🎉" ]
+
+          else
+            card model { prefix = "card", id = "card", waza = shown.waza, attack = shown.attack, technique = shown.technique, form = shown.form }
+        , div [ class "buttons actions" ]
+            (Array.prepend
+                (if quiz.done then
+                    []
+
+                 else
+                    [ button [ id "next", Events.onClick Next ] [ text "Technique suivante" ] ]
+                )
+                [ button [ id "prog-btn", class "secondary", Events.onClick OpenProgram ] [ text "Voir le programme" ] ]
+            )
+        ]
+
+
+
+-- PROGRAM
+
+
+type alias Level =
+    { back : String
+    , backMessage : Msg
+    , fields : { waza : String, attack : String, technique : String }
+    , actions : Maybe (Html Msg)
+    , title : String
+    , sub : String
+    , items : Array (Html Msg)
+    }
+
+
+withBadges : String -> Technique -> String
+withBadges label technique =
+    String.trim (label ++ " " ++ badgesOf technique)
+
+
+item : String -> ProgramLevel -> Html Msg
+item label target =
+    button [ class "item", Events.onClick (Navigate { to = target, direction = Nothing }) ] [ text label ]
+
+
+levelOf : Model -> { waza : String, level : ProgramLevel } -> Level
+levelOf model program =
+    let
+        data =
+            currentData model
+
+        waza =
+            program.waza
+    in
+    when program.level is
+        Attacks ->
+            let
+                attacks =
+                    listAttacks data waza
+            in
+            { back = "← Tirage"
+            , backMessage = CloseProgram
+            , fields = { waza = waza, attack = "", technique = "" }
+            , actions = Nothing
+            , title = "Choisis une attaque :"
+            , sub = String.fromInt (Array.length attacks) ++ " attaques"
+            , items = Array.map (\attack -> item attack.name (Techniques attack.name)) attacks
+            }
+
+        Techniques attack ->
+            let
+                techniques =
+                    listTechniques data waza attack
+            in
+            { back = "← Programme"
+            , backMessage = Navigate { to = Attacks, direction = Nothing }
+            , fields = { waza = waza, attack = attack, technique = "" }
+            , actions = Nothing
+            , title = "Choisis une technique :"
+            , sub = String.fromInt (Array.length techniques) ++ " techniques"
+            , items =
+                Array.map
+                    (\technique -> item (withBadges technique.name technique) (TechniqueCard { attack = attack, technique = technique.name }))
+                    techniques
+            }
+
+        TechniqueCard selected ->
+            let
+                siblings =
+                    listTechniques data waza selected.attack
+
+                position =
+                    siblings
+                        |> Array.indexedMap (\index technique -> { index = index, name = technique.name })
+                        |> Array.findFirst (\entry -> entry.name == selected.technique)
+                        |> Maybe.map (\found -> found.value.index)
+                        |> Maybe.withDefault 0
+
+                count =
+                    Array.length siblings
+
+                -- Neighbours wrap around the list; none when the attack has a single technique.
+                neighbour step =
+                    if count > 1 then
+                        Array.get ((position + step + count) - count * ((position + step + count) // count)) siblings
+
+                    else
+                        Nothing
+
+                pagerButton buttonId label target direction =
+                    button
+                        (Array.prepend
+                            [ id buttonId, Attr.disabled (target == Nothing) ]
+                            (when target is
+                                Just technique ->
+                                    [ Events.onClick (Navigate { to = TechniqueCard { attack = selected.attack, technique = technique.name }, direction = Just direction }) ]
+
+                                Nothing ->
+                                    []
+                            )
+                        )
+                        [ text label ]
+
+                others =
+                    findSameTechnique data waza selected.attack selected.technique
+            in
+            { back = "← " ++ selected.attack
+            , backMessage = Navigate { to = Techniques selected.attack, direction = Nothing }
+            , fields = { waza = waza, attack = selected.attack, technique = selected.technique }
+            , actions =
+                Just
+                    (div [ class "pager" ]
+                        [ p [ class "hint center" ] [ text (String.fromInt (position + 1) ++ " / " ++ String.fromInt count) ]
+                        , div [ class "pager-buttons" ]
+                            [ pagerButton "prog-prev" "Précédente" (neighbour -1) Back
+                            , pagerButton "prog-next" "Suivante" (neighbour 1) Forward
+                            ]
+                        ]
+                    )
+            , title = "Même technique, autres attaques ↓"
+            , sub =
+                if Array.isEmpty others then
+                    "Aucune autre attaque pour cette technique."
+
+                else
+                    ""
+            , items =
+                Array.map
+                    (\other -> item (withBadges other.attack other.technique) (TechniqueCard { attack = other.attack, technique = other.technique.name }))
+                    others
+            }
+
+
+{-| The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
+-}
+programView : Model -> { waza : String, level : ProgramLevel } -> Html Msg
+programView model program =
+    let
+        level =
+            levelOf model program
+    in
+    section [ id "program" ]
+        [ div [ class (if level.actions == Nothing then "screen" else "screen full") ]
+            (Array.prepend
+                [ title
+                , button [ id "home-btn", class "secondary", Events.onClick GoHome ] [ text "Retour à l'accueil" ]
+                , button [ id "prog-back", class "secondary back", Events.onClick level.backMessage ] [ text level.back ]
+                , card model { prefix = "prog", id = "prog-card", waza = level.fields.waza, attack = level.fields.attack, technique = level.fields.technique, form = Nothing }
+                ]
+                (Array.prepend
+                    (Maybe.withDefault [] (Maybe.map Array.singleton level.actions))
+                    [ h2 [ id "prog-title" ] [ text level.title ] ]
+                )
+            )
+        , div [ class "group" ]
+            [ p [ id "prog-sub", class "hint" ] [ text level.sub ]
+            , div [ id "prog-list", class "buttons" ] level.items
+            ]
+        ]

@@ -1,0 +1,117 @@
+module Route exposing
+    ( ProgramLevel(..)
+    , Route
+    , depth
+    , parse
+    , toHash
+    )
+
+{-| The URL is `#/grade[/waza[/program[/attack[/technique]]]]` (hash routing works on GitHub Pages).
+-}
+
+import Array exposing (Array)
+import Url
+
+
+{-| What the program screen shows: the attacks, the techniques of an attack, or a technique card.
+-}
+type ProgramLevel
+    = Attacks
+    | Techniques String
+    | TechniqueCard { attack : String, technique : String }
+
+
+type alias Route =
+    { grade : Maybe String
+    , waza : Maybe String
+    , program : Maybe ProgramLevel
+    }
+
+
+empty : Route
+empty =
+    { grade = Nothing, waza = Nothing, program = Nothing }
+
+
+{-| Reads the fragment of the URL (without `#`). An unreadable URL gives the empty route (home).
+-}
+parse : String -> Route
+parse fragment =
+    let
+        raw =
+            fragment
+                |> String.split "/"
+                |> Array.keepIf (\part -> part /= "")
+
+        parts =
+            Array.mapAndKeepJust Url.percentDecode raw
+    in
+    if Array.length parts /= Array.length raw then
+        empty
+
+    else
+        { grade = Array.get 0 parts
+        , waza = Array.get 1 parts
+        , program =
+            if Array.get 2 parts == Just "program" then
+                Just
+                    (when { attack = Array.get 3 parts, technique = Array.get 4 parts } is
+                        { attack = Just attack, technique = Just technique } ->
+                            TechniqueCard { attack = attack, technique = technique }
+
+                        { attack = Just attack } ->
+                            Techniques attack
+
+                        _ ->
+                            Attacks
+                    )
+
+            else
+                Nothing
+        }
+
+
+toHash : Route -> String
+toHash route =
+    let
+        program =
+            when route.program is
+                Nothing ->
+                    []
+
+                Just Attacks ->
+                    [ "program" ]
+
+                Just (Techniques attack) ->
+                    [ "program", attack ]
+
+                Just (TechniqueCard card) ->
+                    [ "program", card.attack, card.technique ]
+
+        parts =
+            Array.prepend (Array.mapAndKeepJust identity [ route.grade, route.waza ]) program
+    in
+    "#/" ++ String.join "/" (Array.map Url.percentEncode parts)
+
+
+{-| How deep the route is (home = 0): tells whether a change goes back or forward.
+-}
+depth : Route -> Int
+depth route =
+    when route.program is
+        Just Attacks ->
+            3
+
+        Just (Techniques _) ->
+            4
+
+        Just (TechniqueCard _) ->
+            5
+
+        Nothing ->
+            when route.waza is
+                Just _ ->
+                    2
+
+                Nothing ->
+                    1

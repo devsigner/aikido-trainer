@@ -1,0 +1,16 @@
+{
+    "type": "application",
+    "platform": "browser",
+    "source-directories": [
+        "src"
+    ],
+    "gren-version": "0.6.6",
+    "dependencies": {
+        "direct": {
+            "gren-lang/browser": "6.0.4",
+            "gren-lang/core": "7.6.1",
+            "gren-lang/url": "6.0.0"
+        },
+        "indirect": {}
+    }
+}

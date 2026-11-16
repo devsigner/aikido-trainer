@@ -1,13 +1,13 @@
 # Aikido Trainer
 
-Small static web app (HTML/CSS/JS, no dependencies and no build step) that randomly picks an aikido technique for training and review.
+Small static web app written in Gren (compiled to `app.js`, which is committed) that randomly picks an aikido technique for training and review.
 
 ## Version
 
-**Current version: `20261114.101`** (format `YYYYMMDD`, the date of the update).
+**Current version: `20261114.102`** (format `YYYYMMDD`, the date of the update).
 
 For each new version:
-1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
+1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...` and `app.js?v=...`: this forces a reload and bypasses the cache.
 2. Set the same value in `const VERSION` in `sw.js` (renews the offline cache).
 3. Update the number above.
 4. If two versions are published on the same day, add a suffix: `20261111.2`.
@@ -93,7 +93,8 @@ An HTTP server is required (`fetch()` of the JSON files does not work over `file
 
 ```
 corepack enable  # enables the package manager (Node ≥ 20)
-yarn install     # once only (installs http-server)
+yarn install     # once only (Gren compiler, http-server)
+yarn build       # after each change of src/*.gren
 yarn server
 ```
 
@@ -109,63 +110,51 @@ ruby -run -ehttpd . -p8000
 
 ## Tests
 
-No test dependencies: Node's built-in runner (≥ 20).
-
 ```
+yarn build    # src/*.gren → app.js (commit the result)
 yarn test
-yarn lint     # ESLint (eslint.config.js)
 ```
 
-A `pre-commit` hook (`.githooks/`, enabled by `yarn install` through the `prepare` script) runs the lint and the tests before each commit and blocks the commit on failure.
+A `pre-commit` hook (`.githooks/`, enabled by `yarn install` through the `prepare` script) runs the tests before each commit and blocks the commit on failure.
 
-- `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` + import map ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache, `src/` modules).
-- `tests/app.test.js`: pure logic (pool, weighting, sorting, merging), `update`, `h()`, `resolveGrade`, and a full walkthrough using the real runtime with `tests/helpers.js` (virtual tree, simulated history: home, quiz without repetition, progress, program, back).
-
-- `tests/elmer.test.js`: the framework (`combine`, features, lazy, effects, the `elmer` feature, `defineFeature`).
-- `tests/elmer-debug.test.js`: the debugger (panel state and view, slices, log, restore, runtime hooks).
+- `tests/gren/Main.gren`: Gren unit tests (`gren-lang/test`, node platform; no `Browser` module there, so only `Grade` and `Route` are testable). `tests/gren.test.js` compiles and runs them, and checks that `app.js` equals a fresh build of `src/` (forgot `yarn build`).
+- `tests/data.test.js`: JSON validity (format, duplicates, spelling, `order`, inheritance), version number consistency (`index.html` ↔ `sw.js` ↔ `CLAUDE.md`), mobile configuration (tags, manifest, icons, precache).
+- `tests/helpers.js`: reads the data and merges grades (independent of the Gren code).
 
 Run the tests before every commit and add some for any new rule.
 
-## Architecture (Elm pattern)
+## Architecture (The Elm Architecture, in Gren)
 
-Unidirectional flow, no dependencies and no build (native ES modules + versioned import map):
+Gren 0.6.6 (`gren.json`, `src/`): `when … is` instead of `case`, `Array` instead of `List`, no tuples (records), variants with a single parameter, `Array.prepend a b` = `a ++ b` (careful: `Array.append` is the reverse).
 
-- **Features** (`src/features/*.js`, composed by `combine` in `framework/elmer/feature.js`): each one exports `feature = defineFeature({ model, lazy?, init?(flags, model), messages, on, view, views, events, effects, subscribe })` and has its own model slice (`model.catalog`, `quiz`, `program`, `video`, `navigation`, `slide`; the name is its key in `features` of `src/update.js`; `messages` handlers are `(slice, msg, root)`; `views`/`events` expose view pieces and event builders to the others, e.g. `navigation.events.navigated`), `subscribe` (browser events, e.g. `popstate` in navigation). `quiz` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ catalog, quiz, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
-- `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
-- `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
-- `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `framework/elmer/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
-- `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `framework/elmer/vdom.js` provides `h()` and diff-based rendering; `framework/elmer/runtime.js` loops `update → effects → view → render`.
-- **`elmer` feature** (`framework/elmer/elmer.js`): added by `combine` to every app (reserved name, last slice): `model.elmer = { debug, persist, historySize }`, messages `DebugOn`/`DebugOff`/`PersistOn`/`PersistOff` (commands `SaveSetting`/`ForgetSetting`, only while `persist`, off by default, true at start if a choice was saved → `localStorage` `elmer.debug`); its `init` reads the environment (`settingsFromEnvironment`, `flags.elmer` wins); `restore` keeps `model.elmer` (`keepSettings`). The debugger mounts/unmounts according to `model.elmer.debug`.
-- **Debug mode** (`framework/elmer/devtools.js` for the history, the `__elmer` API and the lazy mount; `debug/` for the panel: `mount.js`, `panel.js`, `inspect.js`, `style.js`): built into `run` (`devtools: { hide }`): mounted automatically on a local host (`localhost`, `127.x`, `*.local`), elsewhere `__elmer.debug.on()` / `.off()` in the console mount/unmount it (module loaded on demand, last 200 steps always kept and replayed). The panel (its own tiny Elm app, outside the app tree) with the current model, the message log, the commands and model changes of each message, and time travel (`restore`: the log entries after the restored one are dropped, in the panel and in the kept history). The panel floats (`position: fixed`), starts on the left, and is moved/resized with pointer events (state `box` and `drag`, listeners on the document while dragging). `run` also takes an optional explicit `debug` observer (`attach({ getModel, restore })`, `record({ msg, before, after, cmds })`). Console helper: `__elmer` (`model`, `help`, `debug.on()`, `debug.off()`, then `debug.log`, `debug.restore(id)`).
-- **URL** (`toHash`/`parseHash` in `src/features/navigation.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new quiz (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
-- The ids and CSS classes of the views are stable (used by `style.css` and the tests).
+- `src/Main.gren`: `Browser.application { init, update, view, subscriptions, onUrlRequest, onUrlChange }`. Flags: `{ skipVideoWarning }` (read from `localStorage` by `index.html`). `update : Msg -> Model -> { model, command }` is pure; randomness is a command (`Random.generate Rolled`), the HTTP loading a `Task` (`GradesLoaded`).
+- `src/Types.gren`: `Model { status, grades, gradeId, filters, screen, slide, skipVideoWarning, videoPrompt, … }`, `Screen = Home | Quiz QuizState | Program { waza, level }`, `Msg`, `routeOf` (the route is derived from the model).
+- `src/Grade.gren`: pure functions on the data (JSON decoders with partial patches, `mergeFile`, `buildPool`, `pickIndex`, sorting, `norm`).
+- `src/Route.gren`: `parse` / `toHash` / `depth`.
+- `src/View.gren`: `view : Model -> Document Msg`. The ids and CSS classes are stable (used by `style.css`).
+- **URL**: `#/grade[/waza[/program[/attack[/technique]]]]`. A user action does `pushUrl`; `UrlChanged` (browser back/forward, reload) applies the route if it differs from `routeOf model`, narrowed to what the data contains (unknown grade → first grade; unknown waza → home; unknown attack or technique → level above). A waza starts a new quiz (the pool is not kept). Slide direction: deeper route = forward. Filters are not in the URL.
+- Debug: `gren make Main --debug` gives the Elm-style time-travel debugger (do not commit that build).
+- The data live in the model (`grades`), decoded once at startup; offline use relies on the service worker cache of `data/*.json`.
 
 ## Structure
 
 ```
 README.md             User manual (French) with screenshots from `docs/screenshots/`
-index.html            Single page (home + quiz screen)
+index.html            Single page: loads `app.js`, then `Gren.Main.init` with the flags
 favicon.ico           Site icon (character 道, embedded 16/32/48/64 px PNGs)
 style.css
 manifest.webmanifest   PWA manifest
 sw.js                 Service worker (offline)
 icons/                App icons (192, 512, apple-touch-icon)
-app.js                Entry point (assembles init/update/view/effects)
-src/shared/logic.js           Pure functions (merge, pool, weighting, sorting)
-src/update.js         features object, initialModel, init, update (= combine)
-src/features/*.js    one standalone feature per module (catalog, quiz, program, navigation, video, slide)
-src/shared/screen.js         `screenOf` (screen derived from the slices)
-src/shared/grades.js         browser cache of the grade data (outside the model): `cacheGrade`, `gradeData(root)`
-src/layout/card.js           technique card shared by quiz and program (reads `root.video` and `root.slide`)
-framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `index.js` (public API, what an app imports), `feature.js`, `effects.js`, `vdom.js`, `runtime.js`, `elmer.js`, `devtools.js`, `debug/`
-src/view.js           view(model) → vnodes (chooses the screen)
-src/layout/          page pieces: `page`, `title`, `footer`, `home`
+gren.json             Gren project (browser application, source `src/`)
+app.js                Compiled by `yarn build` (committed)
+src/*.gren            Main, Types, Grade, Route, View
 data/grades.json      List of available grades
 data/3eme-kyo.json    3rd Kyo program (complete, without `includes`)
 data/2eme-kyo.json    2nd Kyo additions and overrides (inherits from the 3rd)
 data/1er-kyo.json     1st Kyo additions and overrides (inherits from the 2nd and the 3rd)
-tests/*.test.js       Tests (node:test), `tests/helpers.js`: utilities
-package.json          `yarn server`, `yarn test` and `yarn lint` scripts, package manager (`packageManager`)
+tests/                `*.test.js` (node:test), `gren/` (Gren unit tests, own `gren.json`), `helpers.js`
+package.json          `yarn server`, `yarn build` and `yarn test` scripts, package manager (`packageManager`)
 yarn.lock             Locked dependency versions
 ```
 
@@ -210,16 +199,16 @@ One file per grade:
 Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits from 3rd.
 
 - `grades.json`: `includes` is the list of files loaded, in order, before the grade's own file. 3rd Kyo: no `includes`; 2nd Kyo: `["3eme-kyo.json"]`; 1st Kyo: `["3eme-kyo.json", "2eme-kyo.json"]`.
-- `mergeGrades` (in `src/shared/logic.js`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
+- `Grade.mergeFile` (in `src/Grade.gren`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
 - A grade file therefore only contains its additions and minimal overrides (`name`, `order` and the fields that change, e.g. `isNew`, `isWarning`, `forms`, `note`). Do not copy a parent's data (a test detects needless copies).
 - Consequence: any technique added to the 3rd Kyo also appears in the 2nd and 1st Kyo, and any 2nd Kyo technique appears in the 1st.
 - For an intended `null` value (e.g. clearing an inherited note), write it explicitly in the override.
 
 ## Application rules
 
-- **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then one button per waza (order defined by `WAZA_ORDER`).
+- **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then one button per waza (order defined by `Grade.wazaOrder`).
 - **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. A waza with no matching technique is disabled.
-- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `WEIGHT_NEW` and `WEIGHT_WARNING` at the top of `src/shared/logic.js`.
+- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `weightNew` and `weightWarning` in `src/Grade.gren`.
 - **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Waza terminé 🎉" (Waza finished).
 - **Session**: reset by "Retour à l'accueil" (Back to home). Filters are taken into account when the waza is chosen.
 - **Display**: waza, attack, technique, form, 🆕/⚠️ badges, note, video link, progress counter ("n / total", per combination).

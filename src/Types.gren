@@ -1,0 +1,128 @@
+module Types exposing
+    ( Direction(..)
+    , LoadedGrade
+    , Model
+    , Msg(..)
+    , QuizState
+    , Screen(..)
+    , Status(..)
+    , currentData
+    , routeOf
+    )
+
+{-| The model and the messages of the app.
+-}
+
+import Array exposing (Array)
+import Browser
+import Browser.Navigation as Navigation
+import Dict
+import Grade exposing (Filters, GradeData, GradeInfo, PoolEntry)
+import Route exposing (ProgramLevel, Route)
+import Url exposing (Url)
+
+
+type Status
+    = Loading
+    | Ready
+    | Failed String
+
+
+{-| A grade with its merged data (the grades it includes are already merged).
+-}
+type alias LoadedGrade =
+    { info : GradeInfo
+    , data : GradeData
+    , count : Int
+    }
+
+
+{-| A quiz session: the pool of techniques left to draw (no repetition).
+-}
+type alias QuizState =
+    { waza : String
+    , pool : Array PoolEntry
+    , total : Int
+    , current : Maybe PoolEntry
+    , done : Bool
+    }
+
+
+{-| The screen is the state of the session: no session (home), a quiz, or the program.
+-}
+type Screen
+    = Home
+    | Quiz QuizState
+    | Program { waza : String, level : ProgramLevel }
+
+
+{-| The cards slide in this direction when what they show changes.
+-}
+type Direction
+    = Back
+    | Forward
+    | Still
+
+
+type alias Model =
+    { key : Navigation.Key
+    , status : Status
+    , grades : Array LoadedGrade
+    , gradeId : String
+    , filters : Filters
+    , screen : Screen
+    , initialRoute : Route
+    , slide : { direction : Direction, count : Int }
+    , skipVideoWarning : Bool
+    , videoPrompt : Maybe { url : String, dontAsk : Bool }
+    }
+
+
+type Msg
+    = GradesLoaded (Result String (Array LoadedGrade))
+    | SelectGrade String
+    | FilterNew Bool
+    | FilterWarning Bool
+    | StartSession String
+    | Next
+    | Rolled Float
+    | OpenProgram
+    | Navigate { to : ProgramLevel, direction : Maybe Direction }
+    | CloseProgram
+    | GoHome
+    | UrlRequested Browser.UrlRequest
+    | UrlChanged Url
+    | AskVideo String
+    | SetDontAsk Bool
+    | ConfirmVideo
+    | CancelVideo
+    | NoOp
+
+
+{-| Data of the selected grade (empty while nothing is loaded).
+-}
+currentData : Model -> GradeData
+currentData model =
+    model.grades
+        |> Array.findFirst (\grade -> grade.info.id == model.gradeId)
+        |> Maybe.map (\found -> found.value.data)
+        |> Maybe.withDefault Dict.empty
+
+
+{-| The route that shows the state of the model.
+-}
+routeOf : Model -> Route
+routeOf model =
+    let
+        base =
+            { grade = Just model.gradeId, waza = Nothing, program = Nothing }
+    in
+    when model.screen is
+        Home ->
+            base
+
+        Quiz quiz ->
+            { base | waza = Just quiz.waza }
+
+        Program program ->
+            { base | waza = Just program.waza, program = Just program.level }
