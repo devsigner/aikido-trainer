@@ -6,6 +6,7 @@
 // Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: quiz starts a new session), `Navigated` (the URL must follow), `ViewChanged` (the card slides).
 // Closes when `HomeRequested`.
 import { defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
+import { gradeData } from "../shared/grades.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card } from "../layout/card.js";
 import { feature as navigation } from "./navigation.js";
@@ -42,7 +43,7 @@ const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim(
 // 3/ then see other attacks with the same technique.
 const levels = {
   1(root, { waza }) {
-    const attacks = listAttacks(root.catalog.data, waza);
+    const attacks = listAttacks(gradeData(root), waza);
     return {
       back: "← Tirage",
       backMessage: { type: "CloseProgram" },
@@ -53,7 +54,7 @@ const levels = {
     };
   },
   2(root, { waza, current: { attack } }) {
-    const techniques = listTechniques(root.catalog.data, waza, attack);
+    const techniques = listTechniques(gradeData(root), waza, attack);
     return {
       back: "← Programme",
       backMessage: { type: "Navigate", to: { level: 1 } },
@@ -64,14 +65,14 @@ const levels = {
     };
   },
   3(root, { waza, current: { attack, technique } }) {
-    const siblings = listTechniques(root.catalog.data, waza, attack);
+    const siblings = listTechniques(gradeData(root), waza, attack);
     const position = siblings.findIndex((candidate) => candidate.name === technique);
     const entry = siblings[position];
     // Neighbours wrap around the list; none when the attack has a single technique.
     const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
     const pagerButton = (id, label, target, direction) =>
       h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
-    const others = findSameTechnique(root.catalog.data, waza, attack, entry.name);
+    const others = findSameTechnique(gradeData(root), waza, attack, entry.name);
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
@@ -108,7 +109,7 @@ function view(model, root, header) {
 
 // The URL changed: the program of the route, narrowed to what the data contains.
 function routeChanged(model, { route, direction }, root) {
-  const current = WAZA_ORDER.includes(route.waza) ? validProgram(root.catalog.data, route) : null;
+  const current = WAZA_ORDER.includes(route.waza) ? validProgram(gradeData(root), route) : null;
   if (!current) return [UNMOUNT, [], model.current && direction ? [viewChanged(direction)] : []];
   const changed = model.waza !== route.waza || JSON.stringify(model.current) !== JSON.stringify(current);
   return [{ waza: route.waza, current }, [], changed && direction ? [viewChanged(direction)] : []];

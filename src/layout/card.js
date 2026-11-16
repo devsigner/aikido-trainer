@@ -2,6 +2,7 @@
 
 // Card of a technique, shared by the quiz and program views: it reads the video preference and the slide of the root model.
 import { h } from "../../framework/elmer/index.js";
+import { gradeData } from "../shared/grades.js";
 import { badgesOf, findTechnique } from "../shared/logic.js";
 import { feature as video } from "../features/video.js";
 
@@ -10,7 +11,7 @@ import { feature as video } from "../features/video.js";
 // The `prefix` is used to generate the element ids; `id` is the one of the card itself.
 export const card = (root, { prefix, id = prefix, waza = "", attack = "", technique: name = "", form }) => {
   const { direction, count } = root.slide;
-  const technique = name && findTechnique(root.catalog.data, waza, attack, name);
+  const technique = name && findTechnique(gradeData(root), waza, attack, name);
   return h("div", { id, className: direction ? `card slide-${direction}` : "card", key: count },
     h("div", { id: `${prefix}-waza`, className: "waza" }, waza),
     h("div", { id: `${prefix}-attack`, className: "attack" }, attack),

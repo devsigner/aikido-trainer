@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEffects, createSubscriptions } from "../framework/elmer/effects.js";
 import { to } from "../framework/elmer/feature.js";
+import { cacheGrade } from "../src/shared/grades.js";
 import { mergeGrades } from "../src/shared/logic.js";
 import { run } from "../framework/elmer/runtime.js";
 import { application, init, update } from "../src/update.js";
@@ -130,7 +131,8 @@ export async function createApp({ random = Math.random, hash = "", open, storage
     },
     // Loads test data in place of the JSON files.
     load(data) {
-      dispatch(to("catalog", { type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t", data }));
+      cacheGrade("t", data);
+      dispatch(to("catalog", { type: "GradesLoaded", grades: [{ id: "t", label: "Test", count: 1 }], gradeId: "t" }));
     },
   };
   return app;

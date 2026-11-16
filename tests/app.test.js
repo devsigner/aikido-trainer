@@ -10,6 +10,7 @@ import { update, init, initialModel, debugHide } from "../src/update.js";
 import { view } from "../src/view.js";
 import { summarize, diffModels } from "../framework/elmer/debug/inspect.js";
 import { to } from "../framework/elmer/feature.js";
+import { gradeData } from "../src/shared/grades.js";
 import { screenOf } from "../src/shared/screen.js";
 import { resolveGrade as resolveGradeFx } from "../src/features/catalog.js";
 
@@ -121,7 +122,8 @@ describe("application", () => {
     const n1 = app.model.quiz?.total ?? 0;
     await app.selectGrade("3eme-kyo");
     assert.equal(app.model.catalog.id, "3eme-kyo");
-    assert.equal(countTechniques(app.model.catalog.data), 65);
+    assert.equal(countTechniques(gradeData(app.model)), 65);
+    assert.equal("data" in app.model.catalog, false);
     assert.ok(n1 >= 0);
   });
 
@@ -367,7 +369,7 @@ describe("URL and history", () => {
     app.dispatch(to("navigation", { type: "Popped", hash: "#/3eme-kyo/Tachi%20waza/program" }));
     await settle();
     assert.equal(app.model.catalog.id, "3eme-kyo");
-    assert.equal(countTechniques(app.model.catalog.data), 65);
+    assert.equal(countTechniques(gradeData(app.model)), 65);
     assert.equal(screenOf(app.model), "program");
   });
 });

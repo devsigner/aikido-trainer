@@ -1,16 +1,18 @@
 // src/features/catalog.js
 
-// Feature "catalog": the list of grades, the data of the selected grade, and the filters.
+// Feature "catalog": the list of grades, the selected grade, and the filters.
+// The data of the grades is not in the model: it is cached in the browser (src/shared/grades.js).
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
 import { defineFeature, h } from "../../framework/elmer/index.js";
+import { cacheGrade } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 
 const { navigated } = navigation.events;
 
 const messages = {
-  GradesLoaded: (model, msg) => [{ ...model, status: "ready", list: msg.grades, id: msg.gradeId, data: msg.data }, [], [{ type: "GradesLoaded" }]],
+  GradesLoaded: (model, msg) => [{ ...model, status: "ready", list: msg.grades, id: msg.gradeId }, [], [{ type: "GradesLoaded" }]],
 
   Failed: (model, msg) => [{ ...model, status: "error", error: msg.message }, []],
 
@@ -23,7 +25,7 @@ const messages = {
   GradeLoaded(model, msg) {
     // Stale response if the user changed grade in the meantime.
     if (msg.id !== model.id) return [model, []];
-    return [{ ...model, data: msg.data }, [], [{ type: "GradeLoaded" }]];
+    return [model, [], [{ type: "GradeLoaded" }]];
   },
 
   SetFilter: (model, msg) => [{ ...model, filters: { ...model.filters, [msg.name]: msg.checked } }, []],
@@ -58,7 +60,6 @@ export const feature = defineFeature({
     error: "", // error message if status is "error"
     list: [], // [{ id, label, file, includes?, count }]
     id: "", // id of the selected grade
-    data: null, // loaded grade data (null if not loaded yet)
     filters: { isNew: false, isWarning: false },
   },
   init: ({ hash = "" } = {}, model) => [model, [{ type: "LoadGrades", gradeId: parseHash(hash).grade }]],
@@ -86,14 +87,17 @@ export const feature = defineFeature({
         const grades = await fetchJson("data/grades.json");
         const first = Math.max(0, grades.findIndex((candidate) => candidate.id === gradeId));
         const resolved = await Promise.all(grades.map((candidate) => resolveGrade(candidate, fetchJson)));
+        grades.forEach((candidate, index) => cacheGrade(candidate.id, resolved[index]));
         return {
           type: "GradesLoaded",
           grades: grades.map((candidate, index) => ({ ...candidate, count: countTechniques(resolved[index]) })),
           gradeId: grades[first].id,
-          data: resolved[first],
         };
       }),
-      LoadGrade: loading(async ({ grade: selected }) => ({ type: "GradeLoaded", id: selected.id, data: await resolveGrade(selected, fetchJson) })),
+      LoadGrade: loading(async ({ grade: selected }) => {
+        cacheGrade(selected.id, await resolveGrade(selected, fetchJson));
+        return { type: "GradeLoaded", id: selected.id };
+      }),
     };
   },
 });
