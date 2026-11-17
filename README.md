@@ -216,7 +216,7 @@ Les trois niveaux du programme sont stockés dans `model.program = { waza, curre
 
 #### Le rendu : un mini DOM virtuel
 
-`view` produit des `vnode` (objets simples) avec `h(tag, props, ...enfants)`. `framework/elmer/vdom.js` compare l'arbre précédent au nouveau et ne modifie dans le DOM réel que ce qui a changé :
+`view` produit des `vnode` (écrits avec `` html`<div>…</div>` ``, équivalent JSX sans build) (objets simples) avec `h(tag, props, ...enfants)`. `framework/elmer/vdom.js` compare l'arbre précédent au nouveau et ne modifie dans le DOM réel que ce qui a changé :
 
 ```mermaid
 flowchart LR

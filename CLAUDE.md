@@ -155,7 +155,7 @@ src/features/*.js    one standalone feature per module (catalog, quiz, program, 
 src/shared/screen.js         `screenOf` (screen derived from the slices)
 src/shared/grades.js         browser cache of the grade data (outside the model): `cacheGrade`, `gradeData(root)`
 src/layout/card.js           technique card shared by quiz and program (reads `root.video` and `root.slide`)
-framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `index.js` (public API, what an app imports), `feature.js`, `effects.js`, `vdom.js`, `runtime.js`, `elmer.js`, `devtools.js`, `debug/`
+framework/elmer/   ELMer: generic, app-independent Elm framework (see its README.md): `index.js` (public API, what an app imports), `feature.js`, `effects.js`, `html.js` (`html` tagged template, JSX-like alternative to `h()`), `vdom.js`, `runtime.js`, `elmer.js`, `devtools.js`, `debug/`
 src/view.js           view(model) → vnodes (chooses the screen)
 src/layout/          page pieces: `page`, `title`, `footer`, `home`
 data/grades.json      List of available grades

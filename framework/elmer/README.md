@@ -108,6 +108,7 @@ En trois règles :
 |--------------|---------------------------------------------------------------------------------------------------------------------------|
 | `feature.js` | `defineFeature(spec)`, `combine([feature])` ou `combine({ nom: feature })`, `cmd`, `emit`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
 | `effects.js` | `createEffects` / `createSubscriptions(program, overrides)` (`program` = résultat de `combine`) : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
+| `html.js`    | Tag `` html`…` `` : écrire la vue en markup (type JSX, sans build), produit les mêmes nœuds que `h()`                      |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (voir « Le mini DOM »)                                                 |
 | `index.js`   | l'API publique : `h`, `createRenderer`, `defineFeature`, `combine`, `cmd`, `emit`, `to`, `embed`, `UNMOUNT`, `run`, `createEffects`, `createSubscriptions` (une application n'importe que ça) |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm ; un effet qui échoue n'arrête pas les suivants, l'erreur indique la commande et la feature |
@@ -172,6 +173,12 @@ const view = (model) =>
 
 const render = createRenderer(document.getElementById("app"));
 run({ …, view, render });
+```
+
+**`` html`…` ``** : même arbre que `h()`, écrit en markup, sans build (`class` = `className`, `${valeur}` garde son type, `${cond && html`…`}` et `${liste.map(…)}` fonctionnent, espaces traités comme en JSX) :
+
+```js
+html`<button class="btn" disabled=${model.n === 0} onClick=${{ type: "Dec" }}>−</button>`
 ```
 
 **`h(tag, props, ...children)`**

@@ -4,7 +4,7 @@
 // The data of the grades is not in the model: it is cached in the browser (src/shared/grades.js).
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
-import { cmd, defineFeature, emit, h } from "../../framework/elmer/index.js";
+import { cmd, defineFeature, emit, h, html } from "../../framework/elmer/index.js";
 import { cacheGrade, clearGrades } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
@@ -63,13 +63,19 @@ export const feature = defineFeature({
 
 // Selector of the grade and filters, shown on the home screen.
 function view(model) {
-  return h("div", { className: "group settings" },
-    h("label", { className: "field" }, "Grade",
-      h("select", { id: "grade", onChange: (event) => ({ type: "SelectGrade", id: event.target.value }) },
-        model.list.map((grade) => h("option", { value: grade.id, selected: grade.id === model.id }, `${grade.label} (${grade.count} techniques)`)))),
-    h("div", { className: "filters" },
-      h("label", {}, h("input", { type: "checkbox", id: "f-new", checked: model.filters.isNew, onChange: (event) => ({ type: "SetFilter", name: "isNew", checked: event.target.checked }) }), " 🆕 Nouveautés"),
-      h("label", {}, h("input", { type: "checkbox", id: "f-warning", checked: model.filters.isWarning, onChange: (event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked }) }), " ⚠️ Attention")));
+  const { isNew, isWarning } = model.filters;
+  return html`
+    <div class="group settings">
+      <label class="field">Grade
+        <select id="grade" onChange=${(event) => ({ type: "SelectGrade", id: event.target.value })}>
+          ${model.list.map((grade) => html`<option value=${grade.id} selected=${grade.id === model.id}>${grade.label} (${grade.count} techniques)</option>`)}
+        </select>
+      </label>
+      <div class="filters">
+        <label><input type="checkbox" id="f-new" checked=${isNew} onChange=${(event) => ({ type: "SetFilter", name: "isNew", checked: event.target.checked })} /> 🆕 Nouveautés</label>
+        <label><input type="checkbox" id="f-warning" checked=${isWarning} onChange=${(event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked })} /> ⚠️ Attention</label>
+      </div>
+    </div>`;
 }
 
 // return Msg

@@ -4,7 +4,7 @@
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
-import { cmd, defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
+import { cmd, defineFeature, html, to, UNMOUNT } from "../../framework/elmer/index.js";
 import { gradeData } from "../shared/grades.js";
 import { WAZA_ORDER, buildPool, pickIndex } from "../shared/logic.js";
 import { card } from "../layout/card.js";
@@ -47,24 +47,32 @@ export const feature = defineFeature({
 function view(model, root) {
   const { current } = model;
   const shown = current ? { waza: model.waza, attack: current.attack, technique: current.technique, form: current.form || "" } : { form: "" };
-  return h("section", { id: "quiz" },
-    h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
-    h("p", { id: "progress", className: "hint" }, `${model.waza} : ${model.total - model.pool.length} / ${model.total}`),
-    h("h3", { className: "hint" }, "Connais-tu cette technique ?"),
-    model.done ? h("div", { id: "done" }, "Waza terminé 🎉") : card(root, { prefix: "card", ...shown }),
-    h("div", { className: "buttons actions" },
-      !model.done && h("button", { id: "next", onClick: { type: "Next" } }, "Technique suivante"),
-      h("button", { id: "prog-btn", className: "secondary", onClick: to("program", { type: "OpenProgram", waza: model.waza }) }, "Voir le programme")));
+  const played = model.total - model.pool.length;
+  return html`
+    <section id="quiz">
+      <button id="home-btn" class="secondary" onClick=${to("navigation", { type: "GoHome" })}>Retour à l'accueil</button>
+      <p id="progress" class="hint">${model.waza} : ${played} / ${model.total}</p>
+      <h3 class="hint">Connais-tu cette technique ?</h3>
+      ${model.done ? html`<div id="done">Waza terminé 🎉</div>` : card(root, { prefix: "card", ...shown })}
+      <div class="buttons actions">
+        ${!model.done && html`<button id="next" onClick=${{ type: "Next" }}>Technique suivante</button>`}
+        <button id="prog-btn" class="secondary" onClick=${to("program", { type: "OpenProgram", waza: model.waza })}>Voir le programme</button>
+      </div>
+    </section>`;
 }
 
 // Waza buttons of the home screen: start a session (a waza with no technique for the filters is disabled).
 function pickerView(root) {
   const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(gradeData(root), waza, root.catalog.filters).length === 0]));
-  return h("div", { className: "group grow" },
-    h("p", { className: "hint" }, "Choisis un waza et teste-toi !"),
-    h("div", { id: "waza-buttons", className: "buttons grow" },
-      WAZA_ORDER.map((waza) => h("button", { disabled: empty[waza], onClick: { type: "StartSession", waza } }, waza))),
-    h("p", { id: "home-msg", className: "hint" }, Object.values(empty).some(Boolean) ? "Un waza grisé n'a aucune technique pour ces filtres." : ""));
+  const someEmpty = Object.values(empty).some(Boolean);
+  return html`
+    <div class="group grow">
+      <p class="hint">Choisis un waza et teste-toi !</p>
+      <div id="waza-buttons" class="buttons grow">
+        ${WAZA_ORDER.map((waza) => html`<button disabled=${empty[waza]} onClick=${{ type: "StartSession", waza }}>${waza}</button>`)}
+      </div>
+      <p id="home-msg" class="hint">${someEmpty ? "Un waza grisé n'a aucune technique pour ces filtres." : ""}</p>
+    </div>`;
 }
 
 function startSessionMessage(_, msg, root) {
