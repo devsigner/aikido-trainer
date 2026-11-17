@@ -98,10 +98,11 @@ Tout l'état vit dans un seul `Model`, ne change que par des `Msg`, et l'afficha
 
 | Module | Rôle |
 |---|---|
-| `src/Main.gren` | `Browser.application` : `init`, `update`, chargement HTTP des JSON, URL |
+| `src/Main.gren` | `Browser.application` : `init`, `update`, URL |
 | `src/Types.gren` | `Model`, `Msg`, `Screen` (Home, Quiz, Program), `routeOf` |
 | `src/Shared/Grade.gren` | données des grades : décodeurs JSON, fusion (héritage), pool pondéré, tirage, tri |
 | `src/Shared/Route.gren` | lecture et écriture de l'URL `#/grade/waza/program/attack/technique` |
+| `src/Catalog/` | grades (chargement HTTP des JSON, grade choisi, filtres) et leur sélecteur |
 | `src/Slide/`, `src/Video/`, `src/Layout/` | découpage par feature : direction des slides, vidéo (modèle, `update`, modale), page et carte partagées |
 | `src/View.gren` | toute la vue (mêmes ids et classes CSS que `style.css`) |
 

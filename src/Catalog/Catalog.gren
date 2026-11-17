@@ -1,0 +1,196 @@
+module Catalog.Catalog exposing (Event(..), LoadedGrade, Model, Msg(..), Status(..), currentData, init, select, update)
+
+{-| Feature "catalog": the grades (loaded from the JSON files), the selected grade and the filters.
+Publishes `GradesReady` (the data is there: the route of the URL can be applied) and `GradeChanged` (the URL must follow).
+-}
+
+import Array exposing (Array)
+import Dict
+import Http
+import Json.Decode as Decode exposing (Decoder)
+import Shared.Grade as Grade exposing (Filters, GradeData, GradeInfo)
+import Task exposing (Task)
+
+
+type Status
+    = Loading
+    | Ready
+    | Failed String
+
+
+{-| A grade with its merged data (the grades it includes are already merged).
+-}
+type alias LoadedGrade =
+    { info : GradeInfo
+    , data : GradeData
+    , count : Int
+    }
+
+
+type alias Model =
+    { status : Status
+    , grades : Array LoadedGrade
+    , gradeId : String
+    , filters : Filters
+    }
+
+
+type Msg
+    = Loaded (Result String (Array LoadedGrade))
+    | SelectGrade String
+    | FilterNew Bool
+    | FilterWarning Bool
+
+
+type Event
+    = GradesReady
+    | GradeChanged
+
+
+init : { model : Model, command : Cmd Msg }
+init =
+    { model = { status = Loading, grades = [], gradeId = "", filters = { isNew = False, isWarning = False } }
+    , command = Task.attempt Loaded loadGrades
+    }
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg, events : Array Event }
+update msg model =
+    when msg is
+        Loaded (Err message) ->
+            { model = { model | status = Failed ("Chargement impossible (" ++ message ++ ")") }, command = Cmd.none, events = [] }
+
+        Loaded (Ok grades) ->
+            { model = { model | status = Ready, grades = grades, gradeId = firstGrade grades }
+            , command = Cmd.none
+            , events = [ GradesReady ]
+            }
+
+        SelectGrade id ->
+            if isKnown id model then
+                { model = { model | gradeId = id }, command = Cmd.none, events = [ GradeChanged ] }
+
+            else
+                { model = model, command = Cmd.none, events = [] }
+
+        FilterNew checked ->
+            { model = { model | filters = { isNew = checked, isWarning = model.filters.isWarning } }, command = Cmd.none, events = [] }
+
+        FilterWarning checked ->
+            { model = { model | filters = { isNew = model.filters.isNew, isWarning = checked } }, command = Cmd.none, events = [] }
+
+
+{-| Selects a grade, unless it is unknown (the first one stays selected).
+-}
+select : String -> Model -> Model
+select id model =
+    if isKnown id model then
+        { model | gradeId = id }
+
+    else
+        model
+
+
+isKnown : String -> Model -> Bool
+isKnown id model =
+    Array.any (\grade -> grade.info.id == id) model.grades
+
+
+firstGrade : Array LoadedGrade -> String
+firstGrade grades =
+    Array.get 0 grades
+        |> Maybe.map (\grade -> grade.info.id)
+        |> Maybe.withDefault ""
+
+
+{-| Data of the selected grade (empty while nothing is loaded).
+-}
+currentData : Model -> GradeData
+currentData model =
+    model.grades
+        |> Array.findFirst (\grade -> grade.info.id == model.gradeId)
+        |> Maybe.map (\found -> found.value.data)
+        |> Maybe.withDefault Dict.empty
+
+
+
+-- LOADING THE DATA
+
+
+{-| `grades.json`, then every data file once; each grade merges the files it includes, then its own.
+-}
+loadGrades : Task String (Array LoadedGrade)
+loadGrades =
+    fetchJson "data/grades.json" (Decode.array Grade.gradeInfoDecoder)
+        |> Task.andThen
+            (\infos ->
+                let
+                    files =
+                        Array.foldl
+                            (\info known ->
+                                Array.foldl
+                                    (\file list ->
+                                        if Array.member file list then
+                                            list
+
+                                        else
+                                            Array.pushLast file list
+                                    )
+                                    known
+                                    (Array.pushLast info.file info.includes)
+                            )
+                            []
+                            infos
+                in
+                files
+                    |> Array.map (\file -> Task.map (\patch -> { file = file, patch = patch }) (fetchJson ("data/" ++ file) Grade.fileDecoder))
+                    |> Task.sequence
+                    |> Task.map (\loaded -> Array.map (assemble loaded) infos)
+            )
+
+
+assemble : Array { file : String, patch : Grade.FilePatch } -> GradeInfo -> LoadedGrade
+assemble loaded info =
+    let
+        patchOf file =
+            loaded
+                |> Array.findFirst (\entry -> entry.file == file)
+                |> Maybe.map (\found -> found.value.patch)
+
+        data =
+            Array.pushLast info.file info.includes
+                |> Array.mapAndKeepJust patchOf
+                |> Array.foldl Grade.mergeFile Dict.empty
+    in
+    { info = info, data = data, count = Grade.countTechniques data }
+
+
+fetchJson : String -> Decoder a -> Task String a
+fetchJson url decoder =
+    Http.task
+        { method = "GET"
+        , headers = []
+        , url = url
+        , body = Http.emptyBody
+        , timeout = Nothing
+        , resolver =
+            Http.stringResolver
+                (\response ->
+                    when response is
+                        Http.GoodStatus_ good ->
+                            Decode.decodeString decoder good.body
+                                |> Result.mapError Decode.errorToString
+
+                        Http.BadStatus_ bad ->
+                            Err ("HTTP " ++ String.fromInt bad.metadata.statusCode ++ " : " ++ url)
+
+                        Http.BadUrl_ bad ->
+                            Err ("URL invalide : " ++ bad)
+
+                        Http.Timeout_ ->
+                            Err "délai dépassé"
+
+                        Http.NetworkError_ ->
+                            Err "réseau indisponible"
+                )
+        }

@@ -1,10 +1,8 @@
 module Types exposing
-    ( LoadedGrade
-    , Model
+    ( Model
     , Msg(..)
     , QuizState
     , Screen(..)
-    , Status(..)
     , currentData
     , routeOf
     )
@@ -14,6 +12,7 @@ module Types exposing
 
 import Array exposing (Array)
 import Browser
+import Catalog.Catalog as Catalog
 import Browser.Navigation as Navigation
 import Dict
 import Shared.Grade as Grade exposing (Filters, GradeData, GradeInfo, PoolEntry)
@@ -21,21 +20,6 @@ import Shared.Route as Route exposing (ProgramLevel, Route)
 import Slide.Slide as Slide exposing (Direction)
 import Url exposing (Url)
 import Video.Video as Video
-
-
-type Status
-    = Loading
-    | Ready
-    | Failed String
-
-
-{-| A grade with its merged data (the grades it includes are already merged).
--}
-type alias LoadedGrade =
-    { info : GradeInfo
-    , data : GradeData
-    , count : Int
-    }
 
 
 {-| A quiz session: the pool of techniques left to draw (no repetition).
@@ -59,10 +43,7 @@ type Screen
 
 type alias Model =
     { key : Navigation.Key
-    , status : Status
-    , grades : Array LoadedGrade
-    , gradeId : String
-    , filters : Filters
+    , catalog : Catalog.Model
     , screen : Screen
     , initialRoute : Route
     , slide : Slide.Model
@@ -71,10 +52,7 @@ type alias Model =
 
 
 type Msg
-    = GradesLoaded (Result String (Array LoadedGrade))
-    | SelectGrade String
-    | FilterNew Bool
-    | FilterWarning Bool
+    = CatalogMsg Catalog.Msg
     | StartSession String
     | Next
     | Rolled Float
@@ -92,10 +70,7 @@ type Msg
 -}
 currentData : Model -> GradeData
 currentData model =
-    model.grades
-        |> Array.findFirst (\grade -> grade.info.id == model.gradeId)
-        |> Maybe.map (\found -> found.value.data)
-        |> Maybe.withDefault Dict.empty
+    Catalog.currentData model.catalog
 
 
 {-| The route that shows the state of the model.
@@ -104,7 +79,7 @@ routeOf : Model -> Route
 routeOf model =
     let
         base =
-            { grade = Just model.gradeId, waza = Nothing, program = Nothing }
+            { grade = Just model.catalog.gradeId, waza = Nothing, program = Nothing }
     in
     when model.screen is
         Home ->

@@ -1,0 +1,43 @@
+module Catalog.View exposing (failed, loading, view)
+
+{-| Selector of the grade and filters, and the screens of the loading.
+-}
+
+import Array
+import Catalog.Catalog as Catalog
+import Html exposing (Html, div, input, label, option, p, select, text)
+import Html.Attributes as Attr exposing (class, id)
+import Html.Events as Events
+
+
+view : Catalog.Model -> Html Catalog.Msg
+view model =
+    div [ class "group settings" ]
+        [ label [ class "field" ]
+            [ text "Grade"
+            , select [ id "grade", Events.onInput Catalog.SelectGrade ]
+                (Array.map
+                    (\grade ->
+                        option
+                            [ Attr.value grade.info.id, Attr.selected (grade.info.id == model.gradeId) ]
+                            [ text (grade.info.label ++ " (" ++ String.fromInt grade.count ++ " techniques)") ]
+                    )
+                    model.grades
+                )
+            ]
+        , div [ class "filters" ]
+            [ label [] [ input [ Attr.type_ "checkbox", id "f-new", Attr.checked model.filters.isNew, Events.onCheck Catalog.FilterNew ] [], text " 🆕 Nouveautés" ]
+            , label [] [ input [ Attr.type_ "checkbox", id "f-warning", Attr.checked model.filters.isWarning, Events.onCheck Catalog.FilterWarning ] [], text " ⚠️ Attention" ]
+            ]
+        ]
+
+
+loading : Html msg
+loading =
+    div [ id "loading", class "loading", Attr.attribute "role" "status", Attr.attribute "aria-label" "Chargement" ]
+        [ div [ class "spinner" ] [] ]
+
+
+failed : String -> Html msg
+failed message =
+    p [ class "hint" ] [ text message ]

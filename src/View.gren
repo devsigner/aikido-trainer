@@ -5,6 +5,8 @@ module View exposing (view)
 
 import Array exposing (Array)
 import Browser exposing (Document)
+import Catalog.Catalog as Catalog
+import Catalog.View as CatalogView
 import Shared.Grade as Grade exposing (Technique, badgesOf, findSameTechnique, findTechnique, listAttacks, listTechniques)
 import Html exposing (Html, a, button, div, footer, h1, h2, h3, input, label, main_, option, p, section, select, span, text)
 import Html.Attributes as Attr exposing (class, id)
@@ -15,7 +17,7 @@ import Shared.Route as Route exposing (ProgramLevel(..))
 import Slide.Slide exposing (Direction(..))
 import Video.Video as Video
 import Video.View as VideoView
-import Types exposing (Model, Msg(..), QuizState, Screen(..), Status(..), currentData)
+import Types exposing (Model, Msg(..), QuizState, Screen(..), currentData)
 
 
 view : Model -> Document Msg
@@ -27,17 +29,14 @@ view model =
 
 screens : Model -> Array (Html Msg)
 screens model =
-    when model.status is
-        Loading ->
-            [ title
-            , div [ id "loading", class "loading", Attr.attribute "role" "status", Attr.attribute "aria-label" "Chargement" ]
-                [ div [ class "spinner" ] [] ]
-            ]
+    when model.catalog.status is
+        Catalog.Loading ->
+            [ title, CatalogView.loading ]
 
-        Failed message ->
-            [ title, p [ class "hint" ] [ text message ] ]
+        Catalog.Failed message ->
+            [ title, CatalogView.failed message ]
 
-        Ready ->
+        Catalog.Ready ->
             when model.screen is
                 Home ->
                     [ title, homeView model ]
@@ -65,31 +64,7 @@ title =
 
 homeView : Model -> Html Msg
 homeView model =
-    section [ id "home" ] [ catalogView model, wazaPicker model ]
-
-
-{-| Selector of the grade and filters.
--}
-catalogView : Model -> Html Msg
-catalogView model =
-    div [ class "group settings" ]
-        [ label [ class "field" ]
-            [ text "Grade"
-            , select [ id "grade", Events.onInput SelectGrade ]
-                (Array.map
-                    (\grade ->
-                        option
-                            [ Attr.value grade.info.id, Attr.selected (grade.info.id == model.gradeId) ]
-                            [ text (grade.info.label ++ " (" ++ String.fromInt grade.count ++ " techniques)") ]
-                    )
-                    model.grades
-                )
-            ]
-        , div [ class "filters" ]
-            [ label [] [ input [ Attr.type_ "checkbox", id "f-new", Attr.checked model.filters.isNew, Events.onCheck FilterNew ] [], text " 🆕 Nouveautés" ]
-            , label [] [ input [ Attr.type_ "checkbox", id "f-warning", Attr.checked model.filters.isWarning, Events.onCheck FilterWarning ] [], text " ⚠️ Attention" ]
-            ]
-        ]
+    section [ id "home" ] [ Html.map CatalogMsg (CatalogView.view model.catalog), wazaPicker model ]
 
 
 {-| One button per waza; a waza with no technique for the filters is disabled.
@@ -101,7 +76,7 @@ wazaPicker model =
             currentData model
 
         isEmpty waza =
-            Array.isEmpty (Grade.buildPool data waza model.filters)
+            Array.isEmpty (Grade.buildPool data waza model.catalog.filters)
 
         anyEmpty =
             Array.any isEmpty Grade.wazaOrder

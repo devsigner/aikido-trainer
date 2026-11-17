@@ -7,6 +7,7 @@ import Array exposing (Array)
 import Browser
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
+import Catalog.Catalog as Catalog
 import Dict
 import Shared.Grade as Grade exposing (GradeData, GradeInfo)
 import Http
@@ -15,7 +16,7 @@ import Random
 import Shared.Route as Route exposing (ProgramLevel(..), Route)
 import Task exposing (Task)
 import Slide.Slide as Slide exposing (Direction(..))
-import Types exposing (LoadedGrade, Model, Msg(..), Screen(..), Status(..), currentData, routeOf)
+import Types exposing (Model, Msg(..), Screen(..), currentData, routeOf)
 import Url exposing (Url)
 import Video.Video as Video
 import View
@@ -39,102 +40,20 @@ main =
 
 init : Flags -> Url -> Navigation.Key -> { model : Model, command : Cmd Msg }
 init flags url key =
+    let
+        catalog =
+            Catalog.init
+    in
     { model =
         { key = key
-        , status = Loading
-        , grades = []
-        , gradeId = ""
-        , filters = { isNew = False, isWarning = False }
+        , catalog = catalog.model
         , screen = Home
         , initialRoute = Route.parse (Maybe.withDefault "" url.fragment)
         , slide = Slide.init
         , video = Video.init flags.skipVideoWarning
         }
-    , command = Task.attempt GradesLoaded loadGrades
+    , command = Cmd.map CatalogMsg catalog.command
     }
-
-
-
--- LOADING THE DATA
-
-
-{-| `grades.json`, then every data file once; each grade merges the files it includes, then its own.
--}
-loadGrades : Task String (Array LoadedGrade)
-loadGrades =
-    fetchJson "data/grades.json" (Decode.array Grade.gradeInfoDecoder)
-        |> Task.andThen
-            (\infos ->
-                let
-                    files =
-                        Array.foldl
-                            (\info known ->
-                                Array.foldl
-                                    (\file list ->
-                                        if Array.member file list then
-                                            list
-
-                                        else
-                                            Array.pushLast file list
-                                    )
-                                    known
-                                    (Array.pushLast info.file info.includes)
-                            )
-                            []
-                            infos
-                in
-                files
-                    |> Array.map (\file -> Task.map (\patch -> { file = file, patch = patch }) (fetchJson ("data/" ++ file) Grade.fileDecoder))
-                    |> Task.sequence
-                    |> Task.map (\loaded -> Array.map (assemble loaded) infos)
-            )
-
-
-assemble : Array { file : String, patch : Grade.FilePatch } -> GradeInfo -> LoadedGrade
-assemble loaded info =
-    let
-        patchOf file =
-            loaded
-                |> Array.findFirst (\entry -> entry.file == file)
-                |> Maybe.map (\found -> found.value.patch)
-
-        data =
-            Array.pushLast info.file info.includes
-                |> Array.mapAndKeepJust patchOf
-                |> Array.foldl Grade.mergeFile Dict.empty
-    in
-    { info = info, data = data, count = Grade.countTechniques data }
-
-
-fetchJson : String -> Decoder a -> Task String a
-fetchJson url decoder =
-    Http.task
-        { method = "GET"
-        , headers = []
-        , url = url
-        , body = Http.emptyBody
-        , timeout = Nothing
-        , resolver =
-            Http.stringResolver
-                (\response ->
-                    when response is
-                        Http.GoodStatus_ good ->
-                            Decode.decodeString decoder good.body
-                                |> Result.mapError Decode.errorToString
-
-                        Http.BadStatus_ bad ->
-                            Err ("HTTP " ++ String.fromInt bad.metadata.statusCode ++ " : " ++ url)
-
-                        Http.BadUrl_ bad ->
-                            Err ("URL invalide : " ++ bad)
-
-                        Http.Timeout_ ->
-                            Err "délai dépassé"
-
-                        Http.NetworkError_ ->
-                            Err "réseau indisponible"
-                )
-        }
 
 
 
@@ -144,48 +63,21 @@ fetchJson url decoder =
 update : Msg -> Model -> { model : Model, command : Cmd Msg }
 update msg model =
     when msg is
-        GradesLoaded (Err message) ->
-            stay { model | status = Failed ("Chargement impossible (" ++ message ++ ")") }
-
-        GradesLoaded (Ok grades) ->
+        CatalogMsg catalogMsg ->
             let
-                route =
-                    model.initialRoute
-
-                known id =
-                    Array.any (\grade -> grade.info.id == id) grades
-
-                gradeId =
-                    when route.grade is
-                        Just id ->
-                            if known id then
-                                id
-
-                            else
-                                firstGrade grades
-
-                        Nothing ->
-                            firstGrade grades
-
-                loaded =
-                    { model | status = Ready, grades = grades, gradeId = gradeId }
+                result =
+                    Catalog.update catalogMsg model.catalog
             in
-            -- The route of the URL is applied, and written back without a history entry (it may have been narrowed).
-            applyRoute route Still loaded
-                |> andReplaceUrl
-
-        SelectGrade id ->
-            if Array.any (\grade -> grade.info.id == id) model.grades then
-                replaceUrl { model | gradeId = id }
-
-            else
-                stay model
-
-        FilterNew checked ->
-            stay { model | filters = { isNew = checked, isWarning = model.filters.isWarning } }
-
-        FilterWarning checked ->
-            stay { model | filters = { isNew = model.filters.isNew, isWarning = checked } }
+            Array.foldl
+                (\event acc ->
+                    let
+                        handled =
+                            whenCatalogEvent event acc.model
+                    in
+                    { model = handled.model, command = Cmd.batch [ acc.command, handled.command ] }
+                )
+                { model = { model | catalog = result.model }, command = Cmd.map CatalogMsg result.command }
+                result.events
 
         StartSession waza ->
             let
@@ -314,7 +206,7 @@ update msg model =
                 route =
                     Route.parse (Maybe.withDefault "" url.fragment)
             in
-            if model.status /= Ready || route == routeOf model then
+            if model.catalog.status /= Catalog.Ready || route == routeOf model then
                 stay model
 
             else
@@ -345,11 +237,31 @@ stay model =
     { model = model, command = Cmd.none }
 
 
-firstGrade : Array LoadedGrade -> String
-firstGrade grades =
-    Array.get 0 grades
-        |> Maybe.map (\grade -> grade.info.id)
-        |> Maybe.withDefault ""
+-- EVENTS
+
+
+whenCatalogEvent : Catalog.Event -> Model -> { model : Model, command : Cmd Msg }
+whenCatalogEvent event model =
+    when event is
+        -- The route of the URL is applied, and written back without a history entry (it may have been narrowed).
+        Catalog.GradesReady ->
+            let
+                route =
+                    model.initialRoute
+
+                selected =
+                    when route.grade is
+                        Just id ->
+                            { model | catalog = Catalog.select id model.catalog }
+
+                        Nothing ->
+                            model
+            in
+            applyRoute route Still selected
+                |> andReplaceUrl
+
+        Catalog.GradeChanged ->
+            replaceUrl model
 
 
 levelDepth : ProgramLevel -> Int
@@ -390,7 +302,7 @@ startSession : Model -> String -> { model : Model, command : Cmd Msg }
 startSession model waza =
     let
         pool =
-            Grade.buildPool (currentData model) waza model.filters
+            Grade.buildPool (currentData model) waza model.catalog.filters
 
         quiz =
             { waza = waza, pool = pool, total = Array.length pool, current = Nothing, done = Array.isEmpty pool }
