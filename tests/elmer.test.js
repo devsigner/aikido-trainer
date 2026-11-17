@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { UNMOUNT, combine, defineFeature, embed, to } from "../framework/elmer/feature.js";
+import { UNMOUNT, cmd, combine, defineFeature, embed, emit, to } from "../framework/elmer/feature.js";
 import { settingsFromEnvironment } from "../framework/elmer/elmer.js";
 import { run } from "../framework/elmer/runtime.js";
 import { createDevtools } from "../framework/elmer/devtools.js";
@@ -148,6 +148,36 @@ describe("elmer combine", () => {
   test("embed leaves a message already addressed to a feature as it is", () => {
     const mapped = embed("counter", { tag: "button", props: { onClick: to("other", { type: "A" }) }, children: [] });
     assert.deepEqual(mapped.props.onClick, to("other", { type: "A" }));
+  });
+
+  test("a handler may return the model alone, [model], or single cmds and events instead of lists", () => {
+    const short = defineFeature({
+      name: "short",
+      model: { n: 0 },
+      messages: {
+        Alone: () => ({ n: 1 }),
+        Wrapped: () => [{ n: 2 }],
+        Single: () => [{ n: 3 }, cmd("Echo", { x: 1 }), emit("Changed", { n: 3 })],
+      },
+      effects: () => ({ Echo: () => {} }),
+    });
+    const listener = defineFeature({ name: "listener", model: { seen: 0 }, on: { Changed: (model, { n }) => ({ seen: model.seen + n }) } });
+    const app = combine([short, listener]);
+    const [start] = app.init();
+    assert.equal(app.update(start, to("short", { type: "Alone" }))[0].short.n, 1);
+    assert.equal(app.update(start, to("short", { type: "Wrapped" }))[0].short.n, 2);
+    const [next, commands] = app.update(start, to("short", { type: "Single" }));
+    assert.equal(next.short.n, 3);
+    assert.equal(next.listener.seen, 3);
+    assert.deepEqual(commands, [{ type: "Echo", x: 1, feature: "short" }]);
+  });
+
+  test("combine accepts a list of features that declare their name; a missing or duplicate name is rejected", () => {
+    const named = defineFeature({ name: "counter", model: { n: 0 } });
+    assert.deepEqual(combine([named]).init()[0].counter, { n: 0 });
+    assert.throws(() => combine([defineFeature({ model: {} })]), /needs a `name`/);
+    assert.throws(() => combine([named, named]), /Duplicate feature name: counter/);
+    assert.throws(() => combine([defineFeature({ name: "elmer", model: {} })]), /reserved/);
   });
 
   test("a lazy feature has no slice until it is reached, is mounted with the init flags, and can unmount itself", () => {

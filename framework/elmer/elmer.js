@@ -24,6 +24,7 @@ export function settingsFromEnvironment() {
 const setDebug = (debug) => (model) => [{ ...model, debug }, model.persist ? [{ type: "SaveSetting", key: "debug", value: debug }] : []];
 
 export const feature = {
+  name: "elmer",
   model: { debug: "off", persist: false, historySize: 200 },
   init: (flags, model) => [{ ...model, ...settingsFromEnvironment(), ...flags?.elmer }, []],
   messages: {

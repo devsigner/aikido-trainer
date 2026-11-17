@@ -2,8 +2,10 @@
 
 // Generic composition of features (no knowledge of the application).
 //
-// A feature is a small Elm program, defined with `defineFeature` (its name is its key in `combine({ name: feature })`):
+// A feature is a small Elm program, defined with `defineFeature`. Write it right after the imports, like a React component:
+// the handlers and views are function declarations below it (hoisted), so the definition reads first.
 //   {
+//     name?,                             // its name = its slice `model.<name>`; required to compose it in a list: `combine([a, b])`
 //     model?,                            // initial slice of the model (without flags and commands)
 //     lazy?,                             // true: no slice until a message or a subscribed event reaches the feature (then `init` runs);
 //                                        // { events: [types] }: only a message or these events create it, the other events are ignored while it is unmounted;
@@ -18,6 +20,10 @@
 //   }
 // `root` is the whole model, read-only: use it to read, never to write another slice.
 //
+// A handler (`messages`, `on`, `init`) may return, instead of the full `[model, [cmds], [events]]`:
+//   model  |  [model]  |  [model, cmds]  |  [model, cmds, events]      (`cmds` and `events`: one item or a list)
+// `cmd(type, props)` and `emit(type, props)` build `{ type, ...props }`.
+//
 // Root messages are envelopes `{ feature, msg }` (see `to`); commands are tagged with the `feature` that emitted them.
 // A feature publishes events (`{ type, … }`) in the third item of its result: they are delivered, in order,
 // to every feature that subscribed to them in `on`, and may publish events in turn.
@@ -29,7 +35,9 @@
 //
 //  Public API:
 //    defineFeature(spec)      checks the shape of a feature and returns it
-//    combine({ name: feature })  composes the features into one root program { init, update, subscribe, effects }
+//    combine([feature] | { name: feature })  composes the features into one root program { init, update, subscribe, effects }
+//    cmd(type, props)         builds a command { type, ...props }
+//    emit(type, props)        builds an event { type, ...props }
 //    embed(name, vnode)       envelopes the handlers of a feature view
 //    to(name, msg)            builds the envelope { feature, msg }
 //    UNMOUNT                  value to return as a model to remove the slice of a lazy feature
@@ -137,7 +145,7 @@
 
 import { feature as elmer } from "./elmer.js";
 
-const KEYS = ["model", "lazy", "init", "messages", "on", "effects", "subscribe", "view", "views", "events"];
+const KEYS = ["name", "model", "lazy", "init", "messages", "on", "effects", "subscribe", "view", "views", "events"];
 
 // Declares a feature: checks the shape (a typo in a key would otherwise be silently ignored) and returns it.
 export function defineFeature(spec) {
@@ -150,6 +158,19 @@ export function defineFeature(spec) {
 
 const MAX_EVENTS = 1000; // an event loop is a bug: fail loudly rather than freeze the page
 
+// Command and event constructors: `cmd("Random")` = `{ type: "Random" }`, `emit("ProgramOpened", { waza })` = `{ type: "ProgramOpened", waza }`.
+export const cmd = (type, props) => ({ type, ...props });
+export const emit = cmd;
+
+// A handler may return a short form: the model alone, `[model]`, `[model, cmds]` or `[model, cmds, events]`,
+// where `cmds` and `events` may be a single item or a list. The full form is always `[model, [cmds], [events]]`.
+const asList = (value) => (value === undefined ? [] : Array.isArray(value) ? value : [value]);
+export function normalize(result) {
+  if (!Array.isArray(result)) return [result, [], []];
+  const [model, cmds, events] = result;
+  return [model, asList(cmds), asList(events)];
+}
+
 // Message addressed to a feature.
 export const to = (feature, msg) => ({ feature, msg });
 
@@ -160,12 +181,22 @@ export const UNMOUNT = Symbol("unmount");
 // Composes several features, an object `{ name: feature }`, into one root program: the slices of every feature are merged
 // in the root model (`model[name]`, in the order of the object), and the messages of every feature are enveloped in `{ feature, msg }`.
 //
+// `definitions` is an object `{ name: feature }`, or a list of features that declare their own `name`.
 // The feature `elmer` (the settings of the framework, see elmer.js) is added to the application features.
 //
 // The root program is used by the runtime (framework/elmer/runtime.js) to run the Elm loop.
 export function combine(definitions) {
-  if ("elmer" in definitions) throw new Error("The feature name `elmer` is reserved by the framework");
-  const features = Object.entries({ ...definitions, elmer }).map(([name, spec]) => ({
+  const named = Array.isArray(definitions)
+    ? definitions.map((spec) => {
+        if (!spec.name) throw new Error("A feature composed in a list needs a `name`");
+        return [spec.name, spec];
+      })
+    : Object.entries(definitions);
+  const names = named.map(([name]) => name);
+  if (names.includes("elmer")) throw new Error("The feature name `elmer` is reserved by the framework");
+  const duplicate = names.find((name, index) => names.indexOf(name) !== index);
+  if (duplicate) throw new Error(`Duplicate feature name: ${duplicate}`);
+  const features = [...named, ["elmer", elmer]].map(([name, spec]) => ({
     ...defineFeature(spec),
     name,
     init: (flags) => (spec.init ? spec.init(flags, spec.model) : [spec.model, []]),
@@ -178,7 +209,8 @@ export function combine(definitions) {
   const byName = new Map(features.map((feature) => [feature.name, feature]));
 
   // Applies a feature result to the root model: writes its slice, tags its commands, queues its events.
-  const apply = (state, name, [slice, cmds = [], events = []]) => {
+  const apply = (state, name, result) => {
+    const [slice, cmds, events] = normalize(result);
     if (slice === UNMOUNT) {
       state.model = Object.fromEntries(Object.entries(state.model).filter(([key]) => key !== name));
     } else {

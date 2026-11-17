@@ -106,10 +106,10 @@ En trois règles :
 
 | Fichier      | Rôle                                                                                                                      |
 |--------------|---------------------------------------------------------------------------------------------------------------------------|
-| `feature.js` | `defineFeature(spec)`, `combine({ nom: feature })`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
+| `feature.js` | `defineFeature(spec)`, `combine([feature])` ou `combine({ nom: feature })`, `cmd`, `emit`, `to(feature, msg)`, `embed(feature, vnode)`                                                          |
 | `effects.js` | `createEffects` / `createSubscriptions(program, overrides)` (`program` = résultat de `combine`) : effets et abonnements des features, avec les services du navigateur par défaut (`fetchJson`, `random`, `history`, `storage`, `open`) |
 | `vdom.js`    | `h()` et `createRenderer(root)` : mini DOM virtuel (voir « Le mini DOM »)                                                 |
-| `index.js`   | l'API publique : `h`, `createRenderer`, `defineFeature`, `combine`, `to`, `embed`, `UNMOUNT`, `run`, `createEffects`, `createSubscriptions` (une application n'importe que ça) |
+| `index.js`   | l'API publique : `h`, `createRenderer`, `defineFeature`, `combine`, `cmd`, `emit`, `to`, `embed`, `UNMOUNT`, `run`, `createEffects`, `createSubscriptions` (une application n'importe que ça) |
 | `runtime.js` | `run({ init, update, view, render, effects, subscribe, flags, debug })` : boucle Elm ; un effet qui échoue n'arrête pas les suivants, l'erreur indique la commande et la feature |
 | `elmer.js`   | la feature `elmer` (réglages du framework, ajoutée d'office par `combine`) : `model.elmer = { debug: "on"\|"off", historySize }` |
 | `devtools.js` | historique des messages, API console `__elmer`, montage à la demande du panneau (appelé par `run`) |
@@ -124,6 +124,7 @@ Une feature est un module qui exporte **`feature`**, déclaré avec `defineFeatu
 
 ```js
 export const feature = defineFeature({
+  name?,                                       // nom de la feature (sa tranche `model.<nom>`), requis pour `combine([…])`
   model,                                       // modèle initial (statique) de sa tranche
   lazy?,                                       // true : pas de tranche tant qu'aucun message ni événement abonné ne l'atteint
   init?(flags, model) → [model, cmds, events?],  // optionnel : flags, commandes de démarrage
@@ -136,7 +137,11 @@ export const feature = defineFeature({
 });
 ```
 
-Le nom de la feature est sa clé dans l'objet passé à `combine` : `combine({ counter, log })` → `model.counter`, `model.log`. Un message inconnu lève « Unknown message ».
+Le nom de la feature est son `name`, ou sa clé dans l'objet passé à `combine` : `combine([counter, log])` ou `combine({ counter, log })` → `model.counter`, `model.log` (nom manquant, en double ou `elmer` : erreur). Un message inconnu lève « Unknown message ».
+
+**Écrire la définition en haut du module**, comme un composant React : `defineFeature({...})` juste après les imports, puis les handlers et les vues en `function` (hoistées) en dessous. Les `const` lues au chargement par la définition (ex. `const { navigated } = navigation.events`) restent au-dessus.
+
+Un handler peut retourner une forme courte : `model`, `[model]`, `[model, cmds]` ou `[model, cmds, events]` (`cmds` / `events` : un seul élément ou une liste). `cmd("Random")` et `emit("Changed", { n })` fabriquent `{ type, ...props }`.
 
 - Une feature n'écrit que sa propre tranche. Pour agir sur une autre, elle **publie un événement** (3ᵉ élément du résultat) auquel l'autre s'abonne dans `on`.
 - Les événements sont livrés dans l'ordre (FIFO) ; une boucle de plus de 1000 événements lève une erreur.
