@@ -19,9 +19,9 @@ export const feature = defineFeature({
   messages: { GoHome: goHomeMessage, Popped: poppedMessage },
   events: { navigated },
   on: {
-    GradesLoaded: gradesLoaded,
-    GradeLoaded: gradeLoaded,
-    Navigated: navigatedHandler
+    GradesLoaded: whenGradesLoaded,
+    GradeLoaded: whenGradeLoaded,
+    Navigated: whenNavigated
   },
   // Browser back/forward: the URL and the history position are read when the entry changes.
   subscribe: (dispatch, { window, history }) => window.addEventListener("popstate", () => dispatch({
@@ -45,15 +45,15 @@ function poppedMessage(model, msg, root) {
 }
 
 // Once the data is loaded, the pending route is applied and written in the URL (without a history entry).
-function gradesLoaded(model) {
+function whenGradesLoaded(model) {
   return [{ ...model, pending: null }, [], [routeChanged(model.pending || {}), navigated("replace")]];
 }
 
-function gradeLoaded(model) {
+function whenGradeLoaded(model) {
   return model.pending ? [{ ...model, pending: null }, [], routeChanged(model.pending)] : model;
 }
 
-function navigatedHandler(model, { mode }, root) {
+function whenNavigated(model, { mode }, root) {
   const position = model.position + (mode === "push" ? 1 : 0);
   return [{ ...model, position }, cmd("Url", { mode, hash: toHash(root), position })];
 }

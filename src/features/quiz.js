@@ -31,10 +31,10 @@ export const feature = defineFeature({
     Rolled: rolledMessage
   },
   on: {
-    RouteChanged: routeChanged,
+    RouteChanged: whenRouteChanged,
     ProgramOpened: () => UNMOUNT,
-    HomeRequested: homeRequested,
-    ProgramClosed: programClosed
+    HomeRequested: whenHomeRequested,
+    ProgramClosed: whenProgramClosed
   },
   view,
   views: { picker },
@@ -83,12 +83,12 @@ function rolledMessage(model, msg, root) {
   return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, [], viewChanged("forward")];
 }
 
-function homeRequested() {
+function whenHomeRequested() {
   return [UNMOUNT, [], viewChanged("forward")];
 }
 
 // Back from the program: a fresh session of the same waza.
-function programClosed(_, { waza }, root) {
+function whenProgramClosed(_, { waza }, root) {
   return [startSession(root, waza), cmd("Random")];
 }
 
@@ -102,7 +102,7 @@ export function startSession(root, waza) {
 export const roll = { type: "Random", feature: "quiz" };
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
-function routeChanged(model, { route, direction }, root) {
+function whenRouteChanged(model, { route, direction }, root) {
   if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? viewChanged(direction) : []]; // the program replaces the session
 
   const next = model.waza === route.waza ? model : startSession(root, route.waza);

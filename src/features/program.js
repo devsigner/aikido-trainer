@@ -27,7 +27,7 @@ export const feature = defineFeature({
   },
   on: {
     HomeRequested: () => [UNMOUNT, [], viewChanged("back")],
-    RouteChanged: routeChanged
+    RouteChanged: whenRouteChanged
   },
   view,
 });
@@ -141,7 +141,7 @@ const levels = {
 };
 
 // The URL changed: the program of the route, narrowed to what the data contains.
-function routeChanged(model, { route, direction }, root) {
+function whenRouteChanged(model, { route, direction }, root) {
   const current = WAZA_ORDER.includes(route.waza) ? validProgram(gradeData(root), route) : null;
   if (!current) return [UNMOUNT, [], model.current && direction ? viewChanged(direction) : []];
   const changed = model.waza !== route.waza || JSON.stringify(model.current) !== JSON.stringify(current);

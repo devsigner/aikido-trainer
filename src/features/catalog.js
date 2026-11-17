@@ -29,7 +29,7 @@ export const feature = defineFeature({
     SetFilter: setFilterMessage
   },
   // The navigation needs another grade: select it and load its data.
-  on: { GradeWanted: gradeWanted },
+  on: { GradeWanted: whenGradeWanted },
   view,
   views: { loadingStatus: loadingStatusView },
   effects: ({ fetchJson }) => {
@@ -99,7 +99,7 @@ function setFilterMessage(model, { name, checked }) {
   return { ...model, filters: { ...model.filters, [name]: checked } };
 }
 
-function gradeWanted(model, { id }) {
+function whenGradeWanted(model, { id }) {
   const selected = model.list.find((candidate) => candidate.id === id);
   return selected ? [{ ...model, id: selected.id }, cmd("LoadGrade", { grade: selected })] : model;
 }
