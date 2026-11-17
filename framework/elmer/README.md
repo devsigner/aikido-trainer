@@ -175,13 +175,13 @@ run({ …, view, render });
 
 **Les props**
 
-| Prop | Effet |
-|------|-------|
-| `onXxx` (`onClick`, `onInput`…) | un **message** (`{ type: "Dec" }`) ou une **fonction** `event → message` ; le renderer l'envoie à `dispatch`. Un seul handler par événement. Dans une feature, `embed` l'adresse à sa feature |
-| `className` | classe CSS |
-| `key` | identité de l'élément : si elle change, l'élément est **remplacé** (utile pour relancer une animation CSS) |
-| `value`, `checked`, `selected`, `disabled`, `hidden` | propriétés « vivantes » du DOM, comparées à l'état réel du DOM (pas à l'arbre précédent), pour suivre la saisie de l'utilisateur |
-| autres (`id`, `style`, `title`, `aria-*`…) | attributs HTML (`style` est une chaîne) |
+| Prop                                                 | Effet                                                                                                                                                                                          |
+|------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `onXxx` (`onClick`, `onInput`…)                      | un **message** (`{ type: "Dec" }`) ou une **fonction** `event → message` ; le renderer l'envoie à `dispatch`. Un seul handler par événement. Dans une feature, `embed` l'adresse à sa feature |
+| `className`                                          | classe CSS                                                                                                                                                                                     |
+| `key`                                                | identité de l'élément : si elle change, l'élément est **remplacé** (utile pour relancer une animation CSS)                                                                                     |
+| `value`, `checked`, `selected`, `disabled`, `hidden` | propriétés « vivantes » du DOM, comparées à l'état réel du DOM (pas à l'arbre précédent), pour suivre la saisie de l'utilisateur                                                               |
+| autres (`id`, `style`, `title`, `aria-*`…)           | attributs HTML (`style` est une chaîne)                                                                                                                                                        |
 
 **Le diff** (volontairement simple)
 - Premier rendu : création complète. Ensuite : même `tag` et même `key` → le nœud est **réutilisé** et ses props sont mises à jour ; sinon il est remplacé.
