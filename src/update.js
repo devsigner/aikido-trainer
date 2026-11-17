@@ -12,15 +12,8 @@ import { feature as video } from "./features/video.js";
 import { feature as slide } from "./features/slide.js";
 import { combine } from "../framework/elmer/index.js";
 
-// Standalone features, with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
-export const features = {
-  catalog,
-  quiz,
-  program,
-  video,
-  navigation,
-  slide
-};
+// Standalone features (each declares its `name`), with their own model slice (`model.<name>`), messages `{ feature, msg }`, view and effects.
+export const features = [catalog, quiz, program, video, navigation, slide];
 // The program of the app: init, update, effects and subscriptions of all the features.
 export const application = combine(features);
 

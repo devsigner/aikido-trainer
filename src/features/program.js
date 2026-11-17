@@ -5,7 +5,7 @@
 // Reads the grade data through the root model (read-only); keeps its own waza (the quiz session is over while the program is open).
 // Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: quiz starts a new session), `Navigated` (the URL must follow), `ViewChanged` (the card slides).
 // Closes when `HomeRequested`.
-import { defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
+import { defineFeature, emit, h, to, UNMOUNT } from "../../framework/elmer/index.js";
 import { gradeData } from "../shared/grades.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card } from "../layout/card.js";
@@ -15,6 +15,29 @@ import { feature as slide } from "./slide.js";
 const { navigated } = navigation.events;
 const { viewChanged } = slide.events;
 
+export const feature = defineFeature({
+  name: "program",
+  lazy: { events: ["RouteChanged"] }, // the slice only exists while the program is open
+  // `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
+  model: { waza: "", current: null },
+  messages: { OpenProgram: openProgram, Navigate: navigate, CloseProgram: closeProgram },
+  on: { HomeRequested: () => [UNMOUNT, [], viewChanged("back")], RouteChanged: routeChanged },
+  view,
+});
+
+function openProgram(_, msg) {
+  return [{ waza: msg.waza, current: { level: 1 } }, [], [emit("ProgramOpened"), navigated("push"), viewChanged("forward")]];
+}
+
+// Going up a level slides back, unless the message forces the direction.
+function navigate(model, msg) {
+  return [{ ...model, current: msg.to }, [], [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]];
+}
+
+function closeProgram(model) {
+  return [UNMOUNT, [], [emit("ProgramClosed", { waza: model.waza }), navigated("push"), viewChanged("back")]];
+}
+
 // URL route narrowed to what the data contains (unknown attack or technique → level above).
 export function validProgram(data, { waza, program }) {
   if (!program) return null;
@@ -23,15 +46,6 @@ export function validProgram(data, { waza, program }) {
   const technique = listTechniques(data, waza, attack.name).find((candidate) => candidate.name === program.technique);
   return technique ? { level: 3, attack: attack.name, technique: technique.name } : { level: 2, attack: attack.name };
 }
-
-const messages = {
-  OpenProgram: (_, msg) => [{ waza: msg.waza, current: { level: 1 } }, [], [{ type: "ProgramOpened" }, navigated("push"), viewChanged("forward")]],
-
-  // Going up a level slides back, unless the message forces the direction.
-  Navigate: (model, msg) => [{ ...model, current: msg.to }, [], [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]],
-
-  CloseProgram: (model) => [UNMOUNT, [], [{ type: "ProgramClosed", waza: model.waza }, navigated("push"), viewChanged("back")]],
-};
 
 const item = (label, target) => h("button", { className: "item", onClick: { type: "Navigate", to: target } }, label);
 
@@ -110,16 +124,7 @@ function view(model, root, header) {
 // The URL changed: the program of the route, narrowed to what the data contains.
 function routeChanged(model, { route, direction }, root) {
   const current = WAZA_ORDER.includes(route.waza) ? validProgram(gradeData(root), route) : null;
-  if (!current) return [UNMOUNT, [], model.current && direction ? [viewChanged(direction)] : []];
+  if (!current) return [UNMOUNT, [], model.current && direction ? viewChanged(direction) : []];
   const changed = model.waza !== route.waza || JSON.stringify(model.current) !== JSON.stringify(current);
-  return [{ waza: route.waza, current }, [], changed && direction ? [viewChanged(direction)] : []];
+  return [{ waza: route.waza, current }, [], changed && direction ? viewChanged(direction) : []];
 }
-
-export const feature = defineFeature({
-  lazy: { events: ["RouteChanged"] }, // the slice only exists while the program is open
-  // `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
-  model: { waza: "", current: null },
-  messages,
-  on: { HomeRequested: () => [UNMOUNT, [], [viewChanged("back")]], RouteChanged: routeChanged },
-  view,
-});

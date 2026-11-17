@@ -4,7 +4,7 @@
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Reads the data and filters of the catalog feature through the root model (read-only).
 // Publishes `Navigated` (the URL must follow) and `ViewChanged` (the card slides). Opening the program ends the session (`ProgramOpened`); coming back from it starts a new one (`ProgramClosed`).
-import { defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
+import { cmd, defineFeature, h, to, UNMOUNT } from "../../framework/elmer/index.js";
 import { gradeData } from "../shared/grades.js";
 import { WAZA_ORDER, buildPool, pickIndex } from "../shared/logic.js";
 import { card } from "../layout/card.js";
@@ -15,6 +15,50 @@ import { screenOf } from "../shared/screen.js";
 const { navigated } = navigation.events;
 const { viewChanged } = slide.events;
 
+export const feature = defineFeature({
+  name: "quiz",
+  lazy: { events: ["RouteChanged", "ProgramClosed"] }, // the slice only exists during a session
+  // State of a quiz session. The model is reset to this state when the user goes home or changes waza.
+  // - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
+  // - `pool` = list of remaining techniques to draw (weighted)
+  // - `total` = total number of techniques in the pool at the start of the session
+  // - `current` = technique currently drawn (null if none) by references (names): { attack, technique, form, weight }
+  // - `done` = true if the pool is empty and the user has seen all techniques
+  model: { waza: "", pool: [], total: 0, current: null, done: false },
+  messages: { StartSession: startSessionMessage, Next: next, Rolled: rolled },
+  on: { RouteChanged: routeChanged, ProgramOpened: () => UNMOUNT, HomeRequested: homeRequested, ProgramClosed: programClosed },
+  view,
+  views: { picker },
+  effects: ({ random }) => ({
+    Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
+  }),
+});
+
+function startSessionMessage(_, msg, root) {
+  return [startSession(root, msg.waza), cmd("Random"), [navigated("push"), viewChanged("forward")]];
+}
+
+function next(model) {
+  return model.pool.length === 0 ? [{ ...model, current: null, done: true }, [], viewChanged("forward")] : [model, cmd("Random")];
+}
+
+// Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
+function rolled(model, msg, root) {
+  if (!model.waza) return UNMOUNT; // answer of a session that is over
+  if (screenOf(root) !== "quiz" || model.pool.length === 0) return model;
+  const index = pickIndex(model.pool, msg.value);
+  return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, [], viewChanged("forward")];
+}
+
+function homeRequested() {
+  return [UNMOUNT, [], viewChanged("forward")];
+}
+
+// Back from the program: a fresh session of the same waza.
+function programClosed(_, { waza }, root) {
+  return [startSession(root, waza), cmd("Random")];
+}
+
 // A new session of `waza` with the data and filters of the grade.
 export function startSession(root, waza) {
   const pool = buildPool(gradeData(root), waza, root.catalog.filters);
@@ -23,20 +67,6 @@ export function startSession(root, waza) {
 
 // Command asking this feature to quiz (for the code that has no access to its messages).
 export const roll = { type: "Random", feature: "quiz" };
-
-const messages = {
-  StartSession: (_, msg, root) => [startSession(root, msg.waza), [{ type: "Random" }], [navigated("push"), viewChanged("forward")]],
-
-  Next: (model) => (model.pool.length === 0 ? [{ ...model, current: null, done: true }, [], [viewChanged("forward")]] : [model, [{ type: "Random" }]]),
-
-  // Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
-  Rolled(model, msg, root) {
-    if (!model.waza) return [UNMOUNT, []]; // answer of a session that is over
-    if (screenOf(root) !== "quiz" || model.pool.length === 0) return [model, []];
-    const index = pickIndex(model.pool, msg.value);
-    return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, [], [viewChanged("forward")]];
-  },
-};
 
 // Quiz screen: show a technique and ask if the user knows it.
 function view(model, root) {
@@ -63,35 +93,10 @@ function picker(root) {
 }
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
-// return [model, effects, events] where `events` is either `[viewChanged(direction)]` or `[]`.
 function routeChanged(model, { route, direction }, root) {
-  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? [viewChanged(direction)] : []]; // the program replaces the session
+  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? viewChanged(direction) : []]; // the program replaces the session
 
   const next = model.waza === route.waza ? model : startSession(root, route.waza);
   const needsCard = !next.current && !next.done && next.pool.length > 0;
-  return [next, needsCard ? [{ type: "Random" }] : [], next !== model && direction ? [viewChanged(direction)] : []];
+  return [next, needsCard ? cmd("Random") : [], next !== model && direction ? viewChanged(direction) : []];
 }
-
-export const feature = defineFeature({
-  lazy: { events: ["RouteChanged", "ProgramClosed"] }, // the slice only exists during a session
-  // State of a quiz session. The model is reset to this state when the user goes home or changes waza.
-  // - `waza` = "Tachi waza" | "Hanmi Handachi waza" | "Suwari waza" ("" outside a session)
-  // - `pool` = list of remaining techniques to draw (weighted)
-  // - `total` = total number of techniques in the pool at the start of the session
-  // - `current` = technique currently drawn (null if none) by references (names): { attack, technique, form, weight }
-  // - `done` = true if the pool is empty and the user has seen all techniques
-  model: { waza: "", pool: [], total: 0, current: null, done: false },
-  messages,
-  on: {
-    RouteChanged: routeChanged,
-    ProgramOpened: () => [UNMOUNT, []],
-    HomeRequested: () => [UNMOUNT, [], [viewChanged("forward")]],
-    // Back from the program: a fresh session of the same waza.
-    ProgramClosed: (_, { waza }, root) => [startSession(root, waza), [{ type: "Random" }]],
-  },
-  view,
-  views: { picker },
-  effects: ({ random }) => ({
-    Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
-  }),
-});

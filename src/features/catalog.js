@@ -4,32 +4,57 @@
 // The data of the grades is not in the model: it is cached in the browser (src/shared/grades.js).
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
-import { defineFeature, h } from "../../framework/elmer/index.js";
+import { cmd, defineFeature, emit, h } from "../../framework/elmer/index.js";
 import { cacheGrade, clearGrades } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 
 const { navigated } = navigation.events;
 
-const messages = {
-  GradesLoaded: (model, msg) => [{ ...model, status: "ready", list: msg.grades, id: msg.gradeId }, [], [{ type: "GradesLoaded" }]],
-
-  Failed: (model, msg) => [{ ...model, status: "error", error: msg.message }, []],
-
-  SelectGrade(model, msg) {
-    const grade = model.list.find((candidate) => candidate.id === msg.id);
-    const next = { ...model, id: msg.id };
-    return [next, [{ type: "LoadGrade", grade }], [navigated("replace")]];
+export const feature = defineFeature({
+  name: "catalog",
+  model: {
+    status: "loading", // loading | ready | error
+    error: "", // error message if status is "error"
+    list: [], // [{ id, label, file, includes?, count }]
+    id: "", // id of the selected grade
+    filters: { isNew: false, isWarning: false },
   },
+  init: ({ hash = "" } = {}, model) => [model, cmd("LoadGrades", { gradeId: parseHash(hash).grade })],
+  messages: { GradesLoaded: gradesLoaded, Failed: failed, SelectGrade: selectGrade, GradeLoaded: gradeLoaded, SetFilter: setFilter },
+  // The navigation needs another grade: select it and load its data.
+  on: { GradeWanted: gradeWanted },
+  view,
+  views: { loadingStatus: loadingStatusView },
+  effects,
+});
 
-  GradeLoaded(model, msg) {
-    // Stale response if the user changed grade in the meantime.
-    if (msg.id !== model.id) return [model, []];
-    return [model, [], [{ type: "GradeLoaded" }]];
-  },
+function gradesLoaded(model, { grades, gradeId }) {
+  return [{ ...model, status: "ready", list: grades, id: gradeId }, [], emit("GradesLoaded")];
+}
 
-  SetFilter: (model, msg) => [{ ...model, filters: { ...model.filters, [msg.name]: msg.checked } }, []],
-};
+function failed(model, { message }) {
+  return { ...model, status: "error", error: message };
+}
+
+function selectGrade(model, { id }) {
+  const grade = model.list.find((candidate) => candidate.id === id);
+  return [{ ...model, id }, cmd("LoadGrade", { grade }), navigated("replace")];
+}
+
+function gradeLoaded(model, { id }) {
+  // Stale response if the user changed grade in the meantime.
+  return id !== model.id ? model : [model, [], emit("GradeLoaded")];
+}
+
+function setFilter(model, { name, checked }) {
+  return { ...model, filters: { ...model.filters, [name]: checked } };
+}
+
+function gradeWanted(model, { id }) {
+  const selected = model.list.find((candidate) => candidate.id === id);
+  return selected ? [{ ...model, id: selected.id }, cmd("LoadGrade", { grade: selected })] : model;
+}
 
 // Selector of the grade and filters, shown on the home screen.
 function view(model) {
@@ -54,51 +79,31 @@ export async function resolveGrade(grade, fetchJson) {
   return datas.reduce((merged, data) => mergeGrades(merged, data));
 }
 
-export const feature = defineFeature({
-  model: {
-    status: "loading", // loading | ready | error
-    error: "", // error message if status is "error"
-    list: [], // [{ id, label, file, includes?, count }]
-    id: "", // id of the selected grade
-    filters: { isNew: false, isWarning: false },
-  },
-  init: ({ hash = "" } = {}, model) => [model, [{ type: "LoadGrades", gradeId: parseHash(hash).grade }]],
-  messages,
-  // The navigation needs another grade: select it and load its data.
-  on: {
-    GradeWanted(model, event) {
-      const selected = model.list.find((candidate) => candidate.id === event.id);
-      return selected ? [{ ...model, id: selected.id }, [{ type: "LoadGrade", grade: selected }]] : [model, []];
-    },
-  },
-  view,
-  views: { loadingStatus: loadingStatusView },
-  // Loading the data. Any loading error becomes a `Failed` message.
-  effects({ fetchJson }) {
-    const loading = (fn) => async (cmd, dispatch) => {
-      try {
-        dispatch(await fn(cmd));
-      } catch (error) {
-        dispatch({ type: "Failed", message: `Chargement impossible (${error.message})` });
-      }
-    };
-    return {
-      LoadGrades: loading(async ({ gradeId }) => {
-        const grades = await fetchJson("data/grades.json");
-        const first = Math.max(0, grades.findIndex((candidate) => candidate.id === gradeId));
-        const resolved = await Promise.all(grades.map((candidate) => resolveGrade(candidate, fetchJson)));
-        clearGrades();
-        grades.forEach((candidate, index) => cacheGrade(candidate.id, resolved[index]));
-        return {
-          type: "GradesLoaded",
-          grades: grades.map((candidate, index) => ({ ...candidate, count: countTechniques(resolved[index]) })),
-          gradeId: grades[first].id,
-        };
-      }),
-      LoadGrade: loading(async ({ grade: selected }) => {
-        cacheGrade(selected.id, await resolveGrade(selected, fetchJson));
-        return { type: "GradeLoaded", id: selected.id };
-      }),
-    };
-  },
-});
+// Loading the data. Any loading error becomes a `Failed` message.
+function effects({ fetchJson }) {
+  const loading = (fn) => async (cmd, dispatch) => {
+    try {
+      dispatch(await fn(cmd));
+    } catch (error) {
+      dispatch({ type: "Failed", message: `Chargement impossible (${error.message})` });
+    }
+  };
+  return {
+    LoadGrades: loading(async ({ gradeId }) => {
+      const grades = await fetchJson("data/grades.json");
+      const first = Math.max(0, grades.findIndex((candidate) => candidate.id === gradeId));
+      const resolved = await Promise.all(grades.map((candidate) => resolveGrade(candidate, fetchJson)));
+      clearGrades();
+      grades.forEach((candidate, index) => cacheGrade(candidate.id, resolved[index]));
+      return {
+        type: "GradesLoaded",
+        grades: grades.map((candidate, index) => ({ ...candidate, count: countTechniques(resolved[index]) })),
+        gradeId: grades[first].id,
+      };
+    }),
+    LoadGrade: loading(async ({ grade: selected }) => {
+      cacheGrade(selected.id, await resolveGrade(selected, fetchJson));
+      return { type: "GradeLoaded", id: selected.id };
+    }),
+  };
+}
