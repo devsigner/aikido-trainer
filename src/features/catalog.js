@@ -9,7 +9,7 @@ import { cacheGrade, clearGrades } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 
-const { navigated } = navigation.events;
+const { navigated: navigatedEvent } = navigation.events;
 
 export const feature = defineFeature({
   name: "catalog",
@@ -85,7 +85,7 @@ function failedMessage(model, { message }) {
 // return Msg
 function selectGradeMessage(model, { id }) {
   const grade = model.list.find((candidate) => candidate.id === id);
-  return [{ ...model, id }, cmd("LoadGrade", { grade }), navigated("replace")];
+  return [{ ...model, id }, cmd("LoadGrade", { grade }), navigatedEvent("replace")];
 }
 
 // return Msg

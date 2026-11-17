@@ -12,8 +12,8 @@ import { feature as navigation } from "./navigation.js";
 import { feature as slide } from "./slide.js";
 import { screenOf } from "../shared/screen.js";
 
-const { navigated } = navigation.events;
-const { viewChanged } = slide.events;
+const { navigated: navigatedEvent } = navigation.events;
+const { viewChanged: viewChangedEvent } = slide.events;
 
 export const feature = defineFeature({
   name: "quiz",
@@ -68,11 +68,11 @@ function pickerView(root) {
 }
 
 function startSessionMessage(_, msg, root) {
-  return [startSession(root, msg.waza), cmd("Random"), [navigated("push"), viewChanged("forward")]];
+  return [startSession(root, msg.waza), cmd("Random"), [navigatedEvent("push"), viewChangedEvent("forward")]];
 }
 
 function nextMessage(model) {
-  return model.pool.length === 0 ? [{ ...model, current: null, done: true }, [], viewChanged("forward")] : [model, cmd("Random")];
+  return model.pool.length === 0 ? [{ ...model, current: null, done: true }, [], viewChangedEvent("forward")] : [model, cmd("Random")];
 }
 
 // Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
@@ -80,11 +80,11 @@ function rolledMessage(model, msg, root) {
   if (!model.waza) return UNMOUNT; // answer of a session that is over
   if (screenOf(root) !== "quiz" || model.pool.length === 0) return model;
   const index = pickIndex(model.pool, msg.value);
-  return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, [], viewChanged("forward")];
+  return [{ ...model, current: model.pool[index], pool: model.pool.filter((_, poolIndex) => poolIndex !== index) }, [], viewChangedEvent("forward")];
 }
 
 function whenHomeRequested() {
-  return [UNMOUNT, [], viewChanged("forward")];
+  return [UNMOUNT, [], viewChangedEvent("forward")];
 }
 
 // Back from the program: a fresh session of the same waza.
@@ -103,10 +103,10 @@ export const roll = { type: "Random", feature: "quiz" };
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
 function whenRouteChanged(model, { route, direction }, root) {
-  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? viewChanged(direction) : []]; // the program replaces the session
+  if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? viewChangedEvent(direction) : []]; // the program replaces the session
 
   const next = model.waza === route.waza ? model : startSession(root, route.waza);
   const needsCard = !next.current && !next.done && next.pool.length > 0;
 
-  return [next, needsCard ? cmd("Random") : [], next !== model && direction ? viewChanged(direction) : []];
+  return [next, needsCard ? cmd("Random") : [], next !== model && direction ? viewChangedEvent(direction) : []];
 }

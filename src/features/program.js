@@ -12,8 +12,8 @@ import { card } from "../layout/card.js";
 import { feature as navigation } from "./navigation.js";
 import { feature as slide } from "./slide.js";
 
-const { navigated } = navigation.events;
-const { viewChanged } = slide.events;
+const { navigated: navigatedEvent } = navigation.events;
+const { viewChanged: viewChangedEvent } = slide.events;
 
 export const feature = defineFeature({
   name: "program",
@@ -26,7 +26,7 @@ export const feature = defineFeature({
     CloseProgram: closeProgramMessage
   },
   on: {
-    HomeRequested: () => [UNMOUNT, [], viewChanged("back")],
+    HomeRequested: () => [UNMOUNT, [], viewChangedEvent("back")],
     RouteChanged: whenRouteChanged
   },
   view,
@@ -53,7 +53,7 @@ function openProgramMessage(_, msg) {
   return [
     { waza: msg.waza, current: { level: 1 } },
     [],
-    [emit("ProgramOpened"), navigated("push"), viewChanged("forward")]
+    [emit("ProgramOpened"), navigatedEvent("push"), viewChangedEvent("forward")]
   ];
 }
 
@@ -62,7 +62,7 @@ function navigateMessage(model, msg) {
   return [
     { ...model, current: msg.to },
     [],
-    [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]
+    [navigatedEvent("push"), viewChangedEvent(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]
   ];
 }
 
@@ -70,7 +70,7 @@ function closeProgramMessage(model) {
   return [
     UNMOUNT,
     [],
-    [emit("ProgramClosed", { waza: model.waza }), navigated("push"), viewChanged("back")]
+    [emit("ProgramClosed", { waza: model.waza }), navigatedEvent("push"), viewChangedEvent("back")]
   ];
 }
 
@@ -143,7 +143,7 @@ const levels = {
 // The URL changed: the program of the route, narrowed to what the data contains.
 function whenRouteChanged(model, { route, direction }, root) {
   const current = WAZA_ORDER.includes(route.waza) ? validProgram(gradeData(root), route) : null;
-  if (!current) return [UNMOUNT, [], model.current && direction ? viewChanged(direction) : []];
+  if (!current) return [UNMOUNT, [], model.current && direction ? viewChangedEvent(direction) : []];
   const changed = model.waza !== route.waza || JSON.stringify(model.current) !== JSON.stringify(current);
-  return [{ waza: route.waza, current }, [], changed && direction ? viewChanged(direction) : []];
+  return [{ waza: route.waza, current }, [], changed && direction ? viewChangedEvent(direction) : []];
 }

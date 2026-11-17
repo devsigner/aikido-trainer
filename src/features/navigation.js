@@ -17,7 +17,7 @@ export const feature = defineFeature({
   },
   init: ({ hash = "", position = 0 } = {}, model) => ({ ...model, pending: parseHash(hash), position }),
   messages: { GoHome: goHomeMessage, Popped: poppedMessage },
-  events: { navigated },
+  events: { navigated: navigatedEvent },
   on: {
     GradesLoaded: whenGradesLoaded,
     GradeLoaded: whenGradeLoaded,
@@ -35,7 +35,7 @@ export const feature = defineFeature({
 });
 
 function goHomeMessage(model, _, root) {
-  return screenOf(root) === "home" ? model : [model, [], [emit("HomeRequested"), navigated("push")]];
+  return screenOf(root) === "home" ? model : [model, [], [emit("HomeRequested"), navigatedEvent("push")]];
 }
 
 // Browser navigation: the URL is the source of truth.
@@ -46,11 +46,11 @@ function poppedMessage(model, msg, root) {
 
 // Once the data is loaded, the pending route is applied and written in the URL (without a history entry).
 function whenGradesLoaded(model) {
-  return [{ ...model, pending: null }, [], [routeChanged(model.pending || {}), navigated("replace")]];
+  return [{ ...model, pending: null }, [], [routeChangedEvent(model.pending || {}), navigatedEvent("replace")]];
 }
 
 function whenGradeLoaded(model) {
-  return model.pending ? [{ ...model, pending: null }, [], routeChanged(model.pending)] : model;
+  return model.pending ? [{ ...model, pending: null }, [], routeChangedEvent(model.pending)] : model;
 }
 
 function whenNavigated(model, { mode }, root) {
@@ -59,12 +59,12 @@ function whenNavigated(model, { mode }, root) {
 }
 
 // Event published by a feature when the URL must follow its change (`mode`: "push" | "replace").
-function navigated(mode) {
+function navigatedEvent(mode) {
   return emit("Navigated", { mode });
 }
 
 // `direction` ("back" | "forward") is only known for a browser pop: the cards slide that way (no slide otherwise).
-function routeChanged(route, direction) {
+function routeChangedEvent(route, direction) {
   return emit("RouteChanged", { route, direction });
 }
 
@@ -74,7 +74,7 @@ function goTo(model, route, root, direction) {
   if (route.grade && route.grade !== root.catalog.id && root.catalog.list.some((candidate) => candidate.id === route.grade)) {
     return [{ pending: route }, [], emit("GradeWanted", { id: route.grade })];
   }
-  return [model, [], routeChanged(route, direction)];
+  return [model, [], routeChangedEvent(route, direction)];
 }
 
 // URL ⇄ model: #/grade[/waza[/program[/attack[/technique]]]] (hash routing works on GitHub Pages).

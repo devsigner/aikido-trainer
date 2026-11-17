@@ -8,7 +8,7 @@ import { defineFeature, emit } from "../../framework/elmer/index.js";
 export const feature = defineFeature({
   name: "slide",
   initialState: { direction: "", count: 0 },
-  events: { viewChanged },
+  events: { viewChanged: viewChangedEvent },
   on: { ViewChanged: whenViewChanged },
 });
 
@@ -17,6 +17,6 @@ function whenViewChanged(model, { direction }) {
   return { direction, count: model.count + 1 };
 }
 
-function viewChanged(direction) {
+function viewChangedEvent(direction) {
   return emit("ViewChanged", { direction });
 }
