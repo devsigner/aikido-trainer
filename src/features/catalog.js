@@ -4,7 +4,7 @@
 // The data of the grades is not in the model: it is cached in the browser (src/shared/grades.js).
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
 // Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
-import { cmd, defineFeature, emit, h, html } from "../../framework/elmer/index.js";
+import { cmd, defineFeature, emit, html } from "../../framework/elmer/index.js";
 import { cacheGrade, clearGrades } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
@@ -112,8 +112,8 @@ function whenGradeWanted(model, { id }) {
 
 // Shown instead of the app while the data is not available: a spinner, or the loading error.
 function loadingStatusView(model) {
-  if (model.status === "loading") return h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
-  return h("p", { className: "hint" }, model.error);
+  if (model.status === "loading") return html`<div id="loading" class="loading" role="status" aria-label="Chargement"><div class="spinner"></div></div>`;
+  return html`<p class="hint">${model.error}</p>`;
 }
 
 export async function resolveGrade(grade, fetchJson) {

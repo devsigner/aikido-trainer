@@ -2,7 +2,7 @@
 
 // Feature "video": confirmation modal before opening a video.
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
-import { cmd, defineFeature, h, to } from "../../framework/elmer/index.js";
+import { cmd, defineFeature, html, to } from "../../framework/elmer/index.js";
 
 export const SKIP_VIDEO_WARNING_KEY = "aikido.skipVideoWarning";
 
@@ -30,20 +30,25 @@ export const feature = defineFeature({
 // The modal, with the messages of this feature only (the root view embeds it).
 function view(model) {
   const { prompt } = model;
-  return prompt && h("div", { id: "video-modal", className: "modal-backdrop" },
-    h("div", { className: "modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "video-modal-text" },
-      h("p", { id: "video-modal-text" }, "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?"),
-      h("label", { className: "field" },
-        h("input", { type: "checkbox", id: "video-dont-ask", checked: prompt.dontAsk, onChange: (event) => ({ type: "SetDontAsk", checked: event.target.checked }) }),
-        " Ne plus afficher ce message"),
-      h("div", { className: "buttons" },
-        h("button", { id: "video-confirm", onClick: { type: "ConfirmVideo" } }, "Voir la vidéo"),
-        h("button", { id: "video-cancel", className: "secondary", onClick: { type: "CancelVideo" } }, "Annuler"))));
+  return prompt && html`
+    <div id="video-modal" class="modal-backdrop">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="video-modal-text">
+        <p id="video-modal-text">Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?</p>
+        <label class="field">
+          <input type="checkbox" id="video-dont-ask" checked=${prompt.dontAsk} onChange=${(event) => ({ type: "SetDontAsk", checked: event.target.checked })} />
+          Ne plus afficher ce message
+        </label>
+        <div class="buttons">
+          <button id="video-confirm" onClick=${{ type: "ConfirmVideo" }}>Voir la vidéo</button>
+          <button id="video-cancel" class="secondary" onClick=${{ type: "CancelVideo" }}>Annuler</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 // Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
 function videoLinkView(root, url, id) {
-  return h("a", { id, className: "video", href: url, target: "_blank", rel: "noopener", onClick: root.video.skipWarning ? null : askVideo(url) }, "▶ Voir la vidéo");
+  return html`<a id=${id} class="video" href=${url} target="_blank" rel="noopener" onClick=${root.video.skipWarning ? null : askVideo(url)}>▶ Voir la vidéo</a>`;
 }
 
 // return Msg

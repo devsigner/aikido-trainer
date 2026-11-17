@@ -5,7 +5,7 @@
 // Reads the grade data through the root model (read-only); keeps its own waza (the quiz session is over while the program is open).
 // Publishes `ProgramOpened` / `ProgramClosed` ({ waza }: quiz starts a new session), `Navigated` (the URL must follow), `ViewChanged` (the card slides).
 // Closes when `HomeRequested`.
-import { defineFeature, emit, h, to, UNMOUNT } from "../../framework/elmer/index.js";
+import { defineFeature, emit, html, to, UNMOUNT } from "../../framework/elmer/index.js";
 import { gradeData } from "../shared/grades.js";
 import { WAZA_ORDER, badgesOf, findSameTechnique, listAttacks, listTechniques } from "../shared/logic.js";
 import { card } from "../layout/card.js";
@@ -35,18 +35,22 @@ export const feature = defineFeature({
 // The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
 function view(model, root, header) {
   const { back, backMessage, fields, actions, title, sub, items } = levels[model.current.level](root, model);
-  return h("section", { id: "program" },
-    h("div", { className: actions ? "screen full" : "screen" },
-      header,
-      h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
-      h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
-      card(root, { prefix: "prog", id: "prog-card", ...fields }),
-      actions,
-      h("h2", { id: "prog-title" }, title),
-    ),
-    h("div", { className: "group" },
-      h("p", { id: "prog-sub", className: "hint" }, sub),
-      h("div", { id: "prog-list", className: "buttons" }, items)));
+
+  return html`
+    <section id="program">
+      <div class=${actions ? "screen full" : "screen"}>
+        ${header}
+        <button id="home-btn" class="secondary" onClick=${to("navigation", { type: "GoHome" })}>Retour à l'accueil</button>
+        <button id="prog-back" class="secondary back" onClick=${backMessage}>${back}</button>
+        ${card(root, { prefix: "prog", id: "prog-card", ...fields })}
+        ${actions}
+        <h2 id="prog-title">${title}</h2>
+      </div>
+      <div class="group">
+        <p id="prog-sub" class="hint">${sub}</p>
+        <div id="prog-list" class="buttons">${items}</div>
+      </div>
+    </section>`;
 }
 
 function openProgramMessage(_, msg) {
@@ -83,7 +87,7 @@ export function validProgram(data, { waza, program }) {
   return technique ? { level: 3, attack: attack.name, technique: technique.name } : { level: 2, attack: attack.name };
 }
 
-const item = (label, target) => h("button", { className: "item", onClick: { type: "Navigate", to: target } }, label);
+const item = (label, target) => html`<button class="item" onClick=${{ type: "Navigate", to: target }}>${label}</button>`;
 
 const withBadges = (label, technique) => `${label} ${badgesOf(technique)}`.trim();
 
@@ -121,18 +125,21 @@ const levels = {
     // Neighbours wrap around the list; none when the attack has a single technique.
     const neighbour = (step) => (siblings.length > 1 ? siblings[(position + step + siblings.length) % siblings.length] : null);
     const pagerButton = (id, label, target, direction) =>
-      h("button", { id, disabled: !target, onClick: target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null }, label);
+      html`<button id=${id} disabled=${!target} onClick=${target ? { type: "Navigate", to: { level: 3, attack, technique: target.name }, direction } : null}>${label}</button>`;
     const others = findSameTechnique(gradeData(root), waza, attack, entry.name);
     return {
       back: `← ${attack}`,
       backMessage: { type: "Navigate", to: { level: 2, attack } },
       fields: { waza, attack, technique },
       // Last row of the first screen (see `.screen.full`).
-      actions: h("div", { className: "pager" },
-        h("p", { className: "hint center" }, `${position + 1} / ${siblings.length}`),
-        h("div", { className: "pager-buttons" },
-          pagerButton("prog-prev", "Précédente", neighbour(-1), "back"),
-          pagerButton("prog-next", "Suivante", neighbour(1), "forward"))),
+      actions: html`
+        <div class="pager">
+          <p class="hint center">${position + 1} / ${siblings.length}</p>
+          <div class="pager-buttons">
+            ${pagerButton("prog-prev", "Précédente", neighbour(-1), "back")}
+            ${pagerButton("prog-next", "Suivante", neighbour(1), "forward")}
+          </div>
+        </div>`,
       title: "Même technique, autres attaques ↓",
       sub: others.length ? "" : "Aucune autre attaque pour cette technique.",
       items: others.map((other) => item(withBadges(other.attack, other.technique), { level: 3, attack: other.attack, technique: other.technique.name })),

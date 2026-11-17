@@ -48,6 +48,7 @@ function view(model, root) {
   const { current } = model;
   const shown = current ? { waza: model.waza, attack: current.attack, technique: current.technique, form: current.form || "" } : { form: "" };
   const played = model.total - model.pool.length;
+
   return html`
     <section id="quiz">
       <button id="home-btn" class="secondary" onClick=${to("navigation", { type: "GoHome" })}>Retour à l'accueil</button>
@@ -65,11 +66,14 @@ function view(model, root) {
 function pickerView(root) {
   const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(gradeData(root), waza, root.catalog.filters).length === 0]));
   const someEmpty = Object.values(empty).some(Boolean);
+
   return html`
     <div class="group grow">
       <p class="hint">Choisis un waza et teste-toi !</p>
       <div id="waza-buttons" class="buttons grow">
-        ${WAZA_ORDER.map((waza) => html`<button disabled=${empty[waza]} onClick=${{ type: "StartSession", waza }}>${waza}</button>`)}
+        ${WAZA_ORDER.map((waza) => html`
+          <button disabled=${empty[waza]} onClick=${{ type: "StartSession", waza }}>${waza}</button>
+        `)}
       </div>
       <p id="home-msg" class="hint">${someEmpty ? "Un waza grisé n'a aucune technique pour ces filtres." : ""}</p>
     </div>`;

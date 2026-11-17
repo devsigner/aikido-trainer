@@ -2,7 +2,7 @@
 
 // view(model) → virtual tree (plain data). Handlers are messages.
 // The root view picks the screen; the pieces of the page are in src/layout/.
-import { embed, h } from "../framework/elmer/index.js";
+import { embed, html } from "../framework/elmer/index.js";
 import { feature as catalog } from "./features/catalog.js";
 import { feature as quiz } from "./features/quiz.js";
 import { feature as program } from "./features/program.js";
@@ -29,7 +29,7 @@ export function view(model) {
 
   // The quiz screen's first page fills the viewport height; the footer sits below the fold.
   if (screen === "quiz") {
-    return page(model, h("div", { className: "screen full" }, header, embed("quiz", quiz.view(model.quiz, model))));
+    return page(model, html`<div class="screen full">${header}${embed("quiz", quiz.view(model.quiz, model))}</div>`);
   }
   return page(model, header, home(model));
 }
