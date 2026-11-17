@@ -8,12 +8,17 @@ export const SKIP_VIDEO_WARNING_KEY = "aikido.skipVideoWarning";
 
 export const feature = defineFeature({
   name: "video",
-  model: {
+  initialState: {
     skipWarning: false, // persisted preference: open videos without the confirmation
     prompt: null, // { url, dontAsk } while the confirmation modal is open
   },
   init: ({ skipVideoWarning = false } = {}, model) => ({ ...model, skipWarning: skipVideoWarning }),
-  messages: { AskVideo: askVideoMessage, SetDontAsk: setDontAsk, CancelVideo: cancelVideo, ConfirmVideo: confirmVideo },
+  messages: {
+    AskVideo: askVideoMessage,
+    SetDontAsk: setDontAsk,
+    CancelVideo: cancelVideo,
+    ConfirmVideo: confirmVideo
+  },
   view,
   views: { link: videoLink },
   effects: ({ open, storage }) => ({
@@ -22,18 +27,41 @@ export const feature = defineFeature({
   }),
 });
 
+// The modal, with the messages of this feature only (the root view embeds it).
+function view(model) {
+  const { prompt } = model;
+  return prompt && h("div", { id: "video-modal", className: "modal-backdrop" },
+    h("div", { className: "modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "video-modal-text" },
+      h("p", { id: "video-modal-text" }, "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?"),
+      h("label", { className: "field" },
+        h("input", { type: "checkbox", id: "video-dont-ask", checked: prompt.dontAsk, onChange: (event) => ({ type: "SetDontAsk", checked: event.target.checked }) }),
+        " Ne plus afficher ce message"),
+      h("div", { className: "buttons" },
+        h("button", { id: "video-confirm", onClick: { type: "ConfirmVideo" } }, "Voir la vidéo"),
+        h("button", { id: "video-cancel", className: "secondary", onClick: { type: "CancelVideo" } }, "Annuler"))));
+}
+
+// Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
+function videoLink(root, url, id) {
+  return h("a", { id, className: "video", href: url, target: "_blank", rel: "noopener", onClick: root.video.skipWarning ? null : askVideo(url) }, "▶ Voir la vidéo");
+}
+
+// return Msg
 function askVideoMessage(model, { url }) {
   return { ...model, prompt: { url, dontAsk: false } };
 }
 
+// return Msg
 function setDontAsk(model, { checked }) {
   return { ...model, prompt: { ...model.prompt, dontAsk: checked } };
 }
 
+// return Msg
 function cancelVideo(model) {
   return { ...model, prompt: null };
 }
 
+// return Msg
 function confirmVideo(model) {
   const { url, dontAsk } = model.prompt;
   const commands = dontAsk ? [cmd("SaveSkipVideoWarning"), cmd("OpenUrl", { url })] : cmd("OpenUrl", { url });
@@ -55,23 +83,4 @@ function askVideo(url) {
     event.preventDefault?.();
     return to("video", { type: "AskVideo", url });
   };
-}
-
-// Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
-function videoLink(root, url, id) {
-  return h("a", { id, className: "video", href: url, target: "_blank", rel: "noopener", onClick: root.video.skipWarning ? null : askVideo(url) }, "▶ Voir la vidéo");
-}
-
-// The modal, with the messages of this feature only (the root view embeds it).
-function view(model) {
-  const { prompt } = model;
-  return prompt && h("div", { id: "video-modal", className: "modal-backdrop" },
-    h("div", { className: "modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "video-modal-text" },
-      h("p", { id: "video-modal-text" }, "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?"),
-      h("label", { className: "field" },
-        h("input", { type: "checkbox", id: "video-dont-ask", checked: prompt.dontAsk, onChange: (event) => ({ type: "SetDontAsk", checked: event.target.checked }) }),
-        " Ne plus afficher ce message"),
-      h("div", { className: "buttons" },
-        h("button", { id: "video-confirm", onClick: { type: "ConfirmVideo" } }, "Voir la vidéo"),
-        h("button", { id: "video-cancel", className: "secondary", onClick: { type: "CancelVideo" } }, "Annuler"))));
 }

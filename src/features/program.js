@@ -19,23 +19,59 @@ export const feature = defineFeature({
   name: "program",
   lazy: { events: ["RouteChanged"] }, // the slice only exists while the program is open
   // `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
-  model: { waza: "", current: null },
-  messages: { OpenProgram: openProgram, Navigate: navigate, CloseProgram: closeProgram },
-  on: { HomeRequested: () => [UNMOUNT, [], viewChanged("back")], RouteChanged: routeChanged },
+  initialState: { waza: "", current: null },
+  messages: {
+    OpenProgram: openProgram,
+    Navigate: navigate,
+    CloseProgram: closeProgram
+  },
+  on: {
+    HomeRequested: () => [UNMOUNT, [], viewChanged("back")],
+    RouteChanged: routeChanged
+  },
   view,
 });
 
+// The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
+function view(model, root, header) {
+  const { back, backMessage, fields, actions, title, sub, items } = levels[model.current.level](root, model);
+  return h("section", { id: "program" },
+    h("div", { className: actions ? "screen full" : "screen" },
+      header,
+      h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
+      h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
+      card(root, { prefix: "prog", id: "prog-card", ...fields }),
+      actions,
+      h("h2", { id: "prog-title" }, title),
+    ),
+    h("div", { className: "group" },
+      h("p", { id: "prog-sub", className: "hint" }, sub),
+      h("div", { id: "prog-list", className: "buttons" }, items)));
+}
+
 function openProgram(_, msg) {
-  return [{ waza: msg.waza, current: { level: 1 } }, [], [emit("ProgramOpened"), navigated("push"), viewChanged("forward")]];
+  return [
+    { waza: msg.waza, current: { level: 1 } },
+    [],
+    [emit("ProgramOpened"), navigated("push"), viewChanged("forward")]
+  ];
 }
 
 // Going up a level slides back, unless the message forces the direction.
 function navigate(model, msg) {
-  return [{ ...model, current: msg.to }, [], [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]];
+  return [
+    { ...model, current: msg.to },
+    [],
+    [navigated("push"), viewChanged(msg.direction || (msg.to.level < model.current.level ? "back" : "forward"))]
+  ];
 }
 
 function closeProgram(model) {
-  return [UNMOUNT, [], [emit("ProgramClosed", { waza: model.waza }), navigated("push"), viewChanged("back")]];
+  return [
+    UNMOUNT,
+    [],
+    [emit("ProgramClosed", { waza: model.waza }), navigated("push"), viewChanged("back")]
+  ];
 }
 
 // URL route narrowed to what the data contains (unknown attack or technique → level above).
@@ -103,23 +139,6 @@ const levels = {
     };
   },
 };
-
-// The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
-function view(model, root, header) {
-  const { back, backMessage, fields, actions, title, sub, items } = levels[model.current.level](root, model);
-  return h("section", { id: "program" },
-    h("div", { className: actions ? "screen full" : "screen" },
-      header,
-      h("button", { id: "home-btn", className: "secondary", onClick: to("navigation", { type: "GoHome" }) }, "Retour à l'accueil"),
-      h("button", { id: "prog-back", className: "secondary back", onClick: backMessage }, back),
-      card(root, { prefix: "prog", id: "prog-card", ...fields }),
-      actions,
-      h("h2", { id: "prog-title" }, title),
-    ),
-    h("div", { className: "group" },
-      h("p", { id: "prog-sub", className: "hint" }, sub),
-      h("div", { id: "prog-list", className: "buttons" }, items)));
-}
 
 // The URL changed: the program of the route, narrowed to what the data contains.
 function routeChanged(model, { route, direction }, root) {

@@ -7,7 +7,7 @@ import { defineFeature, emit } from "../../framework/elmer/index.js";
 
 export const feature = defineFeature({
   name: "slide",
-  model: { direction: "", count: 0 },
+  initialState: { direction: "", count: 0 },
   events: { viewChanged },
   on: { ViewChanged: restartAnimation },
 });

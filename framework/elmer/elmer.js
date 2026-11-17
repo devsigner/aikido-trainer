@@ -25,7 +25,7 @@ const setDebug = (debug) => (model) => [{ ...model, debug }, model.persist ? [{ 
 
 export const feature = {
   name: "elmer",
-  model: { debug: "off", persist: false, historySize: 200 },
+  initialState: { debug: "off", persist: false, historySize: 200 },
   init: (flags, model) => [{ ...model, ...settingsFromEnvironment(), ...flags?.elmer }, []],
   messages: {
     DebugOn: setDebug("on"),

@@ -6,11 +6,11 @@
 // the handlers and views are function declarations below it (hoisted), so the definition reads first.
 //   {
 //     name?,                             // its name = its slice `model.<name>`; required to compose it in a list: `combine([a, b])`
-//     model?,                            // initial slice of the model (without flags and commands)
+//     initialState?,                     // initial slice of the model (without flags and commands)
 //     lazy?,                             // true: no slice until a message or a subscribed event reaches the feature (then `init` runs);
 //                                        // { events: [types] }: only a message or these events create it, the other events are ignored while it is unmounted;
 //                                        // an update or reaction returning `UNMOUNT` as model removes the slice
-//     init?(flags, model) → [model, cmds, events?],     // when the initial model depends on the flags or starts commands (`model` = the one above)
+//     init?(flags, model) → [model, cmds, events?],     // when the initial model depends on the flags or starts commands (`model` = the `initialState` above)
 //     messages: { Type: (model, msg, root) → [model, cmds, events?] },   // the messages of the feature, the `update` is generated from it
 //     on: { EventType: (model, event, root) → [model, cmds, events?] },   // reactions to events of other features
 //     effects(deps) → { CmdType: (cmd, dispatch) => … },                 // `dispatch` sends messages to this feature
@@ -141,18 +141,18 @@
 // ----------------------------------------------------------------------------
 //
 //    - unknown key (typo: `message` instead of `messages`) → error, not ignored
-//    - neither `model` nor `init` → error
+//    - neither `initialState` nor `init` → error
 
 import { feature as elmer } from "./elmer.js";
 
-const KEYS = ["name", "model", "lazy", "init", "messages", "on", "effects", "subscribe", "view", "views", "events"];
+const KEYS = ["name", "initialState", "lazy", "init", "messages", "on", "effects", "subscribe", "view", "views", "events"];
 
 // Declares a feature: checks the shape (a typo in a key would otherwise be silently ignored) and returns it.
 export function defineFeature(spec) {
   for (const key of Object.keys(spec)) {
     if (!KEYS.includes(key)) throw new Error(`Unknown feature key: ${key} (expected: ${KEYS.join(", ")})`);
   }
-  if (!("model" in spec) && !spec.init) throw new Error("A feature needs a `model` or an `init`");
+  if (!("initialState" in spec) && !spec.init) throw new Error("A feature needs an `initialState` or an `init`");
   return spec;
 }
 
@@ -199,7 +199,7 @@ export function combine(definitions) {
   const features = [...named, ["elmer", elmer]].map(([name, spec]) => ({
     ...defineFeature(spec),
     name,
-    init: (flags) => (spec.init ? spec.init(flags, spec.model) : [spec.model, []]),
+    init: (flags) => (spec.init ? spec.init(flags, spec.initialState) : [spec.initialState, []]),
     update(model, msg, root) {
       const handler = spec.messages?.[msg.type];
       if (!handler) throw new Error(`Unknown message : ${msg.type}`);

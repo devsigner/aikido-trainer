@@ -14,12 +14,12 @@ import { features as exampleFeatures, view as exampleView } from "../examples/co
 // Two fake features: a counter that publishes an event, and a log that listens to it.
 const counter = defineFeature({
   init: (flags, model) => [model, [{ type: "Hello" }]],
-  model: { n: 0 },
+  initialState: { n: 0 },
   messages: { Inc: (model) => [{ n: model.n + 1 }, [{ type: "Echo" }], [{ type: "Changed", n: model.n + 1 }]] },
   effects: () => ({ Echo: (_, dispatch) => dispatch({ type: "Noop" }) }),
 });
 const log = defineFeature({
-  model: { seen: [] },
+  initialState: { seen: [] },
   on: { Changed: (model, event, root) => [{ seen: [...model.seen, `${event.n}/${root.counter.n}`] }, []] },
   effects: () => ({ Ping: () => {} }),
 });
@@ -48,7 +48,7 @@ describe("elmer combine", () => {
   });
 
   test("events published by a reaction are delivered too; an endless loop fails loudly", () => {
-    const ping = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "A" }]] }, on: { A: () => [{}, [], [{ type: "B" }]], B: () => [{}, [], [{ type: "A" }]] } });
+    const ping = defineFeature({ initialState: {}, messages: { Go: () => [{}, [], [{ type: "A" }]] }, on: { A: () => [{}, [], [{ type: "B" }]], B: () => [{}, [], [{ type: "A" }]] } });
     const looping = combine({ ping });
     assert.throws(() => looping.update(looping.init()[0], to("ping", { type: "Go" })), /Event loop/);
   });
@@ -65,9 +65,9 @@ describe("elmer combine", () => {
     assert.throws(() => app.update(app.init()[0], to("counter", { type: "Nope" })), /Unknown message/);
   });
 
-  test("defineFeature rejects unknown keys and a feature without model nor init", () => {
-    assert.throws(() => defineFeature({ model: {}, update() {} }), /Unknown feature key/);
-    assert.throws(() => defineFeature({ messages: {} }), /model/);
+  test("defineFeature rejects unknown keys and a feature without initialState nor init", () => {
+    assert.throws(() => defineFeature({ initialState: {}, update() {} }), /Unknown feature key/);
+    assert.throws(() => defineFeature({ messages: {} }), /initialState/);
   });
 
   test("the feature `elmer` is added to every application: settings in model.elmer, saved when they change, name reserved", () => {
@@ -116,7 +116,7 @@ describe("elmer combine", () => {
 
   test("a failing effect does not stop the next ones, and is reported with its command and feature", () => {
     const ran = [];
-    const application = combine({ plain: defineFeature({ model: {}, messages: { Go: (model) => [model, [{ type: "Boom" }, { type: "Echo" }]] }, effects: () => ({ Boom: () => { throw new Error("bad"); }, Echo: () => ran.push("echo") }) }) });
+    const application = combine({ plain: defineFeature({ initialState: {}, messages: { Go: (model) => [model, [{ type: "Boom" }, { type: "Echo" }]] }, effects: () => ({ Boom: () => { throw new Error("bad"); }, Echo: () => ran.push("echo") }) }) });
     const dispatch = run({ init: application.init, update: application.update, view: () => "", render: () => {}, effects: application.effects({}) });
     assert.throws(() => dispatch(to("plain", { type: "Go" })), /Effect Boom \(feature plain\) failed : bad/);
     assert.deepEqual(ran, ["echo"]);
@@ -124,7 +124,7 @@ describe("elmer combine", () => {
 
   test("time travel keeps the settings of the framework", () => {
     let handle;
-    const application = combine({ plain: defineFeature({ model: {} }) });
+    const application = combine({ plain: defineFeature({ initialState: {} }) });
     const dispatch = run({
       init: application.init, update: application.update, view: () => "", render: () => {}, effects: application.effects({}),
       debug: { attach: (control) => (handle = control), record: () => {} },
@@ -153,7 +153,7 @@ describe("elmer combine", () => {
   test("a handler may return the model alone, [model], or single cmds and events instead of lists", () => {
     const short = defineFeature({
       name: "short",
-      model: { n: 0 },
+      initialState: { n: 0 },
       messages: {
         Alone: () => ({ n: 1 }),
         Wrapped: () => [{ n: 2 }],
@@ -161,7 +161,7 @@ describe("elmer combine", () => {
       },
       effects: () => ({ Echo: () => {} }),
     });
-    const listener = defineFeature({ name: "listener", model: { seen: 0 }, on: { Changed: (model, { n }) => ({ seen: model.seen + n }) } });
+    const listener = defineFeature({ name: "listener", initialState: { seen: 0 }, on: { Changed: (model, { n }) => ({ seen: model.seen + n }) } });
     const app = combine([short, listener]);
     const [start] = app.init();
     assert.equal(app.update(start, to("short", { type: "Alone" }))[0].short.n, 1);
@@ -173,16 +173,16 @@ describe("elmer combine", () => {
   });
 
   test("combine accepts a list of features that declare their name; a missing or duplicate name is rejected", () => {
-    const named = defineFeature({ name: "counter", model: { n: 0 } });
+    const named = defineFeature({ name: "counter", initialState: { n: 0 } });
     assert.deepEqual(combine([named]).init()[0].counter, { n: 0 });
-    assert.throws(() => combine([defineFeature({ model: {} })]), /needs a `name`/);
+    assert.throws(() => combine([defineFeature({ initialState: {} })]), /needs a `name`/);
     assert.throws(() => combine([named, named]), /Duplicate feature name: counter/);
-    assert.throws(() => combine([defineFeature({ name: "elmer", model: {} })]), /reserved/);
+    assert.throws(() => combine([defineFeature({ name: "elmer", initialState: {} })]), /reserved/);
   });
 
   test("a lazy feature has no slice until it is reached, is mounted with the init flags, and can unmount itself", () => {
-    const lazy = defineFeature({ lazy: true, model: { n: 0 }, init: ({ start }) => [{ n: start }, []], messages: { Go: (model) => [{ n: model.n + 1 }, []] }, on: { Free: () => [UNMOUNT, [{ type: "Cleanup" }]] } });
-    const eager = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "Free" }]] } });
+    const lazy = defineFeature({ lazy: true, initialState: { n: 0 }, init: ({ start }) => [{ n: start }, []], messages: { Go: (model) => [{ n: model.n + 1 }, []] }, on: { Free: () => [UNMOUNT, [{ type: "Cleanup" }]] } });
+    const eager = defineFeature({ initialState: {}, messages: { Go: () => [{}, [], [{ type: "Free" }]] } });
     const lazyApp = combine({ eager, lazy });
     const [model] = lazyApp.init({ start: 10 });
     assert.deepEqual(Object.keys(model), ["eager", "elmer"]);
@@ -195,8 +195,8 @@ describe("elmer combine", () => {
   });
 
   test("lazy: { events } ignores the other events while unmounted", () => {
-    const lazy = defineFeature({ lazy: { events: ["Wake"] }, model: { n: 0 }, on: { Wake: (model) => [{ n: model.n + 1 }, []], Other: (model) => [{ n: model.n + 10 }, []] } });
-    const eager = (type) => defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type }]] } });
+    const lazy = defineFeature({ lazy: { events: ["Wake"] }, initialState: { n: 0 }, on: { Wake: (model) => [{ n: model.n + 1 }, []], Other: (model) => [{ n: model.n + 10 }, []] } });
+    const eager = (type) => defineFeature({ initialState: {}, messages: { Go: () => [{}, [], [{ type }]] } });
     const go = to("eager", { type: "Go" });
     const ignored = combine({ eager: eager("Other"), lazy });
     assert.equal("lazy" in ignored.update(ignored.init({})[0], go)[0], false);
@@ -205,8 +205,8 @@ describe("elmer combine", () => {
   });
 
   test("an event mounts a lazy feature that subscribed to it", () => {
-    const lazy = defineFeature({ lazy: true, model: { seen: 0 }, on: { Ping: (model) => [{ seen: model.seen + 1 }, []] } });
-    const eager = defineFeature({ model: {}, messages: { Go: () => [{}, [], [{ type: "Ping" }]] } });
+    const lazy = defineFeature({ lazy: true, initialState: { seen: 0 }, on: { Ping: (model) => [{ seen: model.seen + 1 }, []] } });
+    const eager = defineFeature({ initialState: {}, messages: { Go: () => [{}, [], [{ type: "Ping" }]] } });
     const lazyApp = combine({ eager, lazy });
     const [next, , delivered] = lazyApp.update(lazyApp.init({})[0], to("eager", { type: "Go" }));
     assert.deepEqual(next.lazy, { seen: 1 });

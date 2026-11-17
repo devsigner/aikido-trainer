@@ -120,12 +120,12 @@ En trois règles :
 
 ## Une feature
 
-Une feature est un module qui exporte **`feature`**, déclaré avec `defineFeature` (les clés inconnues sont refusées ; `model` ou `init` est obligatoire) :
+Une feature est un module qui exporte **`feature`**, déclaré avec `defineFeature` (les clés inconnues sont refusées ; `initialState` ou `init` est obligatoire) :
 
 ```js
 export const feature = defineFeature({
   name?,                                       // nom de la feature (sa tranche `model.<nom>`), requis pour `combine([…])`
-  model,                                       // modèle initial (statique) de sa tranche
+  initialState,                                // état initial (statique) de sa tranche
   lazy?,                                       // true : pas de tranche tant qu'aucun message ni événement abonné ne l'atteint
   init?(flags, model) → [model, cmds, events?],  // optionnel : flags, commandes de démarrage
   messages: { Type: (model, msg, root) → [model, cmds, events?] },   // root = modèle complet, en lecture seule

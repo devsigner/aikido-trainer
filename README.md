@@ -114,7 +114,7 @@ flowchart LR
 
 - **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
 - **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…). À la racine il est adressé à une feature : `{ feature, msg }` (`to("quiz", msg)`).
-- **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ name, model, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`framework/elmer/README.md`](framework/elmer/README.md).
+- **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ name, initialState, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`framework/elmer/README.md`](framework/elmer/README.md).
 - **`update(model, msg) → [model, cmds, events?]`** (par feature, via `messages`) : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
 - **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`framework/elmer/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
 - **`view(model) → vnode`** : fonction **pure** qui produit un arbre de données. Les gestionnaires d'événements sont eux aussi des messages, pas des fonctions qui modifient l'état.
@@ -128,7 +128,7 @@ flowchart TB
     end
     subgraph pure["Cœur pur (testable sans navigateur)"]
         UPD["src/update.js<br/>features + combine"]
-        FEAT["src/features/*.js<br/>model, messages, on, view, effects"]
+        FEAT["src/features/*.js<br/>initialState, messages, on, view, effects"]
         VIEW["src/view.js + src/layout/*<br/>view → vnodes"]
         LOG["src/shared/logic.js<br/>fusion des grades, pool, pondération"]
     end

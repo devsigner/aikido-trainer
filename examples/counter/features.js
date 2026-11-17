@@ -4,7 +4,7 @@
 import { defineFeature, embed, h, to, UNMOUNT } from "../../framework/elmer/index.js";
 
 export const counter = defineFeature({
-  model: { count: 0 },
+  initialState: { count: 0 },
   messages: {
     Increment: (model) => [{ count: model.count + 1 }, [], [{ type: "Incremented", count: model.count + 1 }]],
     Reset: () => [{ count: 0 }, [], [{ type: "WasReset" }]],
@@ -18,7 +18,7 @@ export const counter = defineFeature({
 // Lazy: it has no slice (no memory) until the first increment, and frees it when the counter is reset.
 export const log = defineFeature({
   lazy: true,
-  model: { lines: [] },
+  initialState: { lines: [] },
   // Reacts to an event of another feature; it never touches the counter's slice.
   on: {
     Incremented: (model, event) => [{ lines: [...model.lines, `count = ${event.count}`] }, []],

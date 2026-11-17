@@ -11,14 +11,18 @@ import { screenOf } from "../shared/screen.js";
 
 export const feature = defineFeature({
   name: "navigation",
-  model: {
+  initialState: {
     pending: null, // route from the URL, applied once the data is loaded
     position: 0, // index of the current history entry
   },
   init: ({ hash = "", position = 0 } = {}, model) => ({ ...model, pending: parseHash(hash), position }),
   messages: { GoHome: goHome, Popped: popped },
   events: { navigated },
-  on: { GradesLoaded: gradesLoaded, GradeLoaded: gradeLoaded, Navigated: navigatedHandler },
+  on: {
+    GradesLoaded: gradesLoaded,
+    GradeLoaded: gradeLoaded,
+    Navigated: navigatedHandler
+  },
   // Browser back/forward: the URL and the history position are read when the entry changes.
   subscribe: (dispatch, { window, history }) => window.addEventListener("popstate", () => dispatch({
     type: "Popped",
