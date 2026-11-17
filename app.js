@@ -103,7 +103,7 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
   return fun.a9 ? fun.a9(a, b, c, d, e, f, g, h, i) : fun(a)(b)(c)(d)(e)(f)(g)(h)(i);
 }
 
-var $author$project$Types$NavigationMsg = function (a) {
+var $author$project$Root$NavigationMsg = function (a) {
 	return { $: 'NavigationMsg', a: a };
 };
 var $author$project$Navigation$Navigation$UrlChanged = function (a) {
@@ -4831,10 +4831,10 @@ var $gren_lang$core$Task$perform = F2($gren_lang$core$Task$perform$);
 var $gren_lang$browser$Browser$application = _Browser_application;
 var $gren_lang$core$Json$Decode$bool = _Json_decodeBool;
 var $gren_lang$core$Json$Decode$field = _Json_decodeField;
-var $author$project$Types$CatalogMsg = function (a) {
+var $author$project$Root$CatalogMsg = function (a) {
 	return { $: 'CatalogMsg', a: a };
 };
-var $author$project$Types$Home = { $: 'Home' };
+var $author$project$Root$Home = { $: 'Home' };
 var $author$project$Catalog$Catalog$Loaded = function (a) {
 	return { $: 'Loaded', a: a };
 };
@@ -5725,37 +5725,37 @@ var $author$project$Slide$Slide$init = { count: 0, direction: $author$project$Sl
 var $author$project$Video$Video$init = function(skipWarning) {
 	return { prompt: $gren_lang$core$Maybe$Nothing, skipWarning: skipWarning };
 };
-var $author$project$Main$init$ = function(flags, url, key) {
+var $author$project$Root$init$ = function(flags, url, key) {
 	var catalog = $author$project$Catalog$Catalog$init;
-	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$CatalogMsg, catalog.command), model: { catalog: catalog.model, navigation: $author$project$Navigation$Navigation$init$(key, url), screen: $author$project$Types$Home, slide: $author$project$Slide$Slide$init, video: $author$project$Video$Video$init(flags.skipVideoWarning) } };
+	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$CatalogMsg, catalog.command), model: { catalog: catalog.model, navigation: $author$project$Navigation$Navigation$init$(key, url), screen: $author$project$Root$Home, slide: $author$project$Slide$Slide$init, video: $author$project$Video$Video$init(flags.skipVideoWarning) } };
 };
-var $author$project$Main$init = F3($author$project$Main$init$);
+var $author$project$Root$init = F3($author$project$Root$init$);
 var $gren_lang$core$Platform$Sub$batch = _Platform_batch;
 var $gren_lang$core$Platform$Sub$none = $gren_lang$core$Platform$Sub$batch([  ]);
 var $author$project$Slide$Slide$Forward = { $: 'Forward' };
-var $author$project$Types$Program = function (a) {
+var $author$project$Root$Program = function (a) {
 	return { $: 'Program', a: a };
 };
-var $author$project$Types$ProgramMsg = function (a) {
+var $author$project$Root$ProgramMsg = function (a) {
 	return { $: 'ProgramMsg', a: a };
 };
-var $author$project$Types$Quiz = function (a) {
+var $author$project$Root$Quiz = function (a) {
 	return { $: 'Quiz', a: a };
 };
-var $author$project$Types$QuizMsg = function (a) {
+var $author$project$Root$QuizMsg = function (a) {
 	return { $: 'QuizMsg', a: a };
 };
-var $author$project$Types$VideoMsg = function (a) {
+var $author$project$Root$VideoMsg = function (a) {
 	return { $: 'VideoMsg', a: a };
 };
 var $gren_lang$core$Platform$Cmd$batch = _Platform_batch;
-var $author$project$Main$applyEvents$ = function(handle, events, initial) {
+var $author$project$Root$applyEvents$ = function(handle, events, initial) {
 	return A3($gren_lang$core$Array$foldl, F2(function(event, acc) {
 				var handled = A2(handle, event, acc.model);
 				return { command: $gren_lang$core$Platform$Cmd$batch([ acc.command, handled.command ]), model: handled.model };
 			}), initial, events);
 };
-var $author$project$Main$applyEvents = F3($author$project$Main$applyEvents$);
+var $author$project$Root$applyEvents = F3($author$project$Root$applyEvents$);
 var $author$project$Slide$Slide$Back = { $: 'Back' };
 var $gren_lang$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $gren_lang$url$Url$percentEncode = _Url_percentEncode;
@@ -5786,7 +5786,7 @@ var $author$project$Navigation$Navigation$push$ = function(model, route) {
 	return A2($gren_lang$browser$Browser$Navigation$pushUrl, model.key, $author$project$Shared$Route$toHash(route));
 };
 var $author$project$Navigation$Navigation$push = F2($author$project$Navigation$Navigation$push$);
-var $author$project$Types$routeOf = function(model) {
+var $author$project$Root$routeOf = function(model) {
 	var base = { grade: $gren_lang$core$Maybe$Just(model.catalog.gradeId), program: $gren_lang$core$Maybe$Nothing, waza: $gren_lang$core$Maybe$Nothing };
 	var _v0 = model.screen;
 	switch (_v0.$) {
@@ -5800,38 +5800,38 @@ var $author$project$Types$routeOf = function(model) {
 			return _Utils_update(base, { program: $gren_lang$core$Maybe$Just(program.level), waza: $gren_lang$core$Maybe$Just(program.waza) });
 	}
 };
-var $author$project$Main$pushUrl = function(result) {
-	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, $author$project$Navigation$Navigation$push$(result.model.navigation, $author$project$Types$routeOf(result.model)) ]), model: result.model };
+var $author$project$Root$pushUrl = function(result) {
+	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, $author$project$Navigation$Navigation$push$(result.model.navigation, $author$project$Root$routeOf(result.model)) ]), model: result.model };
 };
-var $author$project$Types$NoOp = { $: 'NoOp' };
+var $author$project$Root$NoOp = { $: 'NoOp' };
 var $gren_lang$browser$Browser$Dom$setViewport = _Browser_setViewport;
 var $author$project$Shared$Effect$scrollTop = function(done) {
 	return $gren_lang$core$Task$perform$(function(_v0) {
 			return done;
 		}, A2($gren_lang$browser$Browser$Dom$setViewport, 0, 0));
 };
-var $author$project$Main$scrollTop = $author$project$Shared$Effect$scrollTop($author$project$Types$NoOp);
+var $author$project$Root$scrollTop = $author$project$Shared$Effect$scrollTop($author$project$Root$NoOp);
 var $author$project$Slide$Slide$advance$ = function(direction, model) {
 	return { count: model.count + 1, direction: direction };
 };
 var $author$project$Slide$Slide$advance = F2($author$project$Slide$Slide$advance$);
-var $author$project$Main$slide$ = function(direction, model) {
+var $author$project$Root$slide$ = function(direction, model) {
 	return _Utils_update(model, { slide: $author$project$Slide$Slide$advance$(direction, model.slide) });
 };
-var $author$project$Main$slide = F2($author$project$Main$slide$);
+var $author$project$Root$slide = F2($author$project$Root$slide$);
 var $gren_lang$core$Platform$Cmd$none = $gren_lang$core$Platform$Cmd$batch([  ]);
-var $author$project$Main$stay = function(model) {
+var $author$project$Root$stay = function(model) {
 	return { command: $gren_lang$core$Platform$Cmd$none, model: model };
 };
-var $author$project$Main$goHome = function(model) {
+var $author$project$Root$goHome = function(model) {
 	var _v0 = model.screen;
 	switch (_v0.$) {
 		case 'Home':
-			return $author$project$Main$stay(model);
+			return $author$project$Root$stay(model);
 		case 'Quiz':
-			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Home })) });
+			return $author$project$Root$pushUrl({ command: $author$project$Root$scrollTop, model: $author$project$Root$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Root$Home })) });
 		default:
-			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Back, _Utils_update(model, { screen: $author$project$Types$Home })) });
+			return $author$project$Root$pushUrl({ command: $author$project$Root$scrollTop, model: $author$project$Root$slide$($author$project$Slide$Slide$Back, _Utils_update(model, { screen: $author$project$Root$Home })) });
 	}
 };
 var $author$project$Catalog$Catalog$currentData = function(model) {
@@ -5841,7 +5841,7 @@ var $author$project$Catalog$Catalog$currentData = function(model) {
 					return _Utils_eq(grade.info.id, model.gradeId);
 				}, model.grades)));
 };
-var $author$project$Types$currentData = function(model) {
+var $author$project$Root$currentData = function(model) {
 	return $author$project$Catalog$Catalog$currentData(model.catalog);
 };
 var $author$project$Shared$Grade$attacksOf$ = function(data, waza) {
@@ -6096,16 +6096,16 @@ var $author$project$Quiz$Quiz$start$ = function(data, filters, waza) {
 	return { command: $gren_lang$core$Array$isEmpty(pool) ? $gren_lang$core$Platform$Cmd$none : $author$project$Quiz$Quiz$roll, model: { current: $gren_lang$core$Maybe$Nothing, done: $gren_lang$core$Array$isEmpty(pool), pool: pool, total: $gren_lang$core$Array$length(pool), waza: waza } };
 };
 var $author$project$Quiz$Quiz$start = F3($author$project$Quiz$Quiz$start$);
-var $author$project$Main$startSession$ = function(model, waza) {
-	var started = $author$project$Quiz$Quiz$start$($author$project$Types$currentData(model), model.catalog.filters, waza);
-	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$QuizMsg, started.command), model: _Utils_update(model, { screen: $author$project$Types$Quiz(started.model) }) };
+var $author$project$Root$startSession$ = function(model, waza) {
+	var started = $author$project$Quiz$Quiz$start$($author$project$Root$currentData(model), model.catalog.filters, waza);
+	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$QuizMsg, started.command), model: _Utils_update(model, { screen: $author$project$Root$Quiz(started.model) }) };
 };
-var $author$project$Main$startSession = F2($author$project$Main$startSession$);
-var $author$project$Main$startQuiz$ = function(direction, waza, model) {
-	var started = $author$project$Main$startSession$(model, waza);
-	return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$(direction, started.model) });
+var $author$project$Root$startSession = F2($author$project$Root$startSession$);
+var $author$project$Root$startQuiz$ = function(direction, waza, model) {
+	var started = $author$project$Root$startSession$(model, waza);
+	return $author$project$Root$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Root$scrollTop ]), model: $author$project$Root$slide$(direction, started.model) });
 };
-var $author$project$Main$startQuiz = F3($author$project$Main$startQuiz$);
+var $author$project$Root$startQuiz = F3($author$project$Root$startQuiz$);
 var $author$project$Catalog$Catalog$Failed = function (a) {
 	return { $: 'Failed', a: a };
 };
@@ -6447,8 +6447,8 @@ var $author$project$Navigation$Navigation$replace$ = function(model, route) {
 	return A2($gren_lang$browser$Browser$Navigation$replaceUrl, model.key, $author$project$Shared$Route$toHash(route));
 };
 var $author$project$Navigation$Navigation$replace = F2($author$project$Navigation$Navigation$replace$);
-var $author$project$Main$andReplaceUrl = function(result) {
-	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, $author$project$Navigation$Navigation$replace$(result.model.navigation, $author$project$Types$routeOf(result.model)) ]), model: result.model };
+var $author$project$Root$andReplaceUrl = function(result) {
+	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, $author$project$Navigation$Navigation$replace$(result.model.navigation, $author$project$Root$routeOf(result.model)) ]), model: result.model };
 };
 var $gren_lang$core$Maybe$andThen$ = function(callback, maybeValue) {
 	if (maybeValue.$ === 'Just') {
@@ -6526,43 +6526,43 @@ var $author$project$Program$Program$validLevel$ = function(data, waza, wanted) {
 };
 var $author$project$Program$Program$validLevel = F3($author$project$Program$Program$validLevel$);
 var $author$project$Shared$Grade$wazaOrder = [ 'Tachi waza', 'Hanmi Handachi waza', 'Suwari waza' ];
-var $author$project$Main$applyRoute$ = function(route, direction, model) {
+var $author$project$Root$applyRoute$ = function(route, direction, model) {
 	var validWaza = $gren_lang$core$Maybe$andThen$(function(waza) {
 			return $gren_lang$core$Array$member$(waza, $author$project$Shared$Grade$wazaOrder) ? $gren_lang$core$Maybe$Just(waza) : $gren_lang$core$Maybe$Nothing;
 		}, route.waza);
-	var data = $author$project$Types$currentData(model);
+	var data = $author$project$Root$currentData(model);
 	var result = function () {
 		if (validWaza.$ === 'Nothing') {
-			return $author$project$Main$stay(_Utils_update(model, { screen: $author$project$Types$Home }));
+			return $author$project$Root$stay(_Utils_update(model, { screen: $author$project$Root$Home }));
 		} else {
 			var waza = validWaza.a;
 			var _v1 = route.program;
 			if (_v1.$ === 'Just') {
 				var wanted = _v1.a;
-				return $author$project$Main$stay(_Utils_update(model, { screen: $author$project$Types$Program({ level: $author$project$Program$Program$validLevel$(data, waza, wanted), waza: waza }) }));
+				return $author$project$Root$stay(_Utils_update(model, { screen: $author$project$Root$Program({ level: $author$project$Program$Program$validLevel$(data, waza, wanted), waza: waza }) }));
 			} else {
 				var _v2 = model.screen;
 				if (_v2.$ === 'Quiz') {
 					var quiz = _v2.a;
-					return _Utils_eq(quiz.waza, waza) ? $author$project$Main$stay(model) : $author$project$Main$startSession$(model, waza);
+					return _Utils_eq(quiz.waza, waza) ? $author$project$Root$stay(model) : $author$project$Root$startSession$(model, waza);
 				} else {
-					return $author$project$Main$startSession$(model, waza);
+					return $author$project$Root$startSession$(model, waza);
 				}
 			}
 		}
 	}();
-	var changed = !_Utils_eq($author$project$Types$routeOf(result.model), $author$project$Types$routeOf(model));
-	return { command: result.command, model: changed ? $author$project$Main$slide$(direction, result.model) : result.model };
+	var changed = !_Utils_eq($author$project$Root$routeOf(result.model), $author$project$Root$routeOf(model));
+	return { command: result.command, model: changed ? $author$project$Root$slide$(direction, result.model) : result.model };
 };
-var $author$project$Main$applyRoute = F3($author$project$Main$applyRoute$);
-var $author$project$Main$replaceUrl = function(model) {
-	return { command: $author$project$Navigation$Navigation$replace$(model.navigation, $author$project$Types$routeOf(model)), model: model };
+var $author$project$Root$applyRoute = F3($author$project$Root$applyRoute$);
+var $author$project$Root$replaceUrl = function(model) {
+	return { command: $author$project$Navigation$Navigation$replace$(model.navigation, $author$project$Root$routeOf(model)), model: model };
 };
 var $author$project$Catalog$Catalog$select$ = function(id, model) {
 	return $author$project$Catalog$Catalog$isKnown$(id, model) ? _Utils_update(model, { gradeId: id }) : model;
 };
 var $author$project$Catalog$Catalog$select = F2($author$project$Catalog$Catalog$select$);
-var $author$project$Main$whenCatalogEvent$ = function(event, model) {
+var $author$project$Root$whenCatalogEvent$ = function(event, model) {
 	if (event.$ === 'GradesReady') {
 		var route = model.navigation.initialRoute;
 		var selected = function () {
@@ -6574,12 +6574,12 @@ var $author$project$Main$whenCatalogEvent$ = function(event, model) {
 				return model;
 			}
 		}();
-		return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, $author$project$Slide$Slide$Still, selected));
+		return $author$project$Root$andReplaceUrl($author$project$Root$applyRoute$(route, $author$project$Slide$Slide$Still, selected));
 	} else {
-		return $author$project$Main$replaceUrl(model);
+		return $author$project$Root$replaceUrl(model);
 	}
 };
-var $author$project$Main$whenCatalogEvent = F2($author$project$Main$whenCatalogEvent$);
+var $author$project$Root$whenCatalogEvent = F2($author$project$Root$whenCatalogEvent$);
 var $author$project$Shared$Route$depth = function(route) {
 	var _v0 = route.program;
 	if (_v0.$ === 'Just') {
@@ -6601,76 +6601,76 @@ var $author$project$Shared$Route$depth = function(route) {
 		}
 	}
 };
-var $author$project$Main$whenNavigationEvent$ = function(event, model) {
+var $author$project$Root$whenNavigationEvent$ = function(event, model) {
 	var route = event.a;
-	if ((!_Utils_eq(model.catalog.status, $author$project$Catalog$Catalog$Ready)) || _Utils_eq(route, $author$project$Types$routeOf(model))) {
-		return $author$project$Main$stay(model);
+	if ((!_Utils_eq(model.catalog.status, $author$project$Catalog$Catalog$Ready)) || _Utils_eq(route, $author$project$Root$routeOf(model))) {
+		return $author$project$Root$stay(model);
 	} else {
-		var direction = (_Utils_cmp($author$project$Shared$Route$depth(route), $author$project$Shared$Route$depth($author$project$Types$routeOf(model))) < 0) ? $author$project$Slide$Slide$Back : $author$project$Slide$Slide$Forward;
-		return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, direction, model));
+		var direction = (_Utils_cmp($author$project$Shared$Route$depth(route), $author$project$Shared$Route$depth($author$project$Root$routeOf(model))) < 0) ? $author$project$Slide$Slide$Back : $author$project$Slide$Slide$Forward;
+		return $author$project$Root$andReplaceUrl($author$project$Root$applyRoute$(route, direction, model));
 	}
 };
-var $author$project$Main$whenNavigationEvent = F2($author$project$Main$whenNavigationEvent$);
+var $author$project$Root$whenNavigationEvent = F2($author$project$Root$whenNavigationEvent$);
 var $author$project$Video$Video$Ask = function (a) {
 	return { $: 'Ask', a: a };
 };
-var $author$project$Main$askVideo$ = function(url, model) {
+var $author$project$Root$askVideo$ = function(url, model) {
 	var result = $author$project$Video$Video$update$($author$project$Video$Video$Ask(url), model.video);
-	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$VideoMsg, result.command), model: _Utils_update(model, { video: result.model }) };
+	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$VideoMsg, result.command), model: _Utils_update(model, { video: result.model }) };
 };
-var $author$project$Main$askVideo = F2($author$project$Main$askVideo$);
-var $author$project$Main$whenProgramEvent$ = function(event, model) {
+var $author$project$Root$askVideo = F2($author$project$Root$askVideo$);
+var $author$project$Root$whenProgramEvent$ = function(event, model) {
 	switch (event.$) {
 		case 'Moved':
 			var direction = event.a;
-			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$(direction, model) });
+			return $author$project$Root$pushUrl({ command: $author$project$Root$scrollTop, model: $author$project$Root$slide$(direction, model) });
 		case 'Closed':
 			var waza = event.a;
-			return $author$project$Main$startQuiz$($author$project$Slide$Slide$Back, waza, model);
+			return $author$project$Root$startQuiz$($author$project$Slide$Slide$Back, waza, model);
 		case 'HomeRequested':
-			return $author$project$Main$goHome(model);
+			return $author$project$Root$goHome(model);
 		default:
 			var url = event.a;
-			return $author$project$Main$askVideo$(url, model);
+			return $author$project$Root$askVideo$(url, model);
 	}
 };
-var $author$project$Main$whenProgramEvent = F2($author$project$Main$whenProgramEvent$);
+var $author$project$Root$whenProgramEvent = F2($author$project$Root$whenProgramEvent$);
 var $author$project$Program$Program$init = function(waza) {
 	return { level: $author$project$Shared$Route$Attacks, waza: waza };
 };
-var $author$project$Main$whenQuizEvent$ = function(event, model) {
+var $author$project$Root$whenQuizEvent$ = function(event, model) {
 	switch (event.$) {
 		case 'CardChanged':
-			return { command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, model) };
+			return { command: $author$project$Root$scrollTop, model: $author$project$Root$slide$($author$project$Slide$Slide$Forward, model) };
 		case 'HomeRequested':
-			return $author$project$Main$goHome(model);
+			return $author$project$Root$goHome(model);
 		case 'ProgramRequested':
 			var waza = event.a;
-			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Program($author$project$Program$Program$init(waza)) })) });
+			return $author$project$Root$pushUrl({ command: $author$project$Root$scrollTop, model: $author$project$Root$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Root$Program($author$project$Program$Program$init(waza)) })) });
 		default:
 			var url = event.a;
-			return $author$project$Main$askVideo$(url, model);
+			return $author$project$Root$askVideo$(url, model);
 	}
 };
-var $author$project$Main$whenQuizEvent = F2($author$project$Main$whenQuizEvent$);
-var $author$project$Main$update$ = function(msg, model) {
+var $author$project$Root$whenQuizEvent = F2($author$project$Root$whenQuizEvent$);
+var $author$project$Root$update$ = function(msg, model) {
 	switch (msg.$) {
 		case 'CatalogMsg':
 			var catalogMsg = msg.a;
 			var result = $author$project$Catalog$Catalog$update$(catalogMsg, model.catalog);
-			return $author$project$Main$applyEvents$($author$project$Main$whenCatalogEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$CatalogMsg, result.command), model: _Utils_update(model, { catalog: result.model }) });
+			return $author$project$Root$applyEvents$($author$project$Root$whenCatalogEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$CatalogMsg, result.command), model: _Utils_update(model, { catalog: result.model }) });
 		case 'StartSession':
 			var waza = msg.a;
-			return $author$project$Main$startQuiz$($author$project$Slide$Slide$Forward, waza, model);
+			return $author$project$Root$startQuiz$($author$project$Slide$Slide$Forward, waza, model);
 		case 'QuizMsg':
 			var quizMsg = msg.a;
 			var _v1 = model.screen;
 			if (_v1.$ === 'Quiz') {
 				var quiz = _v1.a;
 				var result = $author$project$Quiz$Quiz$update$(quizMsg, quiz);
-				return $author$project$Main$applyEvents$($author$project$Main$whenQuizEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$QuizMsg, result.command), model: _Utils_update(model, { screen: $author$project$Types$Quiz(result.model) }) });
+				return $author$project$Root$applyEvents$($author$project$Root$whenQuizEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$QuizMsg, result.command), model: _Utils_update(model, { screen: $author$project$Root$Quiz(result.model) }) });
 			} else {
-				return $author$project$Main$stay(model);
+				return $author$project$Root$stay(model);
 			}
 		case 'ProgramMsg':
 			var programMsg = msg.a;
@@ -6678,25 +6678,25 @@ var $author$project$Main$update$ = function(msg, model) {
 			if (_v2.$ === 'Program') {
 				var program = _v2.a;
 				var result = $author$project$Program$Program$update$(programMsg, program);
-				return $author$project$Main$applyEvents$($author$project$Main$whenProgramEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$ProgramMsg, result.command), model: _Utils_update(model, { screen: $author$project$Types$Program(result.model) }) });
+				return $author$project$Root$applyEvents$($author$project$Root$whenProgramEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$ProgramMsg, result.command), model: _Utils_update(model, { screen: $author$project$Root$Program(result.model) }) });
 			} else {
-				return $author$project$Main$stay(model);
+				return $author$project$Root$stay(model);
 			}
 		case 'GoHome':
-			return $author$project$Main$goHome(model);
+			return $author$project$Root$goHome(model);
 		case 'NavigationMsg':
 			var navigationMsg = msg.a;
 			var result = $author$project$Navigation$Navigation$update$(navigationMsg, model.navigation);
-			return $author$project$Main$applyEvents$($author$project$Main$whenNavigationEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$NavigationMsg, result.command), model: _Utils_update(model, { navigation: result.model }) });
+			return $author$project$Root$applyEvents$($author$project$Root$whenNavigationEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$NavigationMsg, result.command), model: _Utils_update(model, { navigation: result.model }) });
 		case 'VideoMsg':
 			var videoMsg = msg.a;
 			var result = $author$project$Video$Video$update$(videoMsg, model.video);
-			return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$VideoMsg, result.command), model: _Utils_update(model, { video: result.model }) };
+			return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Root$VideoMsg, result.command), model: _Utils_update(model, { video: result.model }) };
 		default:
-			return $author$project$Main$stay(model);
+			return $author$project$Root$stay(model);
 	}
 };
-var $author$project$Main$update = F2($author$project$Main$update$);
+var $author$project$Root$update = F2($author$project$Root$update$);
 var $gren_lang$browser$VirtualDom$map = _VirtualDom_map;
 var $gren_lang$browser$Html$map = $gren_lang$browser$VirtualDom$map;
 var $author$project$Video$Video$Cancel = { $: 'Cancel' };
@@ -6782,16 +6782,16 @@ var $author$project$Layout$Page$page$ = function(videoModal, content) {
 };
 var $author$project$Layout$Page$page = F2($author$project$Layout$Page$page$);
 var $author$project$View$page$ = function(model, content) {
-	return $author$project$Layout$Page$page$(A2($gren_lang$browser$Html$map, $author$project$Types$VideoMsg, $author$project$Video$View$modal(model.video)), content);
+	return $author$project$Layout$Page$page$(A2($gren_lang$browser$Html$map, $author$project$Root$VideoMsg, $author$project$Video$View$modal(model.video)), content);
 };
 var $author$project$View$page = F2($author$project$View$page$);
 var $author$project$View$context = function(model) {
-	return { data: $author$project$Types$currentData(model), skipVideoWarning: model.video.skipWarning, slide: model.slide };
+	return { data: $author$project$Root$currentData(model), skipVideoWarning: model.video.skipWarning, slide: model.slide };
 };
 var $author$project$Catalog$View$failed = function(message) {
 	return A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text(message) ]);
 };
-var $author$project$Types$StartSession = function (a) {
+var $author$project$Root$StartSession = function (a) {
 	return { $: 'StartSession', a: a };
 };
 var $gren_lang$browser$Html$Attributes$disabled = $gren_lang$browser$Html$Attributes$boolProperty('disabled');
@@ -6839,15 +6839,15 @@ var $author$project$Catalog$View$view = function(model) {
 					}, model.grades)) ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('filters') ], [ A2($gren_lang$browser$Html$label, [  ], [ A2($gren_lang$browser$Html$input, [ $gren_lang$browser$Html$Attributes$type_('checkbox'), $gren_lang$browser$Html$Attributes$id('f-new'), $gren_lang$browser$Html$Attributes$checked(model.filters.isNew), $gren_lang$browser$Html$Events$onCheck($author$project$Catalog$Catalog$FilterNew) ], [  ]), $gren_lang$browser$Html$text(' 🆕 Nouveautés') ]), A2($gren_lang$browser$Html$label, [  ], [ A2($gren_lang$browser$Html$input, [ $gren_lang$browser$Html$Attributes$type_('checkbox'), $gren_lang$browser$Html$Attributes$id('f-warning'), $gren_lang$browser$Html$Attributes$checked(model.filters.isWarning), $gren_lang$browser$Html$Events$onCheck($author$project$Catalog$Catalog$FilterWarning) ], [  ]), $gren_lang$browser$Html$text(' ⚠️ Attention') ]) ]) ]);
 };
 var $author$project$View$homeView = function(model) {
-	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('home') ], [ A2($gren_lang$browser$Html$map, $author$project$Types$CatalogMsg, $author$project$Catalog$View$view(model.catalog)), $author$project$Quiz$View$picker$($author$project$Types$currentData(model), model.catalog.filters, $author$project$Types$StartSession) ]);
+	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('home') ], [ A2($gren_lang$browser$Html$map, $author$project$Root$CatalogMsg, $author$project$Catalog$View$view(model.catalog)), $author$project$Quiz$View$picker$($author$project$Root$currentData(model), model.catalog.filters, $author$project$Root$StartSession) ]);
 };
 var $author$project$Catalog$View$loading = A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('loading'), $gren_lang$browser$Html$Attributes$class('loading'), A2($gren_lang$browser$Html$Attributes$attribute, 'role', 'status'), A2($gren_lang$browser$Html$Attributes$attribute, 'aria-label', 'Chargement') ], [ A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('spinner') ], [  ]) ]);
-var $author$project$Types$GoHome = { $: 'GoHome' };
+var $author$project$Root$GoHome = { $: 'GoHome' };
 var $gren_lang$browser$Html$h1 = $gren_lang$browser$Html$node('h1');
 var $author$project$Layout$Page$title = function(onClick) {
 	return A2($gren_lang$browser$Html$h1, [ $gren_lang$browser$Html$Attributes$id('title'), $gren_lang$browser$Html$Events$onClick(onClick) ], [ $gren_lang$browser$Html$text('合気道 Aïkido') ]);
 };
-var $author$project$View$title = $author$project$Layout$Page$title($author$project$Types$GoHome);
+var $author$project$View$title = $author$project$Layout$Page$title($author$project$Root$GoHome);
 var $author$project$Program$Program$AskVideo = function (a) {
 	return { $: 'AskVideo', a: a };
 };
@@ -7041,23 +7041,23 @@ var $author$project$View$screens = function(model) {
 					return [ $author$project$View$title, $author$project$View$homeView(model) ];
 				case 'Quiz':
 					var quiz = _v1.a;
-					return [ A2($gren_lang$browser$Html$map, $author$project$Types$QuizMsg, $author$project$Quiz$View$view$($author$project$View$context(model), quiz)) ];
+					return [ A2($gren_lang$browser$Html$map, $author$project$Root$QuizMsg, $author$project$Quiz$View$view$($author$project$View$context(model), quiz)) ];
 				default:
 					var program = _v1.a;
-					return [ A2($gren_lang$browser$Html$map, $author$project$Types$ProgramMsg, $author$project$Program$View$view$($author$project$View$context(model), program)) ];
+					return [ A2($gren_lang$browser$Html$map, $author$project$Root$ProgramMsg, $author$project$Program$View$view$($author$project$View$context(model), program)) ];
 			}
 	}
 };
 var $author$project$View$view = function(model) {
 	return { body: [ $author$project$View$page$(model, $author$project$View$screens(model)) ], title: 'Aïkido – Entraînement' };
 };
-var $author$project$Main$main = $gren_lang$browser$Browser$application({ init: $author$project$Main$init, onUrlChange: function(url) {
-		return $author$project$Types$NavigationMsg($author$project$Navigation$Navigation$UrlChanged(url));
+var $author$project$Main$main = $gren_lang$browser$Browser$application({ init: $author$project$Root$init, onUrlChange: function(url) {
+		return $author$project$Root$NavigationMsg($author$project$Navigation$Navigation$UrlChanged(url));
 	}, onUrlRequest: function(request) {
-		return $author$project$Types$NavigationMsg($author$project$Navigation$Navigation$UrlRequested(request));
+		return $author$project$Root$NavigationMsg($author$project$Navigation$Navigation$UrlRequested(request));
 	}, subscriptions: function(_v0) {
 		return $gren_lang$core$Platform$Sub$none;
-	}, update: $author$project$Main$update, view: $author$project$View$view });
+	}, update: $author$project$Root$update, view: $author$project$View$view });
 _Platform_export({'Main':{'init':$author$project$Main$main(A2($gren_lang$core$Json$Decode$andThen, function(skipVideoWarning) {
 			return $gren_lang$core$Json$Decode$succeed({ skipVideoWarning: skipVideoWarning });
 		}, A2($gren_lang$core$Json$Decode$field, 'skipVideoWarning', $gren_lang$core$Json$Decode$bool)))}});}(this.module ? this.module.exports : this));

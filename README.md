@@ -98,8 +98,8 @@ Tout l'état vit dans un seul `Model`, ne change que par des `Msg`, et l'afficha
 
 | Module | Rôle |
 |---|---|
-| `src/Main.gren` | `Browser.application` : `init`, `update`, URL |
-| `src/Types.gren` | `Model`, `Msg`, `Screen` (Home, Quiz, Program), `routeOf` |
+| `src/Main.gren` | `Browser.application` : branche `Root` et `View` |
+| `src/Root.gren` | racine : `Model`, `Msg` (une enveloppe par feature), `update`, routeur d'événements entre features, `applyRoute` |
 | `src/Shared/Grade.gren` | données des grades : décodeurs JSON, fusion (héritage), pool pondéré, tirage, tri |
 | `src/Shared/Route.gren` | lecture et écriture de l'URL `#/grade/waza/program/attack/technique` |
 | `src/Navigation/` | URL ↔ écran : clé du navigateur, route de démarrage, `push` / `replace`, retour / avance |
@@ -120,8 +120,8 @@ Tout l'état vit dans un seul `Model`, ne change que par des `Msg`, et l'afficha
 
 #### Ajouter une fonctionnalité
 
-1. Ajouter les champs au `Model` et le `Msg` dans `src/Types.gren`.
-2. Traiter le `Msg` dans `update` (`src/Main.gren`) ; un effet est une `Cmd` qui renvoie un `Msg`.
+1. Créer un dossier `src/<Feature>/` avec son `Model`, son `Msg`, son `update` (qui renvoie `{ model, command, events }`) et sa vue.
+2. Ajouter son état et son enveloppe de `Msg` dans `src/Root.gren`, et traiter ses événements (`when…Event`) ; un effet est une `Cmd` qui renvoie un `Msg`.
 3. Afficher le résultat dans `src/View.gren` et, si besoin, le style dans `style.css`.
 4. Écrire le test, `yarn build`, puis incrémenter la version (voir `CLAUDE.md`).
 

@@ -13,7 +13,7 @@ import Layout.Card as Card
 import Layout.Page as Page
 import Program.View as ProgramView
 import Quiz.View as QuizView
-import Types exposing (Model, Msg(..), Screen(..), currentData)
+import Root exposing (Model, Msg(..), Screen(..), currentData)
 import Video.View as VideoView
 
 
