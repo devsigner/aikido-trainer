@@ -4,9 +4,9 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `5e8e3b91`** (8 hex characters: a hash of the content of the served files, so it only changes when the code, the data or the assets change).
+Cache busting is **per file**: the `?v=` of a file is the hash (8 hex characters) of the content of that file only, so only a modified file gets a new URL. They are in `index.html` (`favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...`, every import map entry) and in the precache of `sw.js`. `const VERSION` of `sw.js` is the hash of all the served files: it names the offline cache, which is renewed as soon as one of them changes.
 
-After any change to a served file (code, data, styles, assets; not the `.md` docs, tests or scripts), run `yarn bump` (`scripts/version.js`): it computes the hash and writes it in `index.html` (`favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...`, every import map entry), in `const VERSION` of `sw.js` (renews the offline cache) and in the number above. The version written in these files does not take part in the hash. The tests (`tests/data.test.js`) fail when the version is outdated, so the pre-commit hook blocks a commit that forgot it.
+After any change to a served file (code, data, styles, assets; not the `.md` docs, tests or scripts), run `yarn bump` (`scripts/version.js`): it rewrites all of them. The tests (`tests/data.test.js`) fail when one is outdated, so the pre-commit hook blocks a commit that forgot it.
 
 Any new `src/` module must be added to the import map of `index.html` and to the precache in `sw.js`.
 

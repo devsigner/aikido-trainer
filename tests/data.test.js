@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
-import { computeVersion } from "../scripts/version.js";
+import { computeVersion, fileHash, versionedReferences } from "../scripts/version.js";
 import { ROOT, read, readJson, resolveGrade, parentsOf, keysOf, WAZA } from "./helpers.js";
 
 describe("JSON data", () => {
@@ -121,27 +121,23 @@ describe("order key", () => {
 });
 
 describe("version", () => {
-  const html = read("index.html");
-  const doc = read("CLAUDE.md");
-
-  test("CSS and JS carry the same version number as CLAUDE.md", () => {
-    const css = html.match(/style\.css\?v=([\w.]+)/)?.[1];
-    const js = html.match(/app\.js\?v=([\w.]+)/)?.[1];
-    const ico = html.match(/favicon\.ico\?v=([\w.]+)/)?.[1];
-    const documented = doc.match(/Current version: `([\w.]+)`/)?.[1];
-    assert.ok(css && js && documented, "missing version");
-    assert.equal(css, js);
-    assert.equal(css, ico);
-    const sw = read("sw.js").match(/const VERSION = "([\w.]+)"/)?.[1];
-    assert.equal(sw, css, "sw.js: different VERSION");
-    assert.equal(css, documented);
-    assert.match(css, /^[0-9a-f]{8}$/);
-    const mapped = [...html.matchAll(/"\.\/src\/[\w/-]+\.js": "\.\/src\/[\w/-]+\.js\?v=([\w.]+)"/g)].map((match) => match[1]);
-    assert.ok(mapped.length > 0 && mapped.every((version) => version === css), "import map: different version");
+  test("each ?v= of index.html and sw.js is the hash of its own file", () => {
+    for (const text of [read("index.html"), read("sw.js")]) {
+      const references = versionedReferences(text);
+      assert.ok(references.length > 0, "missing version");
+      for (const { file, version } of references) {
+        assert.equal(version, fileHash(file), `${file}: outdated version, run \`yarn bump\``);
+      }
+    }
   });
 
-  test("the version is the hash of the served files (otherwise run `yarn bump`)", () => {
-    assert.equal(html.match(/app\.js\?v=([\w.]+)/)?.[1], computeVersion());
+  test("the cache of the service worker is named after the hash of all the served files", () => {
+    assert.equal(read("sw.js").match(/const VERSION = "([\w.]+)"/)?.[1], computeVersion(), "sw.js: outdated VERSION, run `yarn bump`");
+  });
+
+  test("index.html versions the CSS, the JS and the favicon", () => {
+    const html = read("index.html");
+    for (const file of ["style.css", "app.js", "favicon.ico"]) assert.match(html, new RegExp(`${file.replace(".", "\\.")}\\?v=[0-9a-f]{8}`));
   });
 });
 
@@ -177,7 +173,7 @@ describe("mobile app", () => {
 
   test("the service worker precaches existing files, including all data JSON files", () => {
     const list = sw.match(/const PRECACHE = \[([\s\S]*?)\];/)[1];
-    const files = [...list.matchAll(/["`]([^"`]+)["`]/g)].map((match) => match[1].replace("${VERSION}", "").split("?")[0]);
+    const files = [...list.matchAll(/["`]([^"`]+)["`]/g)].map((match) => match[1].split("?")[0]);
     for (const file of files) {
       assert.ok(file === "./" || fs.existsSync(path.join(ROOT, file)), `${file} not found`);
     }
