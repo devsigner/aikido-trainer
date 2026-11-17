@@ -255,6 +255,6 @@ Le dossier `framework/elmer/debug/` n'est chargé que lorsqu'il est monté ; `ru
 2. Ajouter les champs nécessaires à son **`model`**, et le **Msg** dans `messages` : renvoyer le nouveau modèle et, si besoin, des `cmds` ou des événements à publier.
 3. Si un effet est nécessaire, l'ajouter dans `effects` de la feature (il renvoie son résultat par un nouveau message).
 4. Afficher le résultat dans sa `view` / `views` (ou `src/layout/*`) et, si besoin, le style dans `style.css`.
-5. Écrire le test, puis incrémenter la version (voir `CLAUDE.md`).
+5. Écrire le test, puis lancer `yarn bump` pour mettre à jour la version (voir `CLAUDE.md`).
 
 Le détail du format des données JSON, de l'héritage entre grades, de l'ordre d'affichage et de la procédure de version est dans [`CLAUDE.md`](CLAUDE.md).

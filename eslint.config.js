@@ -20,7 +20,7 @@ export default [
     rules: { strict: ["error", "global"] },
   },
   {
-    files: ["tests/**/*.js", "eslint.config.js"],
+    files: ["tests/**/*.js", "scripts/**/*.js", "eslint.config.js"],
     languageOptions: { globals: globals.node },
   },
 ];

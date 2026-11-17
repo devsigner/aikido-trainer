@@ -4,13 +4,11 @@ Small static web app (HTML/CSS/JS, no dependencies and no build step) that rando
 
 ## Version
 
-**Current version: `20261114.107`** (format `YYYYMMDD`, the date of the update).
+**Current version: `5e8e3b91`** (8 hex characters: a hash of the content of the served files, so it only changes when the code, the data or the assets change).
 
-For each new version:
-1. Replace the number in `index.html`: `favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...` and every import map entry (`./src/*.js?v=...`): this forces a reload and bypasses the cache. Any new `src/` module must be added to the import map and to the precache in `sw.js`.
-2. Set the same value in `const VERSION` in `sw.js` (renews the offline cache).
-3. Update the number above.
-4. If two versions are published on the same day, add a suffix: `20261111.2`.
+After any change to a served file (code, data, styles, assets; not the `.md` docs, tests or scripts), run `yarn bump` (`scripts/version.js`): it computes the hash and writes it in `index.html` (`favicon.ico?v=...`, `style.css?v=...`, `app.js?v=...`, every import map entry), in `const VERSION` of `sw.js` (renews the offline cache) and in the number above. The version written in these files does not take part in the hash. The tests (`tests/data.test.js`) fail when the version is outdated, so the pre-commit hook blocks a commit that forgot it.
+
+Any new `src/` module must be added to the import map of `index.html` and to the precache in `sw.js`.
 
 ## Technique order (`order`)
 

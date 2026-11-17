@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { computeVersion } from "../scripts/version.js";
 import { ROOT, read, readJson, resolveGrade, parentsOf, keysOf, WAZA } from "./helpers.js";
 
 describe("JSON data", () => {
@@ -134,9 +135,13 @@ describe("version", () => {
     const sw = read("sw.js").match(/const VERSION = "([\w.]+)"/)?.[1];
     assert.equal(sw, css, "sw.js: different VERSION");
     assert.equal(css, documented);
-    assert.match(css, /^\d{8}(\.\d+)?$/);
+    assert.match(css, /^[0-9a-f]{8}$/);
     const mapped = [...html.matchAll(/"\.\/src\/[\w/-]+\.js": "\.\/src\/[\w/-]+\.js\?v=([\w.]+)"/g)].map((match) => match[1]);
     assert.ok(mapped.length > 0 && mapped.every((version) => version === css), "import map: different version");
+  });
+
+  test("the version is the hash of the served files (otherwise run `yarn bump`)", () => {
+    assert.equal(html.match(/app\.js\?v=([\w.]+)/)?.[1], computeVersion());
   });
 });
 
