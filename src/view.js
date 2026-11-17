@@ -18,7 +18,7 @@ export function view(model) {
 
   // The other screens are stacked vertically, with the footer below the fold.
   if (model.catalog.status !== "ready") {
-    return page(model, header, catalog.views.status(model.catalog));
+    return page(model, header, catalog.views.loadingStatus(model.catalog));
   }
 
   // The program screen is a special case: the first page fills the viewport, the list is below.

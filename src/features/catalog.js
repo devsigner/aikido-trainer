@@ -43,7 +43,7 @@ function view(model) {
 }
 
 // Shown instead of the app while the data is not available: a spinner, or the loading error.
-function statusView(model) {
+function loadingStatusView(model) {
   if (model.status === "loading") return h("div", { id: "loading", className: "loading", role: "status", "aria-label": "Chargement" }, h("div", { className: "spinner" }));
   return h("p", { className: "hint" }, model.error);
 }
@@ -72,7 +72,7 @@ export const feature = defineFeature({
     },
   },
   view,
-  views: { status: statusView },
+  views: { loadingStatus: loadingStatusView },
   // Loading the data. Any loading error becomes a `Failed` message.
   effects({ fetchJson }) {
     const loading = (fn) => async (cmd, dispatch) => {
