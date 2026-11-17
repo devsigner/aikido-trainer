@@ -16,6 +16,7 @@ const navigated = (mode) => ({ type: "Navigated", mode });
 const routeChanged = (route, direction) => ({ type: "RouteChanged", route, direction });
 
 // Applies a route: a route of another grade first loads that grade (the route waits in `pending`).
+// return [model, effects, events] where `events` is either `[{ type: "GradeWanted", id }]` or `[routeChanged(route, direction)]`.
 function goTo(model, route, root, direction) {
   if (route.grade && route.grade !== root.catalog.id && root.catalog.list.some((candidate) => candidate.id === route.grade)) {
     return [{ pending: route }, [], [{ type: "GradeWanted", id: route.grade }]];

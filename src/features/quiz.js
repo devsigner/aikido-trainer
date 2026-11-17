@@ -63,6 +63,7 @@ function picker(root) {
 }
 
 // The URL changed (reload, browser back/forward): a session of the waza of the route, or none.
+// return [model, effects, events] where `events` is either `[viewChanged(direction)]` or `[]`.
 function routeChanged(model, { route, direction }, root) {
   if (!WAZA_ORDER.includes(route.waza) || route.program) return [UNMOUNT, [], model.waza && direction ? [viewChanged(direction)] : []]; // the program replaces the session
 

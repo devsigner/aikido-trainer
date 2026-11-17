@@ -11,6 +11,8 @@ export const feature = defineFeature({
   model: { direction: "", count: 0 },
   events: { viewChanged },
   on: {
+    // direction = "back" | "forward" | "" ("" = no animation, e.g. first view)
+    // return [{ direction, count: model.count + 1 }, []]
     ViewChanged: (model, { direction }) => [{ direction, count: model.count + 1 }, []],
   },
 });
