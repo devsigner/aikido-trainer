@@ -22,6 +22,118 @@
 // A feature publishes events (`{ type, … }`) in the third item of its result: they are delivered, in order,
 // to every feature that subscribed to them in `on`, and may publish events in turn.
 // `init` and `update` return `[model, cmds, delivered]`; `delivered` lists the events for debugging: `{ event, from, handledBy }`.
+//
+// ============================================================================
+//  Understanding features
+// ============================================================================
+//
+//  Public API:
+//    defineFeature(spec)      checks the shape of a feature and returns it
+//    combine({ name: feature })  composes the features into one root program { init, update, subscribe, effects }
+//    embed(name, vnode)       envelopes the handlers of a feature view
+//    to(name, msg)            builds the envelope { feature, msg }
+//    UNMOUNT                  value to return as a model to remove the slice of a lazy feature
+//
+// ----------------------------------------------------------------------------
+//  1. One root model, one slice per feature
+// ----------------------------------------------------------------------------
+//
+//    combine({ catalog, quiz, program })
+//
+//      root model = {  catalog: <slice of catalog>,
+//                      quiz:    <slice of quiz>,        (lazy: only while used)
+//                      program: <slice of program>,     (lazy)
+//                      elmer:   <settings of the framework, added by combine> }
+//
+//    A feature only writes its own slice. To read another one it uses `root`
+//    (third argument of its handlers). To act on another feature, it publishes an event.
+//
+// ----------------------------------------------------------------------------
+//  2. Messages: addressed to ONE feature
+// ----------------------------------------------------------------------------
+//
+//    view handler          envelope                 root update
+//    onclick: { type: "Next" }
+//        │  embed("quiz", …)                          │
+//        └──▶ { feature: "quiz", msg: { type: "Next" } } ──▶ combine.update
+//                                                            │ messages.Next(slice, msg, root)
+//                                                            ▼
+//                                              [ slice', cmds, events ]
+//
+//    - the feature view only knows its own messages: `embed` adds the envelope
+//    - a message that already has a `feature` (a button of another feature) is left as it is
+//    - an unknown message type or feature name throws
+//
+// ----------------------------------------------------------------------------
+//  3. Events: published by one feature, heard by the others (illustrative example)
+// ----------------------------------------------------------------------------
+//
+//    messages.OpenProgram = (slice) => [slice, [], [ { type: "ProgramOpened" } ]]
+//                                                         │
+//                       settle(): delivered in order to every feature that has `on.ProgramOpened`
+//                                                         │
+//            ┌────────────────────┬───────────────────────┴──────┐
+//            ▼                    ▼                              ▼
+//       quiz.on.ProgramOpened  program.on.ProgramOpened   navigation.on.ProgramOpened
+//       (→ UNMOUNT)            (mounts, shows attacks)    (→ push URL command)
+//
+//    - a reaction returns [slice, cmds, events] too: events can chain
+//    - the queue is processed until empty; more than 1000 events = bug (throws)
+//    - `delivered` ({ event, from, handledBy }) is returned for the debugger
+//
+// ----------------------------------------------------------------------------
+//  4. One step of the root update
+// ----------------------------------------------------------------------------
+//
+//    update(model, { feature, msg })
+//      1. mount(feature)                       lazy and without slice → init first
+//      2. apply(feature.update(slice, msg, root))
+//           ├─ slice === UNMOUNT ? remove it : write it in the root model
+//           ├─ cmds   += tagged with { feature }
+//           └─ events += queued with { from }
+//      3. settle(): deliver the events (each reaction is applied the same way)
+//      4. return [root model, cmds, delivered]
+//
+// ----------------------------------------------------------------------------
+//  5. Lazy features
+// ----------------------------------------------------------------------------
+//
+//    lazy: true               slice created by the first message or ANY event it listens to
+//    lazy: { events: [...] }  created only by a message or those events
+//                             (the other events are ignored while it is unmounted)
+//
+//        (no slice) ──message / event──▶ init(flags) ──▶ slice ──UNMOUNT──▶ (no slice)
+//
+//    Other features see `root.quiz === undefined` while it is unmounted:
+//    read it with `?.`.
+//
+// ----------------------------------------------------------------------------
+//  6. Commands and subscriptions
+// ----------------------------------------------------------------------------
+//
+//    cmds     { type: "Random", … } described as data, tagged with the feature
+//             that emitted it. combine.effects(deps) merges the effects of all
+//             the features in one table (a duplicate type throws); the answer of
+//             an effect is sent back to the same feature:
+//
+//               effect(cmd, dispatch) ─ dispatch(msg) ─▶ to(cmd.feature, msg)
+//
+//    subscribe(dispatch, deps)   listens to the outside world (popstate…);
+//             `dispatch(msg)` is already addressed to the feature.
+//
+// ----------------------------------------------------------------------------
+//  7. The `elmer` feature
+// ----------------------------------------------------------------------------
+//
+//    Reserved name, added last by combine (settings of the debugger, see elmer.js).
+//    Declaring a feature called `elmer` throws.
+//
+// ----------------------------------------------------------------------------
+//  8. Checks done by defineFeature
+// ----------------------------------------------------------------------------
+//
+//    - unknown key (typo: `message` instead of `messages`) → error, not ignored
+//    - neither `model` nor `init` → error
 
 import { feature as elmer } from "./elmer.js";
 

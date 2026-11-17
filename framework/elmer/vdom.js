@@ -1,4 +1,155 @@
 // framework/elmer/vdom.js
+//
+// ============================================================================
+//  Mini virtual DOM
+// ============================================================================
+//
+//  Two public functions:
+//
+//    h(tag, props, ...children)    describes a piece of UI (a "vnode"), pure
+//    createRenderer(root)          returns render(vnode, dispatch) that updates the real DOM
+//
+//  The app never touches the DOM: view(model) returns a vnode tree, the
+//  renderer compares it with the previous one and only applies the differences.
+//
+//      model ──view()──▶ vnode tree ──render()──▶ real DOM
+//        ▲                                          │
+//        └──────── dispatch(msg) ◀── user event ────┘
+//
+// ----------------------------------------------------------------------------
+//  1. h(): describing the tree
+// ----------------------------------------------------------------------------
+//
+//    h("button", { id: "next", onclick: { type: "Next" } }, "Next")
+//
+//    ┌───────────────────────────────────────────────────────────────┐
+//    │ { tag: "button",                                              │
+//    │   props: { id: "next", onclick: { type: "Next" } },           │
+//    │   children: ["Next"] }                                        │
+//    └───────────────────────────────────────────────────────────────┘
+//
+//    - props set to null / undefined are dropped:  h("a", { href: null })  → no href
+//    - children: arrays are flattened, null / undefined / false are dropped
+//      (handy for conditions:  cond && h("p", {}, "…"),  items.map(…))
+//    - a child is either a vnode (object) or a text (anything else → String)
+//
+//    Special props:
+//      onclick, onchange…   an event handler: the value is a message, or a function
+//                           (event → message). The renderer calls dispatch(message).
+//      className            sets element.className
+//      hidden, disabled, checked, selected, value
+//                           live DOM properties (see "Live properties" below)
+//      key                  identity of the element (see "Keys" below); also set as an attribute
+//      anything else        setAttribute(name, value)
+//
+// ----------------------------------------------------------------------------
+//  2. createRenderer(): rendering and diffing
+// ----------------------------------------------------------------------------
+//
+//    const render = createRenderer(rootElement);
+//    render(view(model), dispatch);        // first call: builds the DOM
+//    render(view(newModel), dispatch);     // next calls: patches it
+//
+//    render(vnode, dispatch)
+//      │
+//      ├─ first call ───────────▶ create(vnode)         build everything, append to root
+//      │
+//      └─ next calls ───────────▶ patchNode(root.firstChild, previous, vnode)
+//                                   │ returns the node to keep (or a new one)
+//                                   └─ if it is a new one → root.replaceChild
+//
+//    The previous vnode is kept to be compared with the next one. The real DOM
+//    is never read to find differences (except for the live properties).
+//
+// ----------------------------------------------------------------------------
+//  3. patchNode(): one node
+// ----------------------------------------------------------------------------
+//
+//        old vnode           next vnode
+//            └────────┬────────┘
+//                     ▼
+//        ┌─────────────────────────────┐
+//        │ both texts?                 │── yes ─▶ update nodeValue if different, keep the node
+//        └─────────────┬───────────────┘
+//                      │ no
+//        ┌─────────────▼───────────────┐
+//        │ text ↔ element, or the tag  │── yes ─▶ create(next): the node is replaced
+//        │ is different?               │
+//        └─────────────┬───────────────┘
+//                      │ no
+//        ┌─────────────▼───────────────┐
+//        │ different `key`?            │── yes ─▶ create(next): the node is replaced
+//        └─────────────┬───────────────┘
+//                      │ no
+//                      ▼
+//        patchChildren(node, old.children, next.children)
+//        setProps(node, old.props, next.props)         → same element, reused
+//
+// ----------------------------------------------------------------------------
+//  4. patchChildren(): the list of children (by position)
+// ----------------------------------------------------------------------------
+//
+//    Children are compared index by index (no reordering detection):
+//
+//      old:   [ A ][ B ][ C ][ D ]
+//      next:  [ A'][ B'][ C']
+//               │    │    │    └─ index 3 only in old → removed
+//               └────┴────┴────── common indexes → patchNode (reuse, replace if needed)
+//
+//      old:   [ A ][ B ]
+//      next:  [ A'][ B'][ C'][ D']
+//                         └────┴─ only in next → create + appendChild
+//
+//    Consequence: inserting an item at the start rewrites every following item.
+//    Fine for small trees like this app's; use `key` to force a fresh element.
+//
+// ----------------------------------------------------------------------------
+//  5. setProps(): the properties of one element
+// ----------------------------------------------------------------------------
+//
+//    old props ──▶ removed props (in old, not in next) → unsetProp (default value)
+//    next props ─▶ changed props                       → setProp
+//
+//    ┌───────────────────┬─────────────────────────────────────────────────┐
+//    │ prop              │ how it is applied                               │
+//    ├───────────────────┼─────────────────────────────────────────────────┤
+//    │ on*               │ element.onclick = event => dispatch(message)    │
+//    │                   │ (always re-set: a closure may have changed)     │
+//    │ className         │ element.className = value                       │
+//    │ hidden, disabled, │ element[prop] = value  (compared to the DOM)    │
+//    │ checked, selected,│                                                 │
+//    │ value             │                                                 │
+//    │ other             │ element.setAttribute(name, value)               │
+//    └───────────────────┴─────────────────────────────────────────────────┘
+//
+//    Unset: on* → null, className → "", value → "", the other live props →
+//    false, anything else → removeAttribute.
+//
+//    Live properties: the user can change them without the app knowing (typing
+//    in an input, ticking a checkbox). They are therefore compared to the real
+//    element, not to the previous vnode, so that the model always wins:
+//      model says checked = false, user ticked the box → next render unticks it.
+//
+// ----------------------------------------------------------------------------
+//  6. Keys: restarting an element (and its CSS animation)
+// ----------------------------------------------------------------------------
+//
+//    Same tag but a different `key` → the element is replaced, not patched.
+//    A new DOM node restarts its CSS animation:
+//
+//      h("div", { key: slide.count, className: "card slide-forward" }, …)
+//
+//      key 3 ──render──▶ key 3     same element, animation not replayed
+//      key 3 ──render──▶ key 4     new element, animation plays again
+//
+// ----------------------------------------------------------------------------
+//  Limits
+// ----------------------------------------------------------------------------
+//
+//    - no reordering of children (positional diff only)
+//    - no components, no fragments, no SVG namespace
+//    - handlers are properties (element.onclick), one per event type
+//    - the root contains a single vnode (root.firstChild)
 
 const PROPS_DOM = new Set(["hidden", "disabled", "checked", "selected", "value"]);
 
