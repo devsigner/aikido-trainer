@@ -3,9 +3,9 @@ module Main exposing (main)
 import Array
 import Dict
 import Expect
-import Grade exposing (GradeData)
+import Shared.Grade as Grade exposing (GradeData)
 import Json.Decode as Decode
-import Route exposing (ProgramLevel(..))
+import Shared.Route as Route exposing (ProgramLevel(..))
 import Test exposing (Test)
 import Test.Runner.Node
 

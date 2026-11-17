@@ -100,8 +100,8 @@ Tout l'état vit dans un seul `Model`, ne change que par des `Msg`, et l'afficha
 |---|---|
 | `src/Main.gren` | `Browser.application` : `init`, `update`, chargement HTTP des JSON, URL |
 | `src/Types.gren` | `Model`, `Msg`, `Screen` (Home, Quiz, Program), `routeOf` |
-| `src/Grade.gren` | données des grades : décodeurs JSON, fusion (héritage), pool pondéré, tirage, tri |
-| `src/Route.gren` | lecture et écriture de l'URL `#/grade/waza/program/attack/technique` |
+| `src/Shared/Grade.gren` | données des grades : décodeurs JSON, fusion (héritage), pool pondéré, tirage, tri |
+| `src/Shared/Route.gren` | lecture et écriture de l'URL `#/grade/waza/program/attack/technique` |
 | `src/View.gren` | toute la vue (mêmes ids et classes CSS que `style.css`) |
 
 - **Hasard** : `Random.generate Rolled` ; `Rolled` retire l'entrée tirée du pool (pas de répétition).

@@ -8,12 +8,12 @@ import Browser
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Dict
-import Grade exposing (GradeData, GradeInfo)
+import Shared.Grade as Grade exposing (GradeData, GradeInfo)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import LocalStorage
 import Random
-import Route exposing (ProgramLevel(..), Route)
+import Shared.Route as Route exposing (ProgramLevel(..), Route)
 import Task exposing (Task)
 import Types exposing (Direction(..), LoadedGrade, Model, Msg(..), Screen(..), Status(..), currentData, routeOf)
 import Url exposing (Url)

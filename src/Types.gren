@@ -17,8 +17,8 @@ import Array exposing (Array)
 import Browser
 import Browser.Navigation as Navigation
 import Dict
-import Grade exposing (Filters, GradeData, GradeInfo, PoolEntry)
-import Route exposing (ProgramLevel, Route)
+import Shared.Grade as Grade exposing (Filters, GradeData, GradeInfo, PoolEntry)
+import Shared.Route as Route exposing (ProgramLevel, Route)
 import Url exposing (Url)
 
 

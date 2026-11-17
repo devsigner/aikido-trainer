@@ -129,8 +129,8 @@ Gren 0.6.6 (`gren.json`, `src/`): `when … is` instead of `case`, `Array` inste
 
 - `src/Main.gren`: `Browser.application { init, update, view, subscriptions, onUrlRequest, onUrlChange }`. Flags: `{ skipVideoWarning }` (read from `localStorage` by `index.html`). `update : Msg -> Model -> { model, command }` is pure; randomness is a command (`Random.generate Rolled`), the HTTP loading a `Task` (`GradesLoaded`).
 - `src/Types.gren`: `Model { status, grades, gradeId, filters, screen, slide, skipVideoWarning, videoPrompt, … }`, `Screen = Home | Quiz QuizState | Program { waza, level }`, `Msg`, `routeOf` (the route is derived from the model).
-- `src/Grade.gren`: pure functions on the data (JSON decoders with partial patches, `mergeFile`, `buildPool`, `pickIndex`, sorting, `norm`).
-- `src/Route.gren`: `parse` / `toHash` / `depth`.
+- `src/Shared/Grade.gren`: pure functions on the data (JSON decoders with partial patches, `mergeFile`, `buildPool`, `pickIndex`, sorting, `norm`).
+- `src/Shared/Route.gren`: `parse` / `toHash` / `depth`.
 - `src/View.gren`: `view : Model -> Document Msg`. The ids and CSS classes are stable (used by `style.css`).
 - **URL**: `#/grade[/waza[/program[/attack[/technique]]]]`. A user action does `pushUrl`; `UrlChanged` (browser back/forward, reload) applies the route if it differs from `routeOf model`, narrowed to what the data contains (unknown grade → first grade; unknown waza → home; unknown attack or technique → level above). A waza starts a new quiz (the pool is not kept). Slide direction: deeper route = forward. Filters are not in the URL.
 - Debug: `gren make Main --debug` gives the Elm-style time-travel debugger (do not commit that build).
@@ -199,7 +199,7 @@ One file per grade:
 Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits from 3rd.
 
 - `grades.json`: `includes` is the list of files loaded, in order, before the grade's own file. 3rd Kyo: no `includes`; 2nd Kyo: `["3eme-kyo.json"]`; 1st Kyo: `["3eme-kyo.json", "2eme-kyo.json"]`.
-- `Grade.mergeFile` (in `src/Grade.gren`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
+- `Grade.mergeFile` (in `src/Shared/Grade.gren`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
 - A grade file therefore only contains its additions and minimal overrides (`name`, `order` and the fields that change, e.g. `isNew`, `isWarning`, `forms`, `note`). Do not copy a parent's data (a test detects needless copies).
 - Consequence: any technique added to the 3rd Kyo also appears in the 2nd and 1st Kyo, and any 2nd Kyo technique appears in the 1st.
 - For an intended `null` value (e.g. clearing an inherited note), write it explicitly in the override.
@@ -208,7 +208,7 @@ Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits fro
 
 - **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then one button per waza (order defined by `Grade.wazaOrder`).
 - **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. A waza with no matching technique is disabled.
-- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `weightNew` and `weightWarning` in `src/Grade.gren`.
+- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `weightNew` and `weightWarning` in `src/Shared/Grade.gren`.
 - **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Waza terminé 🎉" (Waza finished).
 - **Session**: reset by "Retour à l'accueil" (Back to home). Filters are taken into account when the waza is chosen.
 - **Display**: waza, attack, technique, form, 🆕/⚠️ badges, note, video link, progress counter ("n / total", per combination).

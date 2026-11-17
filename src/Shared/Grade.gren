@@ -1,4 +1,4 @@
-module Grade exposing
+module Shared.Grade exposing
     ( Attack
     , FilePatch
     , Filters

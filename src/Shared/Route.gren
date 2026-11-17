@@ -1,4 +1,4 @@
-module Route exposing
+module Shared.Route exposing
     ( ProgramLevel(..)
     , Route
     , depth

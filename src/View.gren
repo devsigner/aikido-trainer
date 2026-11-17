@@ -5,13 +5,13 @@ module View exposing (view)
 
 import Array exposing (Array)
 import Browser exposing (Document)
-import Grade exposing (Technique, badgesOf, findSameTechnique, findTechnique, listAttacks, listTechniques)
+import Shared.Grade as Grade exposing (Technique, badgesOf, findSameTechnique, findTechnique, listAttacks, listTechniques)
 import Html exposing (Html, a, button, div, footer, h1, h2, h3, input, label, main_, option, p, section, select, span, text)
 import Html.Attributes as Attr exposing (class, id)
 import Html.Events as Events
 import Html.Keyed as Keyed
 import Json.Decode as Decode
-import Route exposing (ProgramLevel(..))
+import Shared.Route as Route exposing (ProgramLevel(..))
 import Types exposing (Direction(..), Model, Msg(..), QuizState, Screen(..), Status(..), currentData)
 
 
