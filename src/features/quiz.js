@@ -27,8 +27,8 @@ export const feature = defineFeature({
   initialState: { waza: "", pool: [], total: 0, current: null, done: false },
   messages: {
     StartSession: startSessionMessage,
-    Next: next,
-    Rolled: rolled
+    Next: nextMessage,
+    Rolled: rolledMessage
   },
   on: {
     RouteChanged: routeChanged,
@@ -71,12 +71,12 @@ function startSessionMessage(_, msg, root) {
   return [startSession(root, msg.waza), cmd("Random"), [navigated("push"), viewChanged("forward")]];
 }
 
-function next(model) {
+function nextMessage(model) {
   return model.pool.length === 0 ? [{ ...model, current: null, done: true }, [], viewChanged("forward")] : [model, cmd("Random")];
 }
 
 // Answer of the `Random` effect: randomness is an effect, so `update` stays pure.
-function rolled(model, msg, root) {
+function rolledMessage(model, msg, root) {
   if (!model.waza) return UNMOUNT; // answer of a session that is over
   if (screenOf(root) !== "quiz" || model.pool.length === 0) return model;
   const index = pickIndex(model.pool, msg.value);

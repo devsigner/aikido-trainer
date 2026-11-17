@@ -21,9 +21,9 @@ export const feature = defineFeature({
   // `waza` = the waza being browsed; `current` = { level, attack?, technique? }, or null when the program is not open.
   initialState: { waza: "", current: null },
   messages: {
-    OpenProgram: openProgram,
-    Navigate: navigate,
-    CloseProgram: closeProgram
+    OpenProgram: openProgramMessage,
+    Navigate: navigateMessage,
+    CloseProgram: closeProgramMessage
   },
   on: {
     HomeRequested: () => [UNMOUNT, [], viewChanged("back")],
@@ -49,7 +49,7 @@ function view(model, root, header) {
       h("div", { id: "prog-list", className: "buttons" }, items)));
 }
 
-function openProgram(_, msg) {
+function openProgramMessage(_, msg) {
   return [
     { waza: msg.waza, current: { level: 1 } },
     [],
@@ -58,7 +58,7 @@ function openProgram(_, msg) {
 }
 
 // Going up a level slides back, unless the message forces the direction.
-function navigate(model, msg) {
+function navigateMessage(model, msg) {
   return [
     { ...model, current: msg.to },
     [],
@@ -66,7 +66,7 @@ function navigate(model, msg) {
   ];
 }
 
-function closeProgram(model) {
+function closeProgramMessage(model) {
   return [
     UNMOUNT,
     [],

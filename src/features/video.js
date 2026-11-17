@@ -15,9 +15,9 @@ export const feature = defineFeature({
   init: ({ skipVideoWarning = false } = {}, model) => ({ ...model, skipWarning: skipVideoWarning }),
   messages: {
     AskVideo: askVideoMessage,
-    SetDontAsk: setDontAsk,
-    CancelVideo: cancelVideo,
-    ConfirmVideo: confirmVideo
+    SetDontAsk: setDontAskMessage,
+    CancelVideo: cancelVideoMessage,
+    ConfirmVideo: confirmVideoMessage
   },
   view,
   views: { link: videoLink },
@@ -52,17 +52,17 @@ function askVideoMessage(model, { url }) {
 }
 
 // return Msg
-function setDontAsk(model, { checked }) {
+function setDontAskMessage(model, { checked }) {
   return { ...model, prompt: { ...model.prompt, dontAsk: checked } };
 }
 
 // return Msg
-function cancelVideo(model) {
+function cancelVideoMessage(model) {
   return { ...model, prompt: null };
 }
 
 // return Msg
-function confirmVideo(model) {
+function confirmVideoMessage(model) {
   const { url, dontAsk } = model.prompt;
   const commands = dontAsk ? [cmd("SaveSkipVideoWarning"), cmd("OpenUrl", { url })] : cmd("OpenUrl", { url });
   return [{ ...model, prompt: null, skipWarning: model.skipWarning || dontAsk }, commands];

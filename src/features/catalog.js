@@ -22,11 +22,11 @@ export const feature = defineFeature({
   },
   init: ({ hash = "" } = {}, model) => [model, cmd("LoadGrades", { gradeId: parseHash(hash).grade })],
   messages: {
-    GradesLoaded: gradesLoaded,
-    Failed: failed,
-    SelectGrade: selectGrade,
-    GradeLoaded: gradeLoaded,
-    SetFilter: setFilter
+    GradesLoaded: gradesLoadedMessage,
+    Failed: failedMessage,
+    SelectGrade: selectGradeMessage,
+    GradeLoaded: gradeLoadedMessage,
+    SetFilter: setFilterMessage
   },
   // The navigation needs another grade: select it and load its data.
   on: { GradeWanted: gradeWanted },
@@ -73,29 +73,29 @@ function view(model) {
 }
 
 // return Msg
-function gradesLoaded(model, { grades, gradeId }) {
+function gradesLoadedMessage(model, { grades, gradeId }) {
   return [{ ...model, status: "ready", list: grades, id: gradeId }, [], emit("GradesLoaded")];
 }
 
 // return Msg
-function failed(model, { message }) {
+function failedMessage(model, { message }) {
   return { ...model, status: "error", error: message };
 }
 
 // return Msg
-function selectGrade(model, { id }) {
+function selectGradeMessage(model, { id }) {
   const grade = model.list.find((candidate) => candidate.id === id);
   return [{ ...model, id }, cmd("LoadGrade", { grade }), navigated("replace")];
 }
 
 // return Msg
-function gradeLoaded(model, { id }) {
+function gradeLoadedMessage(model, { id }) {
   // Stale response if the user changed grade in the meantime.
   return id !== model.id ? model : [model, [], emit("GradeLoaded")];
 }
 
 // return Msg
-function setFilter(model, { name, checked }) {
+function setFilterMessage(model, { name, checked }) {
   return { ...model, filters: { ...model.filters, [name]: checked } };
 }
 

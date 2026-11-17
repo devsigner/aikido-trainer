@@ -16,7 +16,7 @@ export const feature = defineFeature({
     position: 0, // index of the current history entry
   },
   init: ({ hash = "", position = 0 } = {}, model) => ({ ...model, pending: parseHash(hash), position }),
-  messages: { GoHome: goHome, Popped: popped },
+  messages: { GoHome: goHomeMessage, Popped: poppedMessage },
   events: { navigated },
   on: {
     GradesLoaded: gradesLoaded,
@@ -34,12 +34,12 @@ export const feature = defineFeature({
   }),
 });
 
-function goHome(model, _, root) {
+function goHomeMessage(model, _, root) {
   return screenOf(root) === "home" ? model : [model, [], [emit("HomeRequested"), navigated("push")]];
 }
 
 // Browser navigation: the URL is the source of truth.
-function popped(model, msg, root) {
+function poppedMessage(model, msg, root) {
   const next = { ...model, position: msg.position };
   return root.catalog.status === "ready" ? goTo(next, parseHash(msg.hash), root, msg.position < model.position ? "back" : "forward") : next;
 }
