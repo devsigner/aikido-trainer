@@ -5,16 +5,13 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
-import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Catalog.Catalog as Catalog
-import Dict
-import Shared.Grade as Grade exposing (GradeData, GradeInfo)
-import Http
-import Json.Decode as Decode exposing (Decoder)
-import Random
-import Shared.Route as Route exposing (ProgramLevel(..), Route)
-import Task exposing (Task)
+import Shared.Grade as Grade exposing (GradeData)
+import Shared.Route as Route exposing (Route)
+import Program.Program as Program
+import Quiz.Quiz as Quiz
+import Shared.Effect as Effect
 import Slide.Slide as Slide exposing (Direction(..))
 import Types exposing (Model, Msg(..), Screen(..), currentData, routeOf)
 import Url exposing (Url)
@@ -68,130 +65,43 @@ update msg model =
                 result =
                     Catalog.update catalogMsg model.catalog
             in
-            Array.foldl
-                (\event acc ->
-                    let
-                        handled =
-                            whenCatalogEvent event acc.model
-                    in
-                    { model = handled.model, command = Cmd.batch [ acc.command, handled.command ] }
-                )
-                { model = { model | catalog = result.model }, command = Cmd.map CatalogMsg result.command }
+            applyEvents whenCatalogEvent
                 result.events
+                { model = { model | catalog = result.model }, command = Cmd.map CatalogMsg result.command }
 
         StartSession waza ->
-            let
-                started =
-                    startSession model waza
-            in
-            pushUrl
-                { model = slide Forward started.model
-                , command = Cmd.batch [ started.command, scrollTop ]
-                }
+            startQuiz Forward waza model
 
-        Next ->
+        QuizMsg quizMsg ->
             when model.screen is
                 Quiz quiz ->
-                    if Array.isEmpty quiz.pool then
-                        { model = slide Forward { model | screen = Quiz { quiz | current = Nothing, done = True } }
-                        , command = scrollTop
-                        }
-
-                    else
-                        { model = model, command = roll }
+                    let
+                        result =
+                            Quiz.update quizMsg quiz
+                    in
+                    applyEvents whenQuizEvent
+                        result.events
+                        { model = { model | screen = Quiz result.model }, command = Cmd.map QuizMsg result.command }
 
                 _ ->
                     stay model
 
-        -- Randomness is a command (so `update` stays pure): the answer is the draw.
-        Rolled random ->
-            when model.screen is
-                Quiz quiz ->
-                    if Array.isEmpty quiz.pool then
-                        stay model
-
-                    else
-                        let
-                            index =
-                                Grade.pickIndex quiz.pool random
-                        in
-                        { model =
-                            slide Forward
-                                { model
-                                    | screen =
-                                        Quiz
-                                            { quiz
-                                                | current = Array.get index quiz.pool
-                                                , pool = Array.remove index quiz.pool
-                                            }
-                                }
-                        , command = scrollTop
-                        }
-
-                _ ->
-                    stay model
-
-        OpenProgram ->
-            when model.screen is
-                Quiz quiz ->
-                    pushUrl
-                        { model = slide Forward { model | screen = Program { waza = quiz.waza, level = Attacks } }
-                        , command = scrollTop
-                        }
-
-                _ ->
-                    stay model
-
-        Navigate target ->
+        ProgramMsg programMsg ->
             when model.screen is
                 Program program ->
                     let
-                        direction =
-                            when target.direction is
-                                Just given ->
-                                    given
-
-                                Nothing ->
-                                    if levelDepth target.to < levelDepth program.level then
-                                        Back
-
-                                    else
-                                        Forward
+                        result =
+                            Program.update programMsg program
                     in
-                    pushUrl
-                        { model = slide direction { model | screen = Program { program | level = target.to } }
-                        , command = scrollTop
-                        }
-
-                _ ->
-                    stay model
-
-        -- Back from the program: a fresh session of the same waza.
-        CloseProgram ->
-            when model.screen is
-                Program program ->
-                    let
-                        started =
-                            startSession model program.waza
-                    in
-                    pushUrl
-                        { model = slide Back started.model
-                        , command = Cmd.batch [ started.command, scrollTop ]
-                        }
+                    applyEvents whenProgramEvent
+                        result.events
+                        { model = { model | screen = Program result.model }, command = Cmd.map ProgramMsg result.command }
 
                 _ ->
                     stay model
 
         GoHome ->
-            when model.screen is
-                Home ->
-                    stay model
-
-                Quiz _ ->
-                    pushUrl { model = slide Forward { model | screen = Home }, command = scrollTop }
-
-                Program _ ->
-                    pushUrl { model = slide Back { model | screen = Home }, command = scrollTop }
+            goHome model
 
         -- The only internal link is the manual: it leaves the app.
         UrlRequested (Browser.Internal url) ->
@@ -264,17 +174,75 @@ whenCatalogEvent event model =
             replaceUrl model
 
 
-levelDepth : ProgramLevel -> Int
-levelDepth level =
-    when level is
-        Attacks ->
-            1
+{-| Handles each event of a feature, one after the other; the commands add up.
+-}
+applyEvents : (event -> Model -> { model : Model, command : Cmd Msg }) -> Array event -> { model : Model, command : Cmd Msg } -> { model : Model, command : Cmd Msg }
+applyEvents handle events initial =
+    Array.foldl
+        (\event acc ->
+            let
+                handled =
+                    handle event acc.model
+            in
+            { model = handled.model, command = Cmd.batch [ acc.command, handled.command ] }
+        )
+        initial
+        events
 
-        Techniques _ ->
-            2
 
-        TechniqueCard _ ->
-            3
+whenQuizEvent : Quiz.Event -> Model -> { model : Model, command : Cmd Msg }
+whenQuizEvent event model =
+    when event is
+        Quiz.CardChanged ->
+            { model = slide Forward model, command = scrollTop }
+
+        Quiz.HomeRequested ->
+            goHome model
+
+        Quiz.ProgramRequested waza ->
+            pushUrl { model = slide Forward { model | screen = Program (Program.init waza) }, command = scrollTop }
+
+        Quiz.VideoRequested url ->
+            askVideo url model
+
+
+whenProgramEvent : Program.Event -> Model -> { model : Model, command : Cmd Msg }
+whenProgramEvent event model =
+    when event is
+        Program.Moved direction ->
+            pushUrl { model = slide direction model, command = scrollTop }
+
+        -- Back from the program: a fresh session of the same waza.
+        Program.Closed waza ->
+            startQuiz Back waza model
+
+        Program.HomeRequested ->
+            goHome model
+
+        Program.VideoRequested url ->
+            askVideo url model
+
+
+askVideo : String -> Model -> { model : Model, command : Cmd Msg }
+askVideo url model =
+    let
+        result =
+            Video.update (Video.Ask url) model.video
+    in
+    { model = { model | video = result.model }, command = Cmd.map VideoMsg result.command }
+
+
+goHome : Model -> { model : Model, command : Cmd Msg }
+goHome model =
+    when model.screen is
+        Home ->
+            stay model
+
+        Quiz _ ->
+            pushUrl { model = slide Forward { model | screen = Home }, command = scrollTop }
+
+        Program _ ->
+            pushUrl { model = slide Back { model | screen = Home }, command = scrollTop }
 
 
 slide : Direction -> Model -> Model
@@ -284,12 +252,7 @@ slide direction model =
 
 scrollTop : Cmd Msg
 scrollTop =
-    Task.perform (\_ -> NoOp) (Dom.setViewport 0 0)
-
-
-roll : Cmd Msg
-roll =
-    Random.generate Rolled (Random.float 0 1)
+    Effect.scrollTop NoOp
 
 
 
@@ -301,20 +264,24 @@ roll =
 startSession : Model -> String -> { model : Model, command : Cmd Msg }
 startSession model waza =
     let
-        pool =
-            Grade.buildPool (currentData model) waza model.catalog.filters
-
-        quiz =
-            { waza = waza, pool = pool, total = Array.length pool, current = Nothing, done = Array.isEmpty pool }
+        started =
+            Quiz.start (currentData model) model.catalog.filters waza
     in
-    { model = { model | screen = Quiz quiz }
-    , command =
-        if Array.isEmpty pool then
-            Cmd.none
+    { model = { model | screen = Quiz started.model }, command = Cmd.map QuizMsg started.command }
 
-        else
-            roll
-    }
+
+{-| A user action starts a session: the cards slide, the page scrolls and the URL follows.
+-}
+startQuiz : Direction -> String -> Model -> { model : Model, command : Cmd Msg }
+startQuiz direction waza model =
+    let
+        started =
+            startSession model waza
+    in
+    pushUrl
+        { model = slide direction started.model
+        , command = Cmd.batch [ started.command, scrollTop ]
+        }
 
 
 
@@ -348,7 +315,7 @@ applyRoute route direction model =
                 Just waza ->
                     when route.program is
                         Just wanted ->
-                            stay { model | screen = Program { waza = waza, level = validLevel data waza wanted } }
+                            stay { model | screen = Program { waza = waza, level = Program.validLevel data waza wanted } }
 
                         Nothing ->
                             when model.screen is
@@ -373,37 +340,6 @@ applyRoute route direction model =
             result.model
     , command = result.command
     }
-
-
-validLevel : GradeData -> String -> ProgramLevel -> ProgramLevel
-validLevel data waza wanted =
-    let
-        attackExists name =
-            Array.any (\attack -> attack.name == name) (Grade.listAttacks data waza)
-
-        techniqueExists attack name =
-            Array.any (\technique -> technique.name == name) (Grade.listTechniques data waza attack)
-    in
-    when wanted is
-        Attacks ->
-            Attacks
-
-        Techniques attack ->
-            if attackExists attack then
-                Techniques attack
-
-            else
-                Attacks
-
-        TechniqueCard card ->
-            if not (attackExists card.attack) then
-                Attacks
-
-            else if techniqueExists card.attack card.technique then
-                TechniqueCard card
-
-            else
-                Techniques card.attack
 
 
 urlOf : Model -> String

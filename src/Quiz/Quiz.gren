@@ -1,0 +1,93 @@
+module Quiz.Quiz exposing (Event(..), Model, Msg(..), start, update)
+
+{-| Feature "quiz": a session draws the techniques of a waza at random, without repetition.
+Publishes `CardChanged` (a new card: the page scrolls and the card slides), `HomeRequested`, `ProgramRequested` (with the waza) and `VideoRequested`.
+-}
+
+import Array exposing (Array)
+import Random
+import Shared.Grade as Grade exposing (Filters, GradeData, PoolEntry)
+
+
+{-| The pool of techniques left to draw.
+-}
+type alias Model =
+    { waza : String
+    , pool : Array PoolEntry
+    , total : Int
+    , current : Maybe PoolEntry
+    , done : Bool
+    }
+
+
+type Msg
+    = Next
+    | Rolled Float
+    | GoHome
+    | OpenProgram
+    | AskVideo String
+
+
+type Event
+    = CardChanged
+    | HomeRequested
+    | ProgramRequested String
+    | VideoRequested String
+
+
+{-| A new session of `waza`, with the data and the filters of the grade; draws the first technique.
+-}
+start : GradeData -> Filters -> String -> { model : Model, command : Cmd Msg }
+start data filters waza =
+    let
+        pool =
+            Grade.buildPool data waza filters
+    in
+    { model = { waza = waza, pool = pool, total = Array.length pool, current = Nothing, done = Array.isEmpty pool }
+    , command =
+        if Array.isEmpty pool then
+            Cmd.none
+
+        else
+            roll
+    }
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg, events : Array Event }
+update msg model =
+    when msg is
+        Next ->
+            if Array.isEmpty model.pool then
+                { model = { model | current = Nothing, done = True }, command = Cmd.none, events = [ CardChanged ] }
+
+            else
+                { model = model, command = roll, events = [] }
+
+        -- Randomness is a command (so `update` stays pure): the answer is the draw.
+        Rolled random ->
+            if Array.isEmpty model.pool then
+                { model = model, command = Cmd.none, events = [] }
+
+            else
+                let
+                    index =
+                        Grade.pickIndex model.pool random
+                in
+                { model = { model | current = Array.get index model.pool, pool = Array.remove index model.pool }
+                , command = Cmd.none
+                , events = [ CardChanged ]
+                }
+
+        GoHome ->
+            { model = model, command = Cmd.none, events = [ HomeRequested ] }
+
+        OpenProgram ->
+            { model = model, command = Cmd.none, events = [ ProgramRequested model.waza ] }
+
+        AskVideo url ->
+            { model = model, command = Cmd.none, events = [ VideoRequested url ] }
+
+
+roll : Cmd Msg
+roll =
+    Random.generate Rolled (Random.float 0 1)

@@ -7,17 +7,14 @@ import Array exposing (Array)
 import Browser exposing (Document)
 import Catalog.Catalog as Catalog
 import Catalog.View as CatalogView
-import Shared.Grade as Grade exposing (Technique, badgesOf, findSameTechnique, findTechnique, listAttacks, listTechniques)
-import Html exposing (Html, a, button, div, footer, h1, h2, h3, input, label, main_, option, p, section, select, span, text)
-import Html.Attributes as Attr exposing (class, id)
-import Html.Events as Events
+import Html exposing (Html, section)
+import Html.Attributes exposing (id)
 import Layout.Card as Card
 import Layout.Page as Page
-import Shared.Route as Route exposing (ProgramLevel(..))
-import Slide.Slide exposing (Direction(..))
-import Video.Video as Video
+import Program.View as ProgramView
+import Quiz.View as QuizView
+import Types exposing (Model, Msg(..), Screen(..), currentData)
 import Video.View as VideoView
-import Types exposing (Model, Msg(..), QuizState, Screen(..), currentData)
 
 
 view : Model -> Document Msg
@@ -42,10 +39,10 @@ screens model =
                     [ title, homeView model ]
 
                 Quiz quiz ->
-                    [ div [ class "screen full" ] [ title, quizView model quiz ] ]
+                    [ Html.map QuizMsg (QuizView.view (context model) quiz) ]
 
                 Program program ->
-                    [ programView model program ]
+                    [ Html.map ProgramMsg (ProgramView.view (context model) program) ]
 
 
 page : Model -> Array (Html Msg) -> Html Msg
@@ -64,250 +61,12 @@ title =
 
 homeView : Model -> Html Msg
 homeView model =
-    section [ id "home" ] [ Html.map CatalogMsg (CatalogView.view model.catalog), wazaPicker model ]
-
-
-{-| One button per waza; a waza with no technique for the filters is disabled.
--}
-wazaPicker : Model -> Html Msg
-wazaPicker model =
-    let
-        data =
-            currentData model
-
-        isEmpty waza =
-            Array.isEmpty (Grade.buildPool data waza model.catalog.filters)
-
-        anyEmpty =
-            Array.any isEmpty Grade.wazaOrder
-    in
-    div [ class "group grow" ]
-        [ p [ class "hint" ] [ text "Choisis un waza et teste-toi !" ]
-        , div [ id "waza-buttons", class "buttons grow" ]
-            (Array.map (\waza -> button [ Attr.disabled (isEmpty waza), Events.onClick (StartSession waza) ] [ text waza ]) Grade.wazaOrder)
-        , p [ id "home-msg", class "hint" ]
-            [ text
-                (if anyEmpty then
-                    "Un waza grisé n'a aucune technique pour ces filtres."
-
-                 else
-                    ""
-                )
-            ]
-        ]
-
+    section [ id "home" ] [ Html.map CatalogMsg (CatalogView.view model.catalog), QuizView.picker (currentData model) model.catalog.filters StartSession ]
 
 
 -- CARD
 
 
-card :
-    Model
-    -> { prefix : String, id : String, waza : String, attack : String, technique : String, form : Maybe String }
-    -> Html Msg
-card model =
-    Card.view
-        { data = currentData model
-        , slide = model.slide
-        , skipVideoWarning = model.video.skipWarning
-        , onAskVideo = \url -> VideoMsg (Video.Ask url)
-        }
-
-
-
--- QUIZ
-
-
-quizView : Model -> QuizState -> Html Msg
-quizView model quiz =
-    let
-        shown =
-            when quiz.current is
-                Just current ->
-                    { waza = quiz.waza, attack = current.attack, technique = current.technique, form = Just (Maybe.withDefault "" current.form) }
-
-                Nothing ->
-                    { waza = "", attack = "", technique = "", form = Just "" }
-    in
-    section [ id "quiz" ]
-        [ button [ id "home-btn", class "secondary", Events.onClick GoHome ] [ text "Retour à l'accueil" ]
-        , p [ id "progress", class "hint" ]
-            [ text (quiz.waza ++ " : " ++ String.fromInt (quiz.total - Array.length quiz.pool) ++ " / " ++ String.fromInt quiz.total) ]
-        , h3 [ class "hint" ] [ text "Connais-tu cette technique ?" ]
-        , if quiz.done then
-            div [ id "done" ] [ text "Waza terminé 🎉" ]
-
-          else
-            card model { prefix = "card", id = "card", waza = shown.waza, attack = shown.attack, technique = shown.technique, form = shown.form }
-        , div [ class "buttons actions" ]
-            (Array.prepend
-                (if quiz.done then
-                    []
-
-                 else
-                    [ button [ id "next", Events.onClick Next ] [ text "Technique suivante" ] ]
-                )
-                [ button [ id "prog-btn", class "secondary", Events.onClick OpenProgram ] [ text "Voir le programme" ] ]
-            )
-        ]
-
-
-
--- PROGRAM
-
-
-type alias Level =
-    { back : String
-    , backMessage : Msg
-    , fields : { waza : String, attack : String, technique : String }
-    , actions : Maybe (Html Msg)
-    , title : String
-    , sub : String
-    , items : Array (Html Msg)
-    }
-
-
-withBadges : String -> Technique -> String
-withBadges label technique =
-    String.trim (label ++ " " ++ badgesOf technique)
-
-
-item : String -> ProgramLevel -> Html Msg
-item label target =
-    button [ class "item", Events.onClick (Navigate { to = target, direction = Nothing }) ] [ text label ]
-
-
-levelOf : Model -> { waza : String, level : ProgramLevel } -> Level
-levelOf model program =
-    let
-        data =
-            currentData model
-
-        waza =
-            program.waza
-    in
-    when program.level is
-        Attacks ->
-            let
-                attacks =
-                    listAttacks data waza
-            in
-            { back = "← Tirage"
-            , backMessage = CloseProgram
-            , fields = { waza = waza, attack = "", technique = "" }
-            , actions = Nothing
-            , title = "Choisis une attaque :"
-            , sub = String.fromInt (Array.length attacks) ++ " attaques"
-            , items = Array.map (\attack -> item attack.name (Techniques attack.name)) attacks
-            }
-
-        Techniques attack ->
-            let
-                techniques =
-                    listTechniques data waza attack
-            in
-            { back = "← Programme"
-            , backMessage = Navigate { to = Attacks, direction = Nothing }
-            , fields = { waza = waza, attack = attack, technique = "" }
-            , actions = Nothing
-            , title = "Choisis une technique :"
-            , sub = String.fromInt (Array.length techniques) ++ " techniques"
-            , items =
-                Array.map
-                    (\technique -> item (withBadges technique.name technique) (TechniqueCard { attack = attack, technique = technique.name }))
-                    techniques
-            }
-
-        TechniqueCard selected ->
-            let
-                siblings =
-                    listTechniques data waza selected.attack
-
-                position =
-                    siblings
-                        |> Array.indexedMap (\index technique -> { index = index, name = technique.name })
-                        |> Array.findFirst (\entry -> entry.name == selected.technique)
-                        |> Maybe.map (\found -> found.value.index)
-                        |> Maybe.withDefault 0
-
-                count =
-                    Array.length siblings
-
-                -- Neighbours wrap around the list; none when the attack has a single technique.
-                neighbour step =
-                    if count > 1 then
-                        Array.get ((position + step + count) - count * ((position + step + count) // count)) siblings
-
-                    else
-                        Nothing
-
-                pagerButton buttonId label target direction =
-                    button
-                        (Array.prepend
-                            [ id buttonId, Attr.disabled (target == Nothing) ]
-                            (when target is
-                                Just technique ->
-                                    [ Events.onClick (Navigate { to = TechniqueCard { attack = selected.attack, technique = technique.name }, direction = Just direction }) ]
-
-                                Nothing ->
-                                    []
-                            )
-                        )
-                        [ text label ]
-
-                others =
-                    findSameTechnique data waza selected.attack selected.technique
-            in
-            { back = "← " ++ selected.attack
-            , backMessage = Navigate { to = Techniques selected.attack, direction = Nothing }
-            , fields = { waza = waza, attack = selected.attack, technique = selected.technique }
-            , actions =
-                Just
-                    (div [ class "pager" ]
-                        [ p [ class "hint center" ] [ text (String.fromInt (position + 1) ++ " / " ++ String.fromInt count) ]
-                        , div [ class "pager-buttons" ]
-                            [ pagerButton "prog-prev" "Précédente" (neighbour -1) Back
-                            , pagerButton "prog-next" "Suivante" (neighbour 1) Forward
-                            ]
-                        ]
-                    )
-            , title = "Même technique, autres attaques ↓"
-            , sub =
-                if Array.isEmpty others then
-                    "Aucune autre attaque pour cette technique."
-
-                else
-                    ""
-            , items =
-                Array.map
-                    (\other -> item (withBadges other.attack other.technique) (TechniqueCard { attack = other.attack, technique = other.technique.name }))
-                    others
-            }
-
-
-{-| The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
--}
-programView : Model -> { waza : String, level : ProgramLevel } -> Html Msg
-programView model program =
-    let
-        level =
-            levelOf model program
-    in
-    section [ id "program" ]
-        [ div [ class (if level.actions == Nothing then "screen" else "screen full") ]
-            (Array.prepend
-                [ title
-                , button [ id "home-btn", class "secondary", Events.onClick GoHome ] [ text "Retour à l'accueil" ]
-                , button [ id "prog-back", class "secondary back", Events.onClick level.backMessage ] [ text level.back ]
-                , card model { prefix = "prog", id = "prog-card", waza = level.fields.waza, attack = level.fields.attack, technique = level.fields.technique, form = Nothing }
-                ]
-                (Array.prepend
-                    (Maybe.withDefault [] (Maybe.map Array.singleton level.actions))
-                    [ h2 [ id "prog-title" ] [ text level.title ] ]
-                )
-            )
-        , div [ class "group" ]
-            [ p [ id "prog-sub", class "hint" ] [ text level.sub ]
-            , div [ id "prog-list", class "buttons" ] level.items
-            ]
-        ]
+context : Model -> Card.Context
+context model =
+    { data = currentData model, slide = model.slide, skipVideoWarning = model.video.skipWarning }

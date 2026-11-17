@@ -1,0 +1,111 @@
+module Program.Program exposing (Event(..), Model, Msg(..), init, update, validLevel)
+
+{-| Feature "program": browsing the attacks, then the techniques, then the card of a technique.
+Publishes `Moved` (with the direction of the slide), `Closed` (with the waza: back to a quiz), `HomeRequested` and `VideoRequested`.
+-}
+
+import Array exposing (Array)
+import Shared.Grade as Grade exposing (GradeData)
+import Shared.Route exposing (ProgramLevel(..))
+import Slide.Slide exposing (Direction(..))
+
+
+type alias Model =
+    { waza : String
+    , level : ProgramLevel
+    }
+
+
+type Msg
+    = Navigate { to : ProgramLevel, direction : Maybe Direction }
+    | Close
+    | GoHome
+    | AskVideo String
+
+
+type Event
+    = Moved Direction
+    | Closed String
+    | HomeRequested
+    | VideoRequested String
+
+
+init : String -> Model
+init waza =
+    { waza = waza, level = Attacks }
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg, events : Array Event }
+update msg model =
+    when msg is
+        -- Going up a level slides back, unless the message forces the direction.
+        Navigate target ->
+            let
+                direction =
+                    when target.direction is
+                        Just given ->
+                            given
+
+                        Nothing ->
+                            if depth target.to < depth model.level then
+                                Back
+
+                            else
+                                Forward
+            in
+            { model = { model | level = target.to }, command = Cmd.none, events = [ Moved direction ] }
+
+        Close ->
+            { model = model, command = Cmd.none, events = [ Closed model.waza ] }
+
+        GoHome ->
+            { model = model, command = Cmd.none, events = [ HomeRequested ] }
+
+        AskVideo url ->
+            { model = model, command = Cmd.none, events = [ VideoRequested url ] }
+
+
+depth : ProgramLevel -> Int
+depth level =
+    when level is
+        Attacks ->
+            1
+
+        Techniques _ ->
+            2
+
+        TechniqueCard _ ->
+            3
+
+
+{-| The level narrowed to what the data contains: an unknown attack or technique gives the level above.
+-}
+validLevel : GradeData -> String -> ProgramLevel -> ProgramLevel
+validLevel data waza wanted =
+    let
+        attackExists name =
+            Array.any (\attack -> attack.name == name) (Grade.listAttacks data waza)
+
+        techniqueExists attack name =
+            Array.any (\technique -> technique.name == name) (Grade.listTechniques data waza attack)
+    in
+    when wanted is
+        Attacks ->
+            Attacks
+
+        Techniques attack ->
+            if attackExists attack then
+                Techniques attack
+
+            else
+                Attacks
+
+        TechniqueCard card ->
+            if not (attackExists card.attack) then
+                Attacks
+
+            else if techniqueExists card.attack card.technique then
+                TechniqueCard card
+
+            else
+                Techniques card.attack

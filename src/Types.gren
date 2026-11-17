@@ -1,7 +1,6 @@
 module Types exposing
     ( Model
     , Msg(..)
-    , QuizState
     , Screen(..)
     , currentData
     , routeOf
@@ -10,35 +9,24 @@ module Types exposing
 {-| The model and the messages of the app.
 -}
 
-import Array exposing (Array)
 import Browser
-import Catalog.Catalog as Catalog
 import Browser.Navigation as Navigation
-import Dict
-import Shared.Grade as Grade exposing (Filters, GradeData, GradeInfo, PoolEntry)
-import Shared.Route as Route exposing (ProgramLevel, Route)
-import Slide.Slide as Slide exposing (Direction)
+import Catalog.Catalog as Catalog
+import Program.Program as Program
+import Quiz.Quiz as Quiz
+import Shared.Grade exposing (GradeData)
+import Shared.Route exposing (Route)
+import Slide.Slide as Slide
 import Url exposing (Url)
 import Video.Video as Video
-
-
-{-| A quiz session: the pool of techniques left to draw (no repetition).
--}
-type alias QuizState =
-    { waza : String
-    , pool : Array PoolEntry
-    , total : Int
-    , current : Maybe PoolEntry
-    , done : Bool
-    }
 
 
 {-| The screen is the state of the session: no session (home), a quiz, or the program.
 -}
 type Screen
     = Home
-    | Quiz QuizState
-    | Program { waza : String, level : ProgramLevel }
+    | Quiz Quiz.Model
+    | Program Program.Model
 
 
 type alias Model =
@@ -54,11 +42,8 @@ type alias Model =
 type Msg
     = CatalogMsg Catalog.Msg
     | StartSession String
-    | Next
-    | Rolled Float
-    | OpenProgram
-    | Navigate { to : ProgramLevel, direction : Maybe Direction }
-    | CloseProgram
+    | QuizMsg Quiz.Msg
+    | ProgramMsg Program.Msg
     | GoHome
     | UrlRequested Browser.UrlRequest
     | UrlChanged Url

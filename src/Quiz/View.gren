@@ -1,0 +1,77 @@
+module Quiz.View exposing (picker, view)
+
+{-| The waza picker of the home screen, and the screen of the session.
+-}
+
+import Array
+import Html exposing (Html, button, div, h3, p, section, text)
+import Html.Attributes as Attr exposing (class, id)
+import Html.Events as Events
+import Layout.Card as Card
+import Layout.Page as Page
+import Quiz.Quiz as Quiz
+import Shared.Grade as Grade exposing (Filters, GradeData)
+
+
+{-| One button per waza (`onPick` gives its name); a waza with no technique for the filters is disabled.
+-}
+picker : GradeData -> Filters -> (String -> msg) -> Html msg
+picker data filters onPick =
+    let
+        isEmpty waza =
+            Array.isEmpty (Grade.buildPool data waza filters)
+
+        anyEmpty =
+            Array.any isEmpty Grade.wazaOrder
+    in
+    div [ class "group grow" ]
+        [ p [ class "hint" ] [ text "Choisis un waza et teste-toi !" ]
+        , div [ id "waza-buttons", class "buttons grow" ]
+            (Array.map (\waza -> button [ Attr.disabled (isEmpty waza), Events.onClick (onPick waza) ] [ text waza ]) Grade.wazaOrder)
+        , p [ id "home-msg", class "hint" ]
+            [ text
+                (if anyEmpty then
+                    "Un waza grisé n'a aucune technique pour ces filtres."
+
+                 else
+                    ""
+                )
+            ]
+        ]
+
+
+view : Card.Context -> Quiz.Model -> Html Quiz.Msg
+view context quiz =
+    let
+        shown =
+            when quiz.current is
+                Just current ->
+                    { waza = quiz.waza, attack = current.attack, technique = current.technique, form = Just (Maybe.withDefault "" current.form) }
+
+                Nothing ->
+                    { waza = "", attack = "", technique = "", form = Just "" }
+    in
+    div [ class "screen full" ]
+        [ Page.title Quiz.GoHome
+        , section [ id "quiz" ]
+            [ button [ id "home-btn", class "secondary", Events.onClick Quiz.GoHome ] [ text "Retour à l'accueil" ]
+            , p [ id "progress", class "hint" ]
+                [ text (quiz.waza ++ " : " ++ String.fromInt (quiz.total - Array.length quiz.pool) ++ " / " ++ String.fromInt quiz.total) ]
+            , h3 [ class "hint" ] [ text "Connais-tu cette technique ?" ]
+            , if quiz.done then
+                div [ id "done" ] [ text "Waza terminé 🎉" ]
+
+              else
+                Card.view context Quiz.AskVideo { prefix = "card", id = "card", waza = shown.waza, attack = shown.attack, technique = shown.technique, form = shown.form }
+            , div [ class "buttons actions" ]
+                (Array.prepend
+                    (if quiz.done then
+                        []
+
+                     else
+                        [ button [ id "next", Events.onClick Quiz.Next ] [ text "Technique suivante" ] ]
+                    )
+                    [ button [ id "prog-btn", class "secondary", Events.onClick Quiz.OpenProgram ] [ text "Voir le programme" ] ]
+                )
+            ]
+        ]

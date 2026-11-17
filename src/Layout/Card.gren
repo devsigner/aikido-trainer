@@ -1,4 +1,4 @@
-module Layout.Card exposing (Config, view)
+module Layout.Card exposing (Context, view)
 
 {-| Card of a technique, shared by the quiz and the program.
 -}
@@ -12,33 +12,34 @@ import Slide.Slide as Slide
 import Video.View as VideoView
 
 
-{-| What the card reads (the data of the grade, the slide, the video preference) and the message to ask for a video.
+{-| What the card reads: the data of the grade, the slide and the video preference.
 -}
-type alias Config msg =
+type alias Context =
     { data : GradeData
     , slide : Slide.Model
     , skipVideoWarning : Bool
-    , onAskVideo : String -> msg
     }
 
 
-{-| `form`: the form drawn (by default all the forms of the technique). The `prefix` generates the ids.
+{-| `onAskVideo`: the message to ask for a video.
+`form`: the form drawn (by default all the forms of the technique). The `prefix` generates the ids.
 -}
 view :
-    Config msg
+    Context
+    -> (String -> msg)
     -> { prefix : String, id : String, waza : String, attack : String, technique : String, form : Maybe String }
     -> Html msg
-view config fields =
+view context onAskVideo fields =
     let
         found =
             if fields.technique == "" then
                 Nothing
 
             else
-                findTechnique config.data fields.waza fields.attack fields.technique
+                findTechnique context.data fields.waza fields.attack fields.technique
 
         slideClass =
-            when config.slide.direction is
+            when context.slide.direction is
                 Slide.Back ->
                     " slide-back"
 
@@ -64,7 +65,7 @@ view config fields =
         videoLink =
             when Maybe.andThen .video found is
                 Just url ->
-                    [ VideoView.anchor { skipWarning = config.skipVideoWarning, onAsk = config.onAskVideo } (fields.prefix ++ "-video") url ]
+                    [ VideoView.anchor { skipWarning = context.skipVideoWarning, onAsk = onAskVideo } (fields.prefix ++ "-video") url ]
 
                 Nothing ->
                     []
@@ -72,7 +73,7 @@ view config fields =
     -- The key changes with each slide, so that the element is created again and its CSS animation restarts.
     Keyed.node "div"
         [ Attr.style "display" "contents" ]
-        [ { key = String.fromInt config.slide.count
+        [ { key = String.fromInt context.slide.count
           , node =
                 div [ id fields.id, class ("card" ++ slideClass) ]
                     (Array.prepend

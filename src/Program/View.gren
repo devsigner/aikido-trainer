@@ -1,0 +1,170 @@
+module Program.View exposing (view)
+
+{-| The screen of the program: three levels (attacks, techniques, card of a technique).
+The first screen (title, card, pager) fills the viewport when there is a pager.
+-}
+
+import Array exposing (Array)
+import Html exposing (Html, button, div, h2, p, section, text)
+import Html.Attributes as Attr exposing (class, id)
+import Html.Events as Events
+import Layout.Card as Card
+import Layout.Page as Page
+import Program.Program as Program
+import Shared.Grade exposing (GradeData, Technique, badgesOf, findSameTechnique, listAttacks, listTechniques)
+import Shared.Route exposing (ProgramLevel(..))
+import Slide.Slide exposing (Direction(..))
+
+
+type alias Level =
+    { back : String
+    , backMessage : Program.Msg
+    , fields : { waza : String, attack : String, technique : String }
+    , actions : Maybe (Html Program.Msg)
+    , title : String
+    , sub : String
+    , items : Array (Html Program.Msg)
+    }
+
+
+withBadges : String -> Technique -> String
+withBadges label technique =
+    String.trim (label ++ " " ++ badgesOf technique)
+
+
+item : String -> ProgramLevel -> Html Program.Msg
+item label target =
+    button [ class "item", Events.onClick (Program.Navigate { to = target, direction = Nothing }) ] [ text label ]
+
+
+levelOf : GradeData -> Program.Model -> Level
+levelOf data program =
+    let
+        waza =
+            program.waza
+    in
+    when program.level is
+        Attacks ->
+            let
+                attacks =
+                    listAttacks data waza
+            in
+            { back = "← Tirage"
+            , backMessage = Program.Close
+            , fields = { waza = waza, attack = "", technique = "" }
+            , actions = Nothing
+            , title = "Choisis une attaque :"
+            , sub = String.fromInt (Array.length attacks) ++ " attaques"
+            , items = Array.map (\attack -> item attack.name (Techniques attack.name)) attacks
+            }
+
+        Techniques attack ->
+            let
+                techniques =
+                    listTechniques data waza attack
+            in
+            { back = "← Programme"
+            , backMessage = Program.Navigate { to = Attacks, direction = Nothing }
+            , fields = { waza = waza, attack = attack, technique = "" }
+            , actions = Nothing
+            , title = "Choisis une technique :"
+            , sub = String.fromInt (Array.length techniques) ++ " techniques"
+            , items =
+                Array.map
+                    (\technique -> item (withBadges technique.name technique) (TechniqueCard { attack = attack, technique = technique.name }))
+                    techniques
+            }
+
+        TechniqueCard selected ->
+            let
+                siblings =
+                    listTechniques data waza selected.attack
+
+                position =
+                    siblings
+                        |> Array.indexedMap (\index technique -> { index = index, name = technique.name })
+                        |> Array.findFirst (\entry -> entry.name == selected.technique)
+                        |> Maybe.map (\found -> found.value.index)
+                        |> Maybe.withDefault 0
+
+                count =
+                    Array.length siblings
+
+                -- Neighbours wrap around the list; none when the attack has a single technique.
+                neighbour step =
+                    if count > 1 then
+                        Array.get ((position + step + count) - count * ((position + step + count) // count)) siblings
+
+                    else
+                        Nothing
+
+                pagerButton buttonId label target direction =
+                    button
+                        (Array.prepend
+                            [ id buttonId, Attr.disabled (target == Nothing) ]
+                            (when target is
+                                Just technique ->
+                                    [ Events.onClick (Program.Navigate { to = TechniqueCard { attack = selected.attack, technique = technique.name }, direction = Just direction }) ]
+
+                                Nothing ->
+                                    []
+                            )
+                        )
+                        [ text label ]
+
+                others =
+                    findSameTechnique data waza selected.attack selected.technique
+            in
+            { back = "← " ++ selected.attack
+            , backMessage = Program.Navigate { to = Techniques selected.attack, direction = Nothing }
+            , fields = { waza = waza, attack = selected.attack, technique = selected.technique }
+            , actions =
+                Just
+                    (div [ class "pager" ]
+                        [ p [ class "hint center" ] [ text (String.fromInt (position + 1) ++ " / " ++ String.fromInt count) ]
+                        , div [ class "pager-buttons" ]
+                            [ pagerButton "prog-prev" "Précédente" (neighbour -1) Back
+                            , pagerButton "prog-next" "Suivante" (neighbour 1) Forward
+                            ]
+                        ]
+                    )
+            , title = "Même technique, autres attaques ↓"
+            , sub =
+                if Array.isEmpty others then
+                    "Aucune autre attaque pour cette technique."
+
+                else
+                    ""
+            , items =
+                Array.map
+                    (\other -> item (withBadges other.attack other.technique) (TechniqueCard { attack = other.attack, technique = other.technique.name }))
+                    others
+            }
+
+
+{-| The first screen (header → card → pager) fills the viewport when there is a pager; the list is below, reached by scrolling.
+-}
+view : Card.Context -> Program.Model -> Html Program.Msg
+view context program =
+    let
+        level =
+            levelOf context.data program
+    in
+    section [ id "program" ]
+        [ div [ class (if level.actions == Nothing then "screen" else "screen full") ]
+            (Array.prepend
+                [ Page.title Program.GoHome
+                , button [ id "home-btn", class "secondary", Events.onClick Program.GoHome ] [ text "Retour à l'accueil" ]
+                , button [ id "prog-back", class "secondary back", Events.onClick level.backMessage ] [ text level.back ]
+                , Card.view context Program.AskVideo { prefix = "prog", id = "prog-card", waza = level.fields.waza, attack = level.fields.attack, technique = level.fields.technique, form = Nothing }
+                ]
+                (Array.prepend
+                    (Maybe.withDefault [] (Maybe.map Array.singleton level.actions))
+                    [ h2 [ id "prog-title" ] [ text level.title ] ]
+                )
+            )
+        , div [ class "group" ]
+            [ p [ id "prog-sub", class "hint" ] [ text level.sub ]
+            , div [ id "prog-list", class "buttons" ] level.items
+            ]
+        ]

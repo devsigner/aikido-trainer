@@ -1,0 +1,14 @@
+module Shared.Effect exposing (scrollTop)
+
+{-| Commands shared by the features.
+-}
+
+import Browser.Dom as Dom
+import Task
+
+
+{-| Scrolls to the top of the page; `done` is the message to give back (nothing to do with it).
+-}
+scrollTop : msg -> Cmd msg
+scrollTop done =
+    Task.perform (\_ -> done) (Dom.setViewport 0 0)
