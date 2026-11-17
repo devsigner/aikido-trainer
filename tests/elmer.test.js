@@ -4,6 +4,8 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { UNMOUNT, cmd, combine, defineFeature, embed, emit, to } from "../framework/elmer/feature.js";
+import { html } from "../framework/elmer/html.js";
+import { h } from "../framework/elmer/vdom.js";
 import { settingsFromEnvironment } from "../framework/elmer/elmer.js";
 import { run } from "../framework/elmer/runtime.js";
 import { createDevtools } from "../framework/elmer/devtools.js";
@@ -230,5 +232,57 @@ describe("elmer combine", () => {
       const imports = [...fs.readFileSync(new URL(file, dir), "utf8").matchAll(/from "([^"]+)"/g)].map((match) => match[1]);
       assert.ok(imports.every((path) => path.startsWith("./")), `${file} imports outside the framework: ${imports}`);
     }
+  });
+});
+
+describe("elmer html", () => {
+  test("builds the same virtual nodes as h, with static and dynamic attributes", () => {
+    const message = { type: "Go" };
+    const node = html`<button id="go" class="a b" disabled onClick=${message} data-x="n${1}">Go</button>`;
+    assert.deepEqual(node, h("button", { id: "go", className: "a b", disabled: true, onClick: message, "data-x": "n1" }, "Go"));
+  });
+
+  test("values keep their type, are never parsed as markup, and falsy ones are ignored", () => {
+    const handler = () => ({ type: "Go" });
+    const node = html`<p onClick=${handler}>${"<b>x</b>"}${false}${null}${undefined}${0}</p>`;
+    assert.equal(node.props.onClick, handler);
+    assert.deepEqual(node.children, ["<b>x</b>0"]);
+  });
+
+  test("lists are flattened, nodes nest, and text around values is one text node", () => {
+    const items = ["a", "b"].map((item) => html`<li>${item}</li>`);
+    const node = html`<ul>${items}</ul>`;
+    assert.deepEqual(node, h("ul", {}, h("li", {}, "a"), h("li", {}, "b")));
+    assert.deepEqual(html`<p>${"x"} : ${2} / ${3}</p>`.children, ["x : 2 / 3"]);
+  });
+
+  test("the indentation does not show up, the spaces of a line do", () => {
+    const node = html`
+      <div>
+        <p>
+          Hello
+          world
+        </p>
+        <span>a <b>b</b> c</span>
+      </div>`;
+    assert.deepEqual(node, h("div", {}, h("p", {}, "Hello world"), h("span", {}, "a ", h("b", {}, "b"), " c")));
+  });
+
+  test("void and self-closing tags, several roots, and an empty template", () => {
+    assert.deepEqual(html`<input id="a" /><br><input id="b">`, [h("input", { id: "a" }), h("br", {}), h("input", { id: "b" })]);
+    assert.equal(html``, null);
+  });
+
+  test("a malformed template fails loudly", () => {
+    assert.throws(() => html`<div><p></div>`, /unexpected closing tag/);
+    assert.throws(() => html`<div>`, /missing closing tag/);
+    assert.throws(() => html`<div class=a></div>`, /must be quoted/);
+    assert.throws(() => html`a < b`, /must start a tag/);
+  });
+
+  test("a template is parsed once per call site", () => {
+    const render = (value) => html`<p>${value}</p>`;
+    assert.deepEqual(render("a").children, ["a"]);
+    assert.deepEqual(render("b").children, ["b"]);
   });
 });
