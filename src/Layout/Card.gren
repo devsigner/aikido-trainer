@@ -1,0 +1,89 @@
+module Layout.Card exposing (Config, view)
+
+{-| Card of a technique, shared by the quiz and the program.
+-}
+
+import Array
+import Html exposing (Html, div, text)
+import Html.Attributes as Attr exposing (class, id)
+import Html.Keyed as Keyed
+import Shared.Grade exposing (GradeData, badgesOf, findTechnique)
+import Slide.Slide as Slide
+import Video.View as VideoView
+
+
+{-| What the card reads (the data of the grade, the slide, the video preference) and the message to ask for a video.
+-}
+type alias Config msg =
+    { data : GradeData
+    , slide : Slide.Model
+    , skipVideoWarning : Bool
+    , onAskVideo : String -> msg
+    }
+
+
+{-| `form`: the form drawn (by default all the forms of the technique). The `prefix` generates the ids.
+-}
+view :
+    Config msg
+    -> { prefix : String, id : String, waza : String, attack : String, technique : String, form : Maybe String }
+    -> Html msg
+view config fields =
+    let
+        found =
+            if fields.technique == "" then
+                Nothing
+
+            else
+                findTechnique config.data fields.waza fields.attack fields.technique
+
+        slideClass =
+            when config.slide.direction is
+                Slide.Back ->
+                    " slide-back"
+
+                Slide.Forward ->
+                    " slide-forward"
+
+                Slide.Still ->
+                    ""
+
+        formText =
+            when fields.form is
+                Just form ->
+                    form
+
+                Nothing ->
+                    found
+                        |> Maybe.map (\technique -> String.join " · " technique.forms)
+                        |> Maybe.withDefault ""
+
+        cell suffix name content =
+            div [ id (fields.prefix ++ "-" ++ suffix), class name ] [ text content ]
+
+        videoLink =
+            when Maybe.andThen .video found is
+                Just url ->
+                    [ VideoView.anchor { skipWarning = config.skipVideoWarning, onAsk = config.onAskVideo } (fields.prefix ++ "-video") url ]
+
+                Nothing ->
+                    []
+    in
+    -- The key changes with each slide, so that the element is created again and its CSS animation restarts.
+    Keyed.node "div"
+        [ Attr.style "display" "contents" ]
+        [ { key = String.fromInt config.slide.count
+          , node =
+                div [ id fields.id, class ("card" ++ slideClass) ]
+                    (Array.prepend
+                        [ cell "waza" "waza" fields.waza
+                        , cell "attack" "attack" fields.attack
+                        , cell "technique" "technique" fields.technique
+                        , cell "form" "form" formText
+                        , cell "badges" "badges" (found |> Maybe.map badgesOf |> Maybe.withDefault "")
+                        , cell "note" "note" (found |> Maybe.andThen .note |> Maybe.withDefault "")
+                        ]
+                        videoLink
+                    )
+          }
+        ]

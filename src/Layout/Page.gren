@@ -1,0 +1,30 @@
+module Layout.Page exposing (page, title)
+
+{-| Skeleton of the page: the content, the footer and the video modal.
+-}
+
+import Array exposing (Array)
+import Html exposing (Html, a, footer, h1, main_, p, text)
+import Html.Attributes as Attr exposing (id)
+import Html.Events as Events
+
+
+page : Html msg -> Array (Html msg) -> Html msg
+page videoModal content =
+    main_ [] (Array.prepend content [ pageFooter, videoModal ])
+
+
+{-| Title of the app: `onClick` goes back home.
+-}
+title : msg -> Html msg
+title onClick =
+    h1 [ id "title", Events.onClick onClick ] [ text "合気道 Aïkido" ]
+
+
+pageFooter : Html msg
+pageFooter =
+    footer []
+        [ p [] [ text "© 2026 Aïkido Trainer. Tous droits réservés." ]
+        , p [] [ text "Développé par amour de l'Aïkido 🙏" ]
+        , p [] [ a [ Attr.href "manual.html" ] [ text "Manuel d'utilisation" ] ]
+        ]

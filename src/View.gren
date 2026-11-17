@@ -9,10 +9,13 @@ import Shared.Grade as Grade exposing (Technique, badgesOf, findSameTechnique, f
 import Html exposing (Html, a, button, div, footer, h1, h2, h3, input, label, main_, option, p, section, select, span, text)
 import Html.Attributes as Attr exposing (class, id)
 import Html.Events as Events
-import Html.Keyed as Keyed
-import Json.Decode as Decode
+import Layout.Card as Card
+import Layout.Page as Page
 import Shared.Route as Route exposing (ProgramLevel(..))
-import Types exposing (Direction(..), Model, Msg(..), QuizState, Screen(..), Status(..), currentData)
+import Slide.Slide exposing (Direction(..))
+import Video.Video as Video
+import Video.View as VideoView
+import Types exposing (Model, Msg(..), QuizState, Screen(..), Status(..), currentData)
 
 
 view : Model -> Document Msg
@@ -48,26 +51,12 @@ screens model =
 
 page : Model -> Array (Html Msg) -> Html Msg
 page model content =
-    main_ []
-        (Array.prepend content
-            [ pageFooter
-            , videoModal model
-            ]
-        )
+    Page.page (Html.map VideoMsg (VideoView.modal model.video)) content
 
 
 title : Html Msg
 title =
-    h1 [ id "title", Events.onClick GoHome ] [ text "合気道 Aïkido" ]
-
-
-pageFooter : Html Msg
-pageFooter =
-    footer []
-        [ p [] [ text "© 2026 Aïkido Trainer. Tous droits réservés." ]
-        , p [] [ text "Développé par amour de l'Aïkido 🙏" ]
-        , p [] [ a [ Attr.href "manual.html" ] [ text "Manuel d'utilisation" ] ]
-        ]
+    Page.title GoHome
 
 
 
@@ -137,119 +126,17 @@ wazaPicker model =
 -- CARD
 
 
-{-| Card of a technique, shared by the quiz and the program.
-`form`: the form drawn (by default all the forms of the technique). The `prefix` generates the ids.
--}
 card :
     Model
     -> { prefix : String, id : String, waza : String, attack : String, technique : String, form : Maybe String }
     -> Html Msg
-card model fields =
-    let
-        found =
-            if fields.technique == "" then
-                Nothing
-
-            else
-                findTechnique (currentData model) fields.waza fields.attack fields.technique
-
-        slideClass =
-            when model.slide.direction is
-                Back ->
-                    " slide-back"
-
-                Forward ->
-                    " slide-forward"
-
-                Still ->
-                    ""
-
-        formText =
-            when fields.form is
-                Just form ->
-                    form
-
-                Nothing ->
-                    found
-                        |> Maybe.map (\technique -> String.join " · " technique.forms)
-                        |> Maybe.withDefault ""
-
-        cell suffix name content =
-            div [ id (fields.prefix ++ "-" ++ suffix), class name ] [ text content ]
-
-        videoLink =
-            when Maybe.andThen .video found is
-                Just url ->
-                    [ videoAnchor model (fields.prefix ++ "-video") url ]
-
-                Nothing ->
-                    []
-    in
-    -- The key changes with each slide, so that the element is created again and its CSS animation restarts.
-    Keyed.node "div"
-        [ Attr.style "display" "contents" ]
-        [ { key = String.fromInt model.slide.count
-          , node =
-                div [ id fields.id, class ("card" ++ slideClass) ]
-                    (Array.prepend
-                        [ cell "waza" "waza" fields.waza
-                        , cell "attack" "attack" fields.attack
-                        , cell "technique" "technique" fields.technique
-                        , cell "form" "form" formText
-                        , cell "badges" "badges" (found |> Maybe.map badgesOf |> Maybe.withDefault "")
-                        , cell "note" "note" (found |> Maybe.andThen .note |> Maybe.withDefault "")
-                        ]
-                        videoLink
-                    )
-          }
-        ]
-
-
-
--- VIDEO
-
-
-{-| Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
--}
-videoAnchor : Model -> String -> String -> Html Msg
-videoAnchor model anchorId url =
-    let
-        attributes =
-            [ id anchorId, class "video", Attr.href url, Attr.target "_blank", Attr.rel "noopener" ]
-    in
-    a
-        (if model.skipVideoWarning then
-            attributes
-
-         else
-            Array.pushLast
-                (Events.preventDefaultOn "click" (Decode.succeed { message = AskVideo url, preventDefault = True }))
-                attributes
-        )
-        [ text "▶ Voir la vidéo" ]
-
-
-videoModal : Model -> Html Msg
-videoModal model =
-    when model.videoPrompt is
-        Nothing ->
-            text ""
-
-        Just prompt ->
-            div [ id "video-modal", class "modal-backdrop" ]
-                [ div [ class "modal", Attr.attribute "role" "dialog", Attr.attribute "aria-modal" "true", Attr.attribute "aria-labelledby" "video-modal-text" ]
-                    [ p [ id "video-modal-text" ] [ text "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?" ]
-                    , label [ class "field" ]
-                        [ input [ Attr.type_ "checkbox", id "video-dont-ask", Attr.checked prompt.dontAsk, Events.onCheck SetDontAsk ] []
-                        , text " Ne plus afficher ce message"
-                        ]
-                    , div [ class "buttons" ]
-                        -- A link, so that the browser opens the video in a new tab by itself.
-                        [ a [ id "video-confirm", class "button", Attr.href prompt.url, Attr.target "_blank", Attr.rel "noopener", Events.onClick ConfirmVideo ] [ text "Voir la vidéo" ]
-                        , button [ id "video-cancel", class "secondary", Events.onClick CancelVideo ] [ text "Annuler" ]
-                        ]
-                    ]
-                ]
+card model =
+    Card.view
+        { data = currentData model
+        , slide = model.slide
+        , skipVideoWarning = model.video.skipWarning
+        , onAskVideo = \url -> VideoMsg (Video.Ask url)
+        }
 
 
 

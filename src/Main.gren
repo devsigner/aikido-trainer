@@ -11,22 +11,18 @@ import Dict
 import Shared.Grade as Grade exposing (GradeData, GradeInfo)
 import Http
 import Json.Decode as Decode exposing (Decoder)
-import LocalStorage
 import Random
 import Shared.Route as Route exposing (ProgramLevel(..), Route)
 import Task exposing (Task)
-import Types exposing (Direction(..), LoadedGrade, Model, Msg(..), Screen(..), Status(..), currentData, routeOf)
+import Slide.Slide as Slide exposing (Direction(..))
+import Types exposing (LoadedGrade, Model, Msg(..), Screen(..), Status(..), currentData, routeOf)
 import Url exposing (Url)
+import Video.Video as Video
 import View
 
 
 type alias Flags =
     { skipVideoWarning : Bool }
-
-
-skipVideoWarningKey : String
-skipVideoWarningKey =
-    "aikido.skipVideoWarning"
 
 
 main : Program Flags Model Msg
@@ -51,9 +47,8 @@ init flags url key =
         , filters = { isNew = False, isWarning = False }
         , screen = Home
         , initialRoute = Route.parse (Maybe.withDefault "" url.fragment)
-        , slide = { direction = Still, count = 0 }
-        , skipVideoWarning = flags.skipVideoWarning
-        , videoPrompt = Nothing
+        , slide = Slide.init
+        , video = Video.init flags.skipVideoWarning
         }
     , command = Task.attempt GradesLoaded loadGrades
     }
@@ -334,32 +329,12 @@ update msg model =
                 applyRoute route direction model
                     |> andReplaceUrl
 
-        AskVideo url ->
-            stay { model | videoPrompt = Just { url = url, dontAsk = False } }
-
-        SetDontAsk checked ->
-            stay { model | videoPrompt = Maybe.map (\prompt -> { prompt | dontAsk = checked }) model.videoPrompt }
-
-        -- The link of the modal opens the video by itself: only the preference remains to be saved.
-        ConfirmVideo ->
+        VideoMsg videoMsg ->
             let
-                dontAsk =
-                    model.videoPrompt
-                        |> Maybe.map .dontAsk
-                        |> Maybe.withDefault False
+                result =
+                    Video.update videoMsg model.video
             in
-            { model = { model | videoPrompt = Nothing, skipVideoWarning = model.skipVideoWarning || dontAsk }
-            , command =
-                if dontAsk then
-                    LocalStorage.set skipVideoWarningKey "1"
-                        |> Task.attempt (\_ -> NoOp)
-
-                else
-                    Cmd.none
-            }
-
-        CancelVideo ->
-            stay { model | videoPrompt = Nothing }
+            { model = { model | video = result.model }, command = Cmd.map VideoMsg result.command }
 
         NoOp ->
             stay model
@@ -390,11 +365,9 @@ levelDepth level =
             3
 
 
-{-| The cards slide in the given direction (a new `count` creates them again).
--}
 slide : Direction -> Model -> Model
 slide direction model =
-    { model | slide = { direction = direction, count = model.slide.count + 1 } }
+    { model | slide = Slide.advance direction model.slide }
 
 
 scrollTop : Cmd Msg

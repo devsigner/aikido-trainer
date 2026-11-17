@@ -1,6 +1,5 @@
 module Types exposing
-    ( Direction(..)
-    , LoadedGrade
+    ( LoadedGrade
     , Model
     , Msg(..)
     , QuizState
@@ -19,7 +18,9 @@ import Browser.Navigation as Navigation
 import Dict
 import Shared.Grade as Grade exposing (Filters, GradeData, GradeInfo, PoolEntry)
 import Shared.Route as Route exposing (ProgramLevel, Route)
+import Slide.Slide as Slide exposing (Direction)
 import Url exposing (Url)
+import Video.Video as Video
 
 
 type Status
@@ -56,14 +57,6 @@ type Screen
     | Program { waza : String, level : ProgramLevel }
 
 
-{-| The cards slide in this direction when what they show changes.
--}
-type Direction
-    = Back
-    | Forward
-    | Still
-
-
 type alias Model =
     { key : Navigation.Key
     , status : Status
@@ -72,9 +65,8 @@ type alias Model =
     , filters : Filters
     , screen : Screen
     , initialRoute : Route
-    , slide : { direction : Direction, count : Int }
-    , skipVideoWarning : Bool
-    , videoPrompt : Maybe { url : String, dontAsk : Bool }
+    , slide : Slide.Model
+    , video : Video.Model
     }
 
 
@@ -92,10 +84,7 @@ type Msg
     | GoHome
     | UrlRequested Browser.UrlRequest
     | UrlChanged Url
-    | AskVideo String
-    | SetDontAsk Bool
-    | ConfirmVideo
-    | CancelVideo
+    | VideoMsg Video.Msg
     | NoOp
 
 

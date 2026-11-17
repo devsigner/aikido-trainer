@@ -4833,12 +4833,16 @@ var $author$project$Types$GradesLoaded = function (a) {
 };
 var $author$project$Types$Home = { $: 'Home' };
 var $author$project$Types$Loading = { $: 'Loading' };
-var $author$project$Types$Still = { $: 'Still' };
 var $gren_lang$core$Task$onError = _Scheduler_onError;
 var $gren_lang$core$Task$attempt$ = function(resultToMessage, task) {
 	return $gren_lang$core$Task$command($gren_lang$core$Task$Perform(A2($gren_lang$core$Task$onError, $gren_lang$core$Basics$composeL$($gren_lang$core$Basics$composeL$($gren_lang$core$Task$succeed, resultToMessage), $gren_lang$core$Result$Err), A2($gren_lang$core$Task$andThen, $gren_lang$core$Basics$composeL$($gren_lang$core$Basics$composeL$($gren_lang$core$Task$succeed, resultToMessage), $gren_lang$core$Result$Ok), task))));
 };
 var $gren_lang$core$Task$attempt = F2($gren_lang$core$Task$attempt$);
+var $author$project$Slide$Slide$Still = { $: 'Still' };
+var $author$project$Slide$Slide$init = { count: 0, direction: $author$project$Slide$Slide$Still };
+var $author$project$Video$Video$init = function(skipWarning) {
+	return { prompt: $gren_lang$core$Maybe$Nothing, skipWarning: skipWarning };
+};
 var $gren_lang$core$Json$Decode$array = _Json_decodeArray;
 var $author$project$Shared$Grade$countTechniques = function(data) {
 	return $gren_lang$core$Dict$foldl$(F3(function(_v0, attacks, total) {
@@ -5708,17 +5712,16 @@ var $author$project$Shared$Route$parse = function(fragment) {
 		}()) : $gren_lang$core$Maybe$Nothing, waza: A2($gren_lang$core$Array$get, 1, parts) };
 };
 var $author$project$Main$init$ = function(flags, url, key) {
-	return { command: $gren_lang$core$Task$attempt$($author$project$Types$GradesLoaded, $author$project$Main$loadGrades), model: { filters: { isNew: false, isWarning: false }, gradeId: '', grades: [  ], initialRoute: $author$project$Shared$Route$parse($gren_lang$core$Maybe$withDefault$('', url.fragment)), key: key, screen: $author$project$Types$Home, skipVideoWarning: flags.skipVideoWarning, slide: { count: 0, direction: $author$project$Types$Still }, status: $author$project$Types$Loading, videoPrompt: $gren_lang$core$Maybe$Nothing } };
+	return { command: $gren_lang$core$Task$attempt$($author$project$Types$GradesLoaded, $author$project$Main$loadGrades), model: { filters: { isNew: false, isWarning: false }, gradeId: '', grades: [  ], initialRoute: $author$project$Shared$Route$parse($gren_lang$core$Maybe$withDefault$('', url.fragment)), key: key, screen: $author$project$Types$Home, slide: $author$project$Slide$Slide$init, status: $author$project$Types$Loading, video: $author$project$Video$Video$init(flags.skipVideoWarning) } };
 };
 var $author$project$Main$init = F3($author$project$Main$init$);
 var $gren_lang$core$Platform$Sub$batch = _Platform_batch;
 var $gren_lang$core$Platform$Sub$none = $gren_lang$core$Platform$Sub$batch([  ]);
-var $author$project$Types$Back = { $: 'Back' };
+var $author$project$Slide$Slide$Back = { $: 'Back' };
 var $author$project$Types$Failed = function (a) {
 	return { $: 'Failed', a: a };
 };
-var $author$project$Types$Forward = { $: 'Forward' };
-var $author$project$Types$NoOp = { $: 'NoOp' };
+var $author$project$Slide$Slide$Forward = { $: 'Forward' };
 var $author$project$Types$Program = function (a) {
 	return { $: 'Program', a: a };
 };
@@ -5726,6 +5729,9 @@ var $author$project$Types$Quiz = function (a) {
 	return { $: 'Quiz', a: a };
 };
 var $author$project$Types$Ready = { $: 'Ready' };
+var $author$project$Types$VideoMsg = function (a) {
+	return { $: 'VideoMsg', a: a };
+};
 var $gren_lang$core$Platform$Cmd$batch = _Platform_batch;
 var $gren_lang$browser$Browser$Navigation$replaceUrl = _Browser_replaceUrl;
 var $author$project$Types$routeOf = function(model) {
@@ -5797,8 +5803,12 @@ var $author$project$Types$currentData = function(model) {
 					return _Utils_eq(grade.info.id, model.gradeId);
 				}, model.grades)));
 };
+var $author$project$Slide$Slide$advance$ = function(direction, model) {
+	return { count: model.count + 1, direction: direction };
+};
+var $author$project$Slide$Slide$advance = F2($author$project$Slide$Slide$advance$);
 var $author$project$Main$slide$ = function(direction, model) {
-	return _Utils_update(model, { slide: { count: model.slide.count + 1, direction: direction } });
+	return _Utils_update(model, { slide: $author$project$Slide$Slide$advance$(direction, model.slide) });
 };
 var $author$project$Main$slide = F2($author$project$Main$slide$);
 var $author$project$Shared$Grade$attacksOf$ = function(data, waza) {
@@ -6237,10 +6247,41 @@ var $gren_lang$core$Array$remove = F2($gren_lang$core$Array$remove$);
 var $author$project$Main$replaceUrl = function(model) {
 	return { command: A2($gren_lang$browser$Browser$Navigation$replaceUrl, model.key, $author$project$Main$urlOf(model)), model: model };
 };
+var $author$project$Types$NoOp = { $: 'NoOp' };
 var $gren_lang$browser$Browser$Dom$setViewport = _Browser_setViewport;
 var $author$project$Main$scrollTop = $gren_lang$core$Task$perform$(function(_v0) {
 		return $author$project$Types$NoOp;
 	}, A2($gren_lang$browser$Browser$Dom$setViewport, 0, 0));
+var $gren_lang$url$Url$addPort$ = function(maybePort, starter) {
+	if (maybePort.$ === 'Nothing') {
+		return starter;
+	} else {
+		var port_ = maybePort.a;
+		return starter + (':' + $gren_lang$core$String$fromInt(port_));
+	}
+};
+var $gren_lang$url$Url$addPort = F2($gren_lang$url$Url$addPort$);
+var $gren_lang$url$Url$addPrefixed$ = function(prefix, maybeSegment, starter) {
+	if (maybeSegment.$ === 'Nothing') {
+		return starter;
+	} else {
+		var segment = maybeSegment.a;
+		return _Utils_ap(starter, _Utils_ap(prefix, segment));
+	}
+};
+var $gren_lang$url$Url$addPrefixed = F3($gren_lang$url$Url$addPrefixed$);
+var $gren_lang$url$Url$toString = function(url) {
+	var http = function () {
+		var _v0 = url.protocol;
+		if (_v0.$ === 'Http') {
+			return 'http://';
+		} else {
+			return 'https://';
+		}
+	}();
+	return $gren_lang$url$Url$addPrefixed$('#', url.fragment, $gren_lang$url$Url$addPrefixed$('?', url.query, _Utils_ap($gren_lang$url$Url$addPort$(url.port_, _Utils_ap(http, url.host)), url.path)));
+};
+var $author$project$Video$Video$Saved = { $: 'Saved' };
 
 
 var _WebStorage_length = function (useLocalStorage) {
@@ -6342,36 +6383,31 @@ var $gren_lang$browser$LocalStorage$set$ = function(key, value) {
 	return A3($gren_lang$browser$Internal$WebStorage$set, true, key, value);
 };
 var $gren_lang$browser$LocalStorage$set = F2($gren_lang$browser$LocalStorage$set$);
-var $author$project$Main$skipVideoWarningKey = 'aikido.skipVideoWarning';
-var $gren_lang$url$Url$addPort$ = function(maybePort, starter) {
-	if (maybePort.$ === 'Nothing') {
-		return starter;
-	} else {
-		var port_ = maybePort.a;
-		return starter + (':' + $gren_lang$core$String$fromInt(port_));
+var $author$project$Video$Video$skipWarningKey = 'aikido.skipVideoWarning';
+var $author$project$Video$Video$update$ = function(msg, model) {
+	switch (msg.$) {
+		case 'Ask':
+			var url = msg.a;
+			return { command: $gren_lang$core$Platform$Cmd$none, model: _Utils_update(model, { prompt: $gren_lang$core$Maybe$Just({ dontAsk: false, url: url }) }) };
+		case 'SetDontAsk':
+			var checked = msg.a;
+			return { command: $gren_lang$core$Platform$Cmd$none, model: _Utils_update(model, { prompt: $gren_lang$core$Maybe$map$(function(prompt) {
+						return _Utils_update(prompt, { dontAsk: checked });
+					}, model.prompt) }) };
+		case 'Confirm':
+			var dontAsk = $gren_lang$core$Maybe$withDefault$(false, $gren_lang$core$Maybe$map$(function ($) {
+						return $.dontAsk;
+					}, model.prompt));
+			return { command: dontAsk ? $gren_lang$core$Task$attempt$(function(_v1) {
+					return $author$project$Video$Video$Saved;
+				}, $gren_lang$browser$LocalStorage$set$($author$project$Video$Video$skipWarningKey, '1')) : $gren_lang$core$Platform$Cmd$none, model: _Utils_update(model, { prompt: $gren_lang$core$Maybe$Nothing, skipWarning: model.skipWarning || dontAsk }) };
+		case 'Cancel':
+			return { command: $gren_lang$core$Platform$Cmd$none, model: _Utils_update(model, { prompt: $gren_lang$core$Maybe$Nothing }) };
+		default:
+			return { command: $gren_lang$core$Platform$Cmd$none, model: model };
 	}
 };
-var $gren_lang$url$Url$addPort = F2($gren_lang$url$Url$addPort$);
-var $gren_lang$url$Url$addPrefixed$ = function(prefix, maybeSegment, starter) {
-	if (maybeSegment.$ === 'Nothing') {
-		return starter;
-	} else {
-		var segment = maybeSegment.a;
-		return _Utils_ap(starter, _Utils_ap(prefix, segment));
-	}
-};
-var $gren_lang$url$Url$addPrefixed = F3($gren_lang$url$Url$addPrefixed$);
-var $gren_lang$url$Url$toString = function(url) {
-	var http = function () {
-		var _v0 = url.protocol;
-		if (_v0.$ === 'Http') {
-			return 'http://';
-		} else {
-			return 'https://';
-		}
-	}();
-	return $gren_lang$url$Url$addPrefixed$('#', url.fragment, $gren_lang$url$Url$addPrefixed$('?', url.query, _Utils_ap($gren_lang$url$Url$addPort$(url.port_, _Utils_ap(http, url.host)), url.path)));
-};
+var $author$project$Video$Video$update = F2($author$project$Video$Video$update$);
 var $author$project$Main$update$ = function(msg, model) {
 	switch (msg.$) {
 		case 'GradesLoaded':
@@ -6396,7 +6432,7 @@ var $author$project$Main$update$ = function(msg, model) {
 					}
 				}();
 				var loaded = _Utils_update(model, { gradeId: gradeId, grades: grades, status: $author$project$Types$Ready });
-				return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, $author$project$Types$Still, loaded));
+				return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, $author$project$Slide$Slide$Still, loaded));
 			}
 		case 'SelectGrade':
 			var id = msg.a;
@@ -6412,12 +6448,12 @@ var $author$project$Main$update$ = function(msg, model) {
 		case 'StartSession':
 			var waza = msg.a;
 			var started = $author$project$Main$startSession$(model, waza);
-			return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$($author$project$Types$Forward, started.model) });
+			return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, started.model) });
 		case 'Next':
 			var _v2 = model.screen;
 			if (_v2.$ === 'Quiz') {
 				var quiz = _v2.a;
-				return $gren_lang$core$Array$isEmpty(quiz.pool) ? { command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Types$Forward, _Utils_update(model, { screen: $author$project$Types$Quiz(_Utils_update(quiz, { current: $gren_lang$core$Maybe$Nothing, done: true })) })) } : { command: $author$project$Main$roll, model: model };
+				return $gren_lang$core$Array$isEmpty(quiz.pool) ? { command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Quiz(_Utils_update(quiz, { current: $gren_lang$core$Maybe$Nothing, done: true })) })) } : { command: $author$project$Main$roll, model: model };
 			} else {
 				return $author$project$Main$stay(model);
 			}
@@ -6430,7 +6466,7 @@ var $author$project$Main$update$ = function(msg, model) {
 					return $author$project$Main$stay(model);
 				} else {
 					var index = $author$project$Shared$Grade$pickIndex$(quiz.pool, random);
-					return { command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Types$Forward, _Utils_update(model, { screen: $author$project$Types$Quiz(_Utils_update(quiz, { current: A2($gren_lang$core$Array$get, index, quiz.pool), pool: $gren_lang$core$Array$remove$(index, quiz.pool) })) })) };
+					return { command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Quiz(_Utils_update(quiz, { current: A2($gren_lang$core$Array$get, index, quiz.pool), pool: $gren_lang$core$Array$remove$(index, quiz.pool) })) })) };
 				}
 			} else {
 				return $author$project$Main$stay(model);
@@ -6439,7 +6475,7 @@ var $author$project$Main$update$ = function(msg, model) {
 			var _v4 = model.screen;
 			if (_v4.$ === 'Quiz') {
 				var quiz = _v4.a;
-				return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Types$Forward, _Utils_update(model, { screen: $author$project$Types$Program({ level: $author$project$Shared$Route$Attacks, waza: quiz.waza }) })) });
+				return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Program({ level: $author$project$Shared$Route$Attacks, waza: quiz.waza }) })) });
 			} else {
 				return $author$project$Main$stay(model);
 			}
@@ -6454,7 +6490,7 @@ var $author$project$Main$update$ = function(msg, model) {
 						var given = _v6.a;
 						return given;
 					} else {
-						return (_Utils_cmp($author$project$Main$levelDepth(target.to), $author$project$Main$levelDepth(program.level)) < 0) ? $author$project$Types$Back : $author$project$Types$Forward;
+						return (_Utils_cmp($author$project$Main$levelDepth(target.to), $author$project$Main$levelDepth(program.level)) < 0) ? $author$project$Slide$Slide$Back : $author$project$Slide$Slide$Forward;
 					}
 				}();
 				return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$(direction, _Utils_update(model, { screen: $author$project$Types$Program(_Utils_update(program, { level: target.to })) })) });
@@ -6466,7 +6502,7 @@ var $author$project$Main$update$ = function(msg, model) {
 			if (_v7.$ === 'Program') {
 				var program = _v7.a;
 				var started = $author$project$Main$startSession$(model, program.waza);
-				return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$($author$project$Types$Back, started.model) });
+				return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$($author$project$Slide$Slide$Back, started.model) });
 			} else {
 				return $author$project$Main$stay(model);
 			}
@@ -6476,9 +6512,9 @@ var $author$project$Main$update$ = function(msg, model) {
 				case 'Home':
 					return $author$project$Main$stay(model);
 				case 'Quiz':
-					return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Types$Forward, _Utils_update(model, { screen: $author$project$Types$Home })) });
+					return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Home })) });
 				default:
-					return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Types$Back, _Utils_update(model, { screen: $author$project$Types$Home })) });
+					return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Back, _Utils_update(model, { screen: $author$project$Types$Home })) });
 			}
 		case 'UrlRequested':
 			if (msg.a.$ === 'Internal') {
@@ -6494,60 +6530,30 @@ var $author$project$Main$update$ = function(msg, model) {
 			if ((!_Utils_eq(model.status, $author$project$Types$Ready)) || _Utils_eq(route, $author$project$Types$routeOf(model))) {
 				return $author$project$Main$stay(model);
 			} else {
-				var direction = (_Utils_cmp($author$project$Shared$Route$depth(route), $author$project$Shared$Route$depth($author$project$Types$routeOf(model))) < 0) ? $author$project$Types$Back : $author$project$Types$Forward;
+				var direction = (_Utils_cmp($author$project$Shared$Route$depth(route), $author$project$Shared$Route$depth($author$project$Types$routeOf(model))) < 0) ? $author$project$Slide$Slide$Back : $author$project$Slide$Slide$Forward;
 				return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, direction, model));
 			}
-		case 'AskVideo':
-			var url = msg.a;
-			return $author$project$Main$stay(_Utils_update(model, { videoPrompt: $gren_lang$core$Maybe$Just({ dontAsk: false, url: url }) }));
-		case 'SetDontAsk':
-			var checked = msg.a;
-			return $author$project$Main$stay(_Utils_update(model, { videoPrompt: $gren_lang$core$Maybe$map$(function(prompt) {
-							return _Utils_update(prompt, { dontAsk: checked });
-						}, model.videoPrompt) }));
-		case 'ConfirmVideo':
-			var dontAsk = $gren_lang$core$Maybe$withDefault$(false, $gren_lang$core$Maybe$map$(function ($) {
-						return $.dontAsk;
-					}, model.videoPrompt));
-			return { command: dontAsk ? $gren_lang$core$Task$attempt$(function(_v9) {
-					return $author$project$Types$NoOp;
-				}, $gren_lang$browser$LocalStorage$set$($author$project$Main$skipVideoWarningKey, '1')) : $gren_lang$core$Platform$Cmd$none, model: _Utils_update(model, { skipVideoWarning: model.skipVideoWarning || dontAsk, videoPrompt: $gren_lang$core$Maybe$Nothing }) };
-		case 'CancelVideo':
-			return $author$project$Main$stay(_Utils_update(model, { videoPrompt: $gren_lang$core$Maybe$Nothing }));
+		case 'VideoMsg':
+			var videoMsg = msg.a;
+			var result = $author$project$Video$Video$update$(videoMsg, model.video);
+			return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$VideoMsg, result.command), model: _Utils_update(model, { video: result.model }) };
 		default:
 			return $author$project$Main$stay(model);
 	}
 };
 var $author$project$Main$update = F2($author$project$Main$update$);
+var $gren_lang$browser$VirtualDom$map = _VirtualDom_map;
+var $gren_lang$browser$Html$map = $gren_lang$browser$VirtualDom$map;
+var $author$project$Video$Video$Cancel = { $: 'Cancel' };
+var $author$project$Video$Video$Confirm = { $: 'Confirm' };
+var $author$project$Video$Video$SetDontAsk = function (a) {
+	return { $: 'SetDontAsk', a: a };
+};
 var $gren_lang$browser$VirtualDom$node = function(tag) {
 	return _VirtualDom_node(_VirtualDom_noScript(tag));
 };
 var $gren_lang$browser$Html$node = $gren_lang$browser$VirtualDom$node;
-var $gren_lang$browser$Html$main_ = $gren_lang$browser$Html$node('main');
 var $gren_lang$browser$Html$a = $gren_lang$browser$Html$node('a');
-var $gren_lang$browser$Html$footer = $gren_lang$browser$Html$node('footer');
-var $gren_lang$browser$VirtualDom$property$ = function(key, value) {
-	return A2(_VirtualDom_property, _VirtualDom_noInnerHtmlOrFormAction(key), _VirtualDom_noJavaScriptOrHtmlUri(value));
-};
-var $gren_lang$browser$VirtualDom$property = F2($gren_lang$browser$VirtualDom$property$);
-var $gren_lang$browser$Html$Attributes$property = $gren_lang$browser$VirtualDom$property;
-var $gren_lang$core$Json$Encode$string = _Json_wrap;
-var $gren_lang$browser$Html$Attributes$stringProperty$ = function(key, string) {
-	return A2($gren_lang$browser$Html$Attributes$property, key, $gren_lang$core$Json$Encode$string(string));
-};
-var $gren_lang$browser$Html$Attributes$stringProperty = F2($gren_lang$browser$Html$Attributes$stringProperty$);
-var $gren_lang$browser$Html$Attributes$href = function(url) {
-	return $gren_lang$browser$Html$Attributes$stringProperty$('href', url);
-};
-var $gren_lang$browser$Html$p = $gren_lang$browser$Html$node('p');
-var $gren_lang$browser$VirtualDom$text = _VirtualDom_text;
-var $gren_lang$browser$Html$text = $gren_lang$browser$VirtualDom$text;
-var $author$project$View$pageFooter = A2($gren_lang$browser$Html$footer, [  ], [ A2($gren_lang$browser$Html$p, [  ], [ $gren_lang$browser$Html$text('© 2026 Aïkido Trainer. Tous droits réservés.') ]), A2($gren_lang$browser$Html$p, [  ], [ $gren_lang$browser$Html$text('Développé par amour de l\'Aïkido 🙏') ]), A2($gren_lang$browser$Html$p, [  ], [ A2($gren_lang$browser$Html$a, [ $gren_lang$browser$Html$Attributes$href('manual.html') ], [ $gren_lang$browser$Html$text('Manuel d\'utilisation') ]) ]) ]);
-var $author$project$Types$CancelVideo = { $: 'CancelVideo' };
-var $author$project$Types$ConfirmVideo = { $: 'ConfirmVideo' };
-var $author$project$Types$SetDontAsk = function (a) {
-	return { $: 'SetDontAsk', a: a };
-};
 var $gren_lang$browser$VirtualDom$attribute$ = function(key, value) {
 	return A2(_VirtualDom_attribute, _VirtualDom_noOnOrFormAction(key), _VirtualDom_noJavaScriptOrHtmlUri(value));
 };
@@ -6555,13 +6561,26 @@ var $gren_lang$browser$VirtualDom$attribute = F2($gren_lang$browser$VirtualDom$a
 var $gren_lang$browser$Html$Attributes$attribute = $gren_lang$browser$VirtualDom$attribute;
 var $gren_lang$browser$Html$button = $gren_lang$browser$Html$node('button');
 var $gren_lang$core$Json$Encode$bool = _Json_wrap;
+var $gren_lang$browser$VirtualDom$property$ = function(key, value) {
+	return A2(_VirtualDom_property, _VirtualDom_noInnerHtmlOrFormAction(key), _VirtualDom_noJavaScriptOrHtmlUri(value));
+};
+var $gren_lang$browser$VirtualDom$property = F2($gren_lang$browser$VirtualDom$property$);
+var $gren_lang$browser$Html$Attributes$property = $gren_lang$browser$VirtualDom$property;
 var $gren_lang$browser$Html$Attributes$boolProperty$ = function(key, bool) {
 	return A2($gren_lang$browser$Html$Attributes$property, key, $gren_lang$core$Json$Encode$bool(bool));
 };
 var $gren_lang$browser$Html$Attributes$boolProperty = F2($gren_lang$browser$Html$Attributes$boolProperty$);
 var $gren_lang$browser$Html$Attributes$checked = $gren_lang$browser$Html$Attributes$boolProperty('checked');
+var $gren_lang$core$Json$Encode$string = _Json_wrap;
+var $gren_lang$browser$Html$Attributes$stringProperty$ = function(key, string) {
+	return A2($gren_lang$browser$Html$Attributes$property, key, $gren_lang$core$Json$Encode$string(string));
+};
+var $gren_lang$browser$Html$Attributes$stringProperty = F2($gren_lang$browser$Html$Attributes$stringProperty$);
 var $gren_lang$browser$Html$Attributes$class = $gren_lang$browser$Html$Attributes$stringProperty('className');
 var $gren_lang$browser$Html$div = $gren_lang$browser$Html$node('div');
+var $gren_lang$browser$Html$Attributes$href = function(url) {
+	return $gren_lang$browser$Html$Attributes$stringProperty$('href', url);
+};
 var $gren_lang$browser$Html$Attributes$id = $gren_lang$browser$Html$Attributes$stringProperty('id');
 var $gren_lang$browser$Html$input = $gren_lang$browser$Html$node('input');
 var $gren_lang$browser$Html$label = $gren_lang$browser$Html$node('label');
@@ -6585,20 +6604,30 @@ var $gren_lang$browser$Html$Events$onCheck = function(tagger) {
 var $gren_lang$browser$Html$Events$onClick = function(msg) {
 	return $gren_lang$browser$Html$Events$on$('click', $gren_lang$core$Json$Decode$succeed(msg));
 };
+var $gren_lang$browser$Html$p = $gren_lang$browser$Html$node('p');
 var $gren_lang$browser$Html$Attributes$rel = $gren_lang$browser$Html$Attributes$attribute('rel');
 var $gren_lang$browser$Html$Attributes$target = $gren_lang$browser$Html$Attributes$stringProperty('target');
+var $gren_lang$browser$VirtualDom$text = _VirtualDom_text;
+var $gren_lang$browser$Html$text = $gren_lang$browser$VirtualDom$text;
 var $gren_lang$browser$Html$Attributes$type_ = $gren_lang$browser$Html$Attributes$stringProperty('type');
-var $author$project$View$videoModal = function(model) {
-	var _v0 = model.videoPrompt;
+var $author$project$Video$View$modal = function(model) {
+	var _v0 = model.prompt;
 	if (_v0.$ === 'Nothing') {
 		return $gren_lang$browser$Html$text('');
 	} else {
 		var prompt = _v0.a;
-		return A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('video-modal'), $gren_lang$browser$Html$Attributes$class('modal-backdrop') ], [ A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('modal'), A2($gren_lang$browser$Html$Attributes$attribute, 'role', 'dialog'), A2($gren_lang$browser$Html$Attributes$attribute, 'aria-modal', 'true'), A2($gren_lang$browser$Html$Attributes$attribute, 'aria-labelledby', 'video-modal-text') ], [ A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$id('video-modal-text') ], [ $gren_lang$browser$Html$text('Attention la technique de la vidéo n\'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?') ]), A2($gren_lang$browser$Html$label, [ $gren_lang$browser$Html$Attributes$class('field') ], [ A2($gren_lang$browser$Html$input, [ $gren_lang$browser$Html$Attributes$type_('checkbox'), $gren_lang$browser$Html$Attributes$id('video-dont-ask'), $gren_lang$browser$Html$Attributes$checked(prompt.dontAsk), $gren_lang$browser$Html$Events$onCheck($author$project$Types$SetDontAsk) ], [  ]), $gren_lang$browser$Html$text(' Ne plus afficher ce message') ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('buttons') ], [ A2($gren_lang$browser$Html$a, [ $gren_lang$browser$Html$Attributes$id('video-confirm'), $gren_lang$browser$Html$Attributes$class('button'), $gren_lang$browser$Html$Attributes$href(prompt.url), $gren_lang$browser$Html$Attributes$target('_blank'), $gren_lang$browser$Html$Attributes$rel('noopener'), $gren_lang$browser$Html$Events$onClick($author$project$Types$ConfirmVideo) ], [ $gren_lang$browser$Html$text('Voir la vidéo') ]), A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('video-cancel'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$CancelVideo) ], [ $gren_lang$browser$Html$text('Annuler') ]) ]) ]) ]);
+		return A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('video-modal'), $gren_lang$browser$Html$Attributes$class('modal-backdrop') ], [ A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('modal'), A2($gren_lang$browser$Html$Attributes$attribute, 'role', 'dialog'), A2($gren_lang$browser$Html$Attributes$attribute, 'aria-modal', 'true'), A2($gren_lang$browser$Html$Attributes$attribute, 'aria-labelledby', 'video-modal-text') ], [ A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$id('video-modal-text') ], [ $gren_lang$browser$Html$text('Attention la technique de la vidéo n\'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?') ]), A2($gren_lang$browser$Html$label, [ $gren_lang$browser$Html$Attributes$class('field') ], [ A2($gren_lang$browser$Html$input, [ $gren_lang$browser$Html$Attributes$type_('checkbox'), $gren_lang$browser$Html$Attributes$id('video-dont-ask'), $gren_lang$browser$Html$Attributes$checked(prompt.dontAsk), $gren_lang$browser$Html$Events$onCheck($author$project$Video$Video$SetDontAsk) ], [  ]), $gren_lang$browser$Html$text(' Ne plus afficher ce message') ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('buttons') ], [ A2($gren_lang$browser$Html$a, [ $gren_lang$browser$Html$Attributes$id('video-confirm'), $gren_lang$browser$Html$Attributes$class('button'), $gren_lang$browser$Html$Attributes$href(prompt.url), $gren_lang$browser$Html$Attributes$target('_blank'), $gren_lang$browser$Html$Attributes$rel('noopener'), $gren_lang$browser$Html$Events$onClick($author$project$Video$Video$Confirm) ], [ $gren_lang$browser$Html$text('Voir la vidéo') ]), A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('video-cancel'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Video$Video$Cancel) ], [ $gren_lang$browser$Html$text('Annuler') ]) ]) ]) ]);
 	}
 };
+var $gren_lang$browser$Html$main_ = $gren_lang$browser$Html$node('main');
+var $gren_lang$browser$Html$footer = $gren_lang$browser$Html$node('footer');
+var $author$project$Layout$Page$pageFooter = A2($gren_lang$browser$Html$footer, [  ], [ A2($gren_lang$browser$Html$p, [  ], [ $gren_lang$browser$Html$text('© 2026 Aïkido Trainer. Tous droits réservés.') ]), A2($gren_lang$browser$Html$p, [  ], [ $gren_lang$browser$Html$text('Développé par amour de l\'Aïkido 🙏') ]), A2($gren_lang$browser$Html$p, [  ], [ A2($gren_lang$browser$Html$a, [ $gren_lang$browser$Html$Attributes$href('manual.html') ], [ $gren_lang$browser$Html$text('Manuel d\'utilisation') ]) ]) ]);
+var $author$project$Layout$Page$page$ = function(videoModal, content) {
+	return A2($gren_lang$browser$Html$main_, [  ], A2($gren_lang$core$Array$prepend, content, [ $author$project$Layout$Page$pageFooter, videoModal ]));
+};
+var $author$project$Layout$Page$page = F2($author$project$Layout$Page$page$);
 var $author$project$View$page$ = function(model, content) {
-	return A2($gren_lang$browser$Html$main_, [  ], A2($gren_lang$core$Array$prepend, content, [ $author$project$View$pageFooter, $author$project$View$videoModal(model) ]));
+	return $author$project$Layout$Page$page$(A2($gren_lang$browser$Html$map, $author$project$Types$VideoMsg, $author$project$Video$View$modal(model.video)), content);
 };
 var $author$project$View$page = F2($author$project$View$page$);
 var $author$project$Types$FilterNew = function (a) {
@@ -6652,6 +6681,21 @@ var $author$project$View$homeView = function(model) {
 	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('home') ], [ $author$project$View$catalogView(model), $author$project$View$wazaPicker(model) ]);
 };
 var $author$project$Types$GoHome = { $: 'GoHome' };
+var $author$project$Video$Video$Ask = function (a) {
+	return { $: 'Ask', a: a };
+};
+var $gren_lang$browser$VirtualDom$MayPreventDefault = function (a) {
+	return { $: 'MayPreventDefault', a: a };
+};
+var $gren_lang$browser$Html$Events$preventDefaultOn$ = function(event, decoder) {
+	return A2($gren_lang$browser$VirtualDom$on, event, $gren_lang$browser$VirtualDom$MayPreventDefault(decoder));
+};
+var $gren_lang$browser$Html$Events$preventDefaultOn = F2($gren_lang$browser$Html$Events$preventDefaultOn$);
+var $author$project$Video$View$anchor$ = function(config, anchorId, url) {
+	var attributes = [ $gren_lang$browser$Html$Attributes$id(anchorId), $gren_lang$browser$Html$Attributes$class('video'), $gren_lang$browser$Html$Attributes$href(url), $gren_lang$browser$Html$Attributes$target('_blank'), $gren_lang$browser$Html$Attributes$rel('noopener') ];
+	return A2($gren_lang$browser$Html$a, config.skipWarning ? attributes : $gren_lang$core$Array$pushLast$($gren_lang$browser$Html$Events$preventDefaultOn$('click', $gren_lang$core$Json$Decode$succeed({ message: config.onAsk(url), preventDefault: true })), attributes), [ $gren_lang$browser$Html$text('▶ Voir la vidéo') ]);
+};
+var $author$project$Video$View$anchor = F3($author$project$Video$View$anchor$);
 var $author$project$Shared$Grade$badgesOf = function(technique) {
 	return $gren_lang$core$String$trim(A2($gren_lang$core$String$join, ' ', [ technique.isNew ? '🆕' : '', technique.isWarning ? '⚠️' : '' ]));
 };
@@ -6671,24 +6715,9 @@ var $gren_lang$browser$VirtualDom$keyedNode = function(tag) {
 var $gren_lang$browser$Html$Keyed$node = $gren_lang$browser$VirtualDom$keyedNode;
 var $gren_lang$browser$VirtualDom$style = _VirtualDom_style;
 var $gren_lang$browser$Html$Attributes$style = $gren_lang$browser$VirtualDom$style;
-var $author$project$Types$AskVideo = function (a) {
-	return { $: 'AskVideo', a: a };
-};
-var $gren_lang$browser$VirtualDom$MayPreventDefault = function (a) {
-	return { $: 'MayPreventDefault', a: a };
-};
-var $gren_lang$browser$Html$Events$preventDefaultOn$ = function(event, decoder) {
-	return A2($gren_lang$browser$VirtualDom$on, event, $gren_lang$browser$VirtualDom$MayPreventDefault(decoder));
-};
-var $gren_lang$browser$Html$Events$preventDefaultOn = F2($gren_lang$browser$Html$Events$preventDefaultOn$);
-var $author$project$View$videoAnchor$ = function(model, anchorId, url) {
-	var attributes = [ $gren_lang$browser$Html$Attributes$id(anchorId), $gren_lang$browser$Html$Attributes$class('video'), $gren_lang$browser$Html$Attributes$href(url), $gren_lang$browser$Html$Attributes$target('_blank'), $gren_lang$browser$Html$Attributes$rel('noopener') ];
-	return A2($gren_lang$browser$Html$a, model.skipVideoWarning ? attributes : $gren_lang$core$Array$pushLast$($gren_lang$browser$Html$Events$preventDefaultOn$('click', $gren_lang$core$Json$Decode$succeed({ message: $author$project$Types$AskVideo(url), preventDefault: true })), attributes), [ $gren_lang$browser$Html$text('▶ Voir la vidéo') ]);
-};
-var $author$project$View$videoAnchor = F3($author$project$View$videoAnchor$);
-var $author$project$View$card$ = function(model, fields) {
+var $author$project$Layout$Card$view$ = function(config, fields) {
 	var slideClass = function () {
-		var _v2 = model.slide.direction;
+		var _v2 = config.slide.direction;
 		switch (_v2.$) {
 			case 'Back':
 				return ' slide-back';
@@ -6698,14 +6727,14 @@ var $author$project$View$card$ = function(model, fields) {
 				return '';
 		}
 	}();
-	var found = (fields.technique === '') ? $gren_lang$core$Maybe$Nothing : $author$project$Shared$Grade$findTechnique$($author$project$Types$currentData(model), fields.waza, fields.attack, fields.technique);
+	var found = (fields.technique === '') ? $gren_lang$core$Maybe$Nothing : $author$project$Shared$Grade$findTechnique$(config.data, fields.waza, fields.attack, fields.technique);
 	var videoLink = function () {
 		var _v1 = $gren_lang$core$Maybe$andThen$(function ($) {
 				return $.video;
 			}, found);
 		if (_v1.$ === 'Just') {
 			var url = _v1.a;
-			return [ $author$project$View$videoAnchor$(model, fields.prefix + '-video', url) ];
+			return [ $author$project$Video$View$anchor$({ onAsk: config.onAskVideo, skipWarning: config.skipVideoWarning }, fields.prefix + '-video', url) ];
 		} else {
 			return [  ];
 		}
@@ -6724,11 +6753,16 @@ var $author$project$View$card$ = function(model, fields) {
 	var cell = F3(function(suffix, name, content) {
 			return A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id(fields.prefix + ('-' + suffix)), $gren_lang$browser$Html$Attributes$class(name) ], [ $gren_lang$browser$Html$text(content) ]);
 		});
-	return A3($gren_lang$browser$Html$Keyed$node, 'div', [ A2($gren_lang$browser$Html$Attributes$style, 'display', 'contents') ], [ { key: $gren_lang$core$String$fromInt(model.slide.count), node: A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id(fields.id), $gren_lang$browser$Html$Attributes$class('card' + slideClass) ], A2($gren_lang$core$Array$prepend, [ A3(cell, 'waza', 'waza', fields.waza), A3(cell, 'attack', 'attack', fields.attack), A3(cell, 'technique', 'technique', fields.technique), A3(cell, 'form', 'form', formText), A3(cell, 'badges', 'badges', $gren_lang$core$Maybe$withDefault$('', $gren_lang$core$Maybe$map$($author$project$Shared$Grade$badgesOf, found))), A3(cell, 'note', 'note', $gren_lang$core$Maybe$withDefault$('', $gren_lang$core$Maybe$andThen$(function ($) {
+	return A3($gren_lang$browser$Html$Keyed$node, 'div', [ A2($gren_lang$browser$Html$Attributes$style, 'display', 'contents') ], [ { key: $gren_lang$core$String$fromInt(config.slide.count), node: A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id(fields.id), $gren_lang$browser$Html$Attributes$class('card' + slideClass) ], A2($gren_lang$core$Array$prepend, [ A3(cell, 'waza', 'waza', fields.waza), A3(cell, 'attack', 'attack', fields.attack), A3(cell, 'technique', 'technique', fields.technique), A3(cell, 'form', 'form', formText), A3(cell, 'badges', 'badges', $gren_lang$core$Maybe$withDefault$('', $gren_lang$core$Maybe$map$($author$project$Shared$Grade$badgesOf, found))), A3(cell, 'note', 'note', $gren_lang$core$Maybe$withDefault$('', $gren_lang$core$Maybe$andThen$(function ($) {
 								return $.note;
 							}, found))) ], videoLink)) } ]);
 };
-var $author$project$View$card = F2($author$project$View$card$);
+var $author$project$Layout$Card$view = F2($author$project$Layout$Card$view$);
+var $author$project$View$card = function(model) {
+	return $author$project$Layout$Card$view({ data: $author$project$Types$currentData(model), onAskVideo: function(url) {
+			return $author$project$Types$VideoMsg($author$project$Video$Video$Ask(url));
+		}, skipVideoWarning: model.video.skipWarning, slide: model.slide });
+};
 var $gren_lang$browser$Html$h2 = $gren_lang$browser$Html$node('h2');
 var $author$project$Types$CloseProgram = { $: 'CloseProgram' };
 var $author$project$Types$Navigate = function (a) {
@@ -6796,7 +6830,7 @@ var $author$project$View$levelOf$ = function(model, program) {
 			var neighbour = function(step) {
 				return (count > 1) ? A2($gren_lang$core$Array$get, ((position + step) + count) - (count * ((((position + step) + count) / count) | 0)), siblings) : $gren_lang$core$Maybe$Nothing;
 			};
-			return { actions: $gren_lang$core$Maybe$Just(A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('pager') ], [ A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$class('hint center') ], [ $gren_lang$browser$Html$text($gren_lang$core$String$fromInt(position + 1) + (' / ' + $gren_lang$core$String$fromInt(count))) ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('pager-buttons') ], [ A4(pagerButton, 'prog-prev', 'Précédente', neighbour(-1), $author$project$Types$Back), A4(pagerButton, 'prog-next', 'Suivante', neighbour(1), $author$project$Types$Forward) ]) ])), back: '← ' + selected.attack, backMessage: $author$project$Types$Navigate({ direction: $gren_lang$core$Maybe$Nothing, to: $author$project$Shared$Route$Techniques(selected.attack) }), fields: { attack: selected.attack, technique: selected.technique, waza: waza }, items: A2($gren_lang$core$Array$map, function(other) {
+			return { actions: $gren_lang$core$Maybe$Just(A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('pager') ], [ A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$class('hint center') ], [ $gren_lang$browser$Html$text($gren_lang$core$String$fromInt(position + 1) + (' / ' + $gren_lang$core$String$fromInt(count))) ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('pager-buttons') ], [ A4(pagerButton, 'prog-prev', 'Précédente', neighbour(-1), $author$project$Slide$Slide$Back), A4(pagerButton, 'prog-next', 'Suivante', neighbour(1), $author$project$Slide$Slide$Forward) ]) ])), back: '← ' + selected.attack, backMessage: $author$project$Types$Navigate({ direction: $gren_lang$core$Maybe$Nothing, to: $author$project$Shared$Route$Techniques(selected.attack) }), fields: { attack: selected.attack, technique: selected.technique, waza: waza }, items: A2($gren_lang$core$Array$map, function(other) {
 					return $author$project$View$item$($author$project$View$withBadges$(other.attack, other.technique), $author$project$Shared$Route$TechniqueCard({ attack: other.attack, technique: other.technique.name }));
 				}, others), sub: $gren_lang$core$Array$isEmpty(others) ? 'Aucune autre attaque pour cette technique.' : '', title: 'Même technique, autres attaques ↓' };
 	}
@@ -6806,10 +6840,13 @@ var $gren_lang$core$Array$singleton = function(a) {
 	return [ a ];
 };
 var $gren_lang$browser$Html$h1 = $gren_lang$browser$Html$node('h1');
-var $author$project$View$title = A2($gren_lang$browser$Html$h1, [ $gren_lang$browser$Html$Attributes$id('title'), $gren_lang$browser$Html$Events$onClick($author$project$Types$GoHome) ], [ $gren_lang$browser$Html$text('合気道 Aïkido') ]);
+var $author$project$Layout$Page$title = function(onClick) {
+	return A2($gren_lang$browser$Html$h1, [ $gren_lang$browser$Html$Attributes$id('title'), $gren_lang$browser$Html$Events$onClick(onClick) ], [ $gren_lang$browser$Html$text('合気道 Aïkido') ]);
+};
+var $author$project$View$title = $author$project$Layout$Page$title($author$project$Types$GoHome);
 var $author$project$View$programView$ = function(model, program) {
 	var level = $author$project$View$levelOf$(model, program);
-	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('program') ], [ A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class(_Utils_eq(level.actions, $gren_lang$core$Maybe$Nothing) ? 'screen' : 'screen full') ], A2($gren_lang$core$Array$prepend, [ $author$project$View$title, A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('home-btn'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$GoHome) ], [ $gren_lang$browser$Html$text('Retour à l\'accueil') ]), A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('prog-back'), $gren_lang$browser$Html$Attributes$class('secondary back'), $gren_lang$browser$Html$Events$onClick(level.backMessage) ], [ $gren_lang$browser$Html$text(level.back) ]), $author$project$View$card$(model, { attack: level.fields.attack, form: $gren_lang$core$Maybe$Nothing, id: 'prog-card', prefix: 'prog', technique: level.fields.technique, waza: level.fields.waza }) ], A2($gren_lang$core$Array$prepend, $gren_lang$core$Maybe$withDefault$([  ], $gren_lang$core$Maybe$map$($gren_lang$core$Array$singleton, level.actions)), [ A2($gren_lang$browser$Html$h2, [ $gren_lang$browser$Html$Attributes$id('prog-title') ], [ $gren_lang$browser$Html$text(level.title) ]) ]))), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('group') ], [ A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$id('prog-sub'), $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text(level.sub) ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('prog-list'), $gren_lang$browser$Html$Attributes$class('buttons') ], level.items) ]) ]);
+	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('program') ], [ A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class(_Utils_eq(level.actions, $gren_lang$core$Maybe$Nothing) ? 'screen' : 'screen full') ], A2($gren_lang$core$Array$prepend, [ $author$project$View$title, A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('home-btn'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$GoHome) ], [ $gren_lang$browser$Html$text('Retour à l\'accueil') ]), A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('prog-back'), $gren_lang$browser$Html$Attributes$class('secondary back'), $gren_lang$browser$Html$Events$onClick(level.backMessage) ], [ $gren_lang$browser$Html$text(level.back) ]), A2($author$project$View$card, model, { attack: level.fields.attack, form: $gren_lang$core$Maybe$Nothing, id: 'prog-card', prefix: 'prog', technique: level.fields.technique, waza: level.fields.waza }) ], A2($gren_lang$core$Array$prepend, $gren_lang$core$Maybe$withDefault$([  ], $gren_lang$core$Maybe$map$($gren_lang$core$Array$singleton, level.actions)), [ A2($gren_lang$browser$Html$h2, [ $gren_lang$browser$Html$Attributes$id('prog-title') ], [ $gren_lang$browser$Html$text(level.title) ]) ]))), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('group') ], [ A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$id('prog-sub'), $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text(level.sub) ]), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('prog-list'), $gren_lang$browser$Html$Attributes$class('buttons') ], level.items) ]) ]);
 };
 var $author$project$View$programView = F2($author$project$View$programView$);
 var $author$project$Types$Next = { $: 'Next' };
@@ -6825,7 +6862,7 @@ var $author$project$View$quizView$ = function(model, quiz) {
 			return { attack: '', form: $gren_lang$core$Maybe$Just(''), technique: '', waza: '' };
 		}
 	}();
-	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('quiz') ], [ A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('home-btn'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$GoHome) ], [ $gren_lang$browser$Html$text('Retour à l\'accueil') ]), A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$id('progress'), $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text(quiz.waza + (' : ' + ($gren_lang$core$String$fromInt(quiz.total - $gren_lang$core$Array$length(quiz.pool)) + (' / ' + $gren_lang$core$String$fromInt(quiz.total))))) ]), A2($gren_lang$browser$Html$h3, [ $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text('Connais-tu cette technique ?') ]), quiz.done ? A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('done') ], [ $gren_lang$browser$Html$text('Waza terminé 🎉') ]) : $author$project$View$card$(model, { attack: shown.attack, form: shown.form, id: 'card', prefix: 'card', technique: shown.technique, waza: shown.waza }), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('buttons actions') ], A2($gren_lang$core$Array$prepend, quiz.done ? [  ] : [ A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('next'), $gren_lang$browser$Html$Events$onClick($author$project$Types$Next) ], [ $gren_lang$browser$Html$text('Technique suivante') ]) ], [ A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('prog-btn'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$OpenProgram) ], [ $gren_lang$browser$Html$text('Voir le programme') ]) ])) ]);
+	return A2($gren_lang$browser$Html$section, [ $gren_lang$browser$Html$Attributes$id('quiz') ], [ A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('home-btn'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$GoHome) ], [ $gren_lang$browser$Html$text('Retour à l\'accueil') ]), A2($gren_lang$browser$Html$p, [ $gren_lang$browser$Html$Attributes$id('progress'), $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text(quiz.waza + (' : ' + ($gren_lang$core$String$fromInt(quiz.total - $gren_lang$core$Array$length(quiz.pool)) + (' / ' + $gren_lang$core$String$fromInt(quiz.total))))) ]), A2($gren_lang$browser$Html$h3, [ $gren_lang$browser$Html$Attributes$class('hint') ], [ $gren_lang$browser$Html$text('Connais-tu cette technique ?') ]), quiz.done ? A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$id('done') ], [ $gren_lang$browser$Html$text('Waza terminé 🎉') ]) : A2($author$project$View$card, model, { attack: shown.attack, form: shown.form, id: 'card', prefix: 'card', technique: shown.technique, waza: shown.waza }), A2($gren_lang$browser$Html$div, [ $gren_lang$browser$Html$Attributes$class('buttons actions') ], A2($gren_lang$core$Array$prepend, quiz.done ? [  ] : [ A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('next'), $gren_lang$browser$Html$Events$onClick($author$project$Types$Next) ], [ $gren_lang$browser$Html$text('Technique suivante') ]) ], [ A2($gren_lang$browser$Html$button, [ $gren_lang$browser$Html$Attributes$id('prog-btn'), $gren_lang$browser$Html$Attributes$class('secondary'), $gren_lang$browser$Html$Events$onClick($author$project$Types$OpenProgram) ], [ $gren_lang$browser$Html$text('Voir le programme') ]) ])) ]);
 };
 var $author$project$View$quizView = F2($author$project$View$quizView$);
 var $author$project$View$screens = function(model) {

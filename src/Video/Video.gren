@@ -1,0 +1,67 @@
+module Video.Video exposing (Model, Msg(..), init, update)
+
+{-| Feature "video": confirmation modal before opening a video, and the preference not to be asked again.
+-}
+
+import LocalStorage
+import Task
+
+
+type alias Model =
+    { skipWarning : Bool -- persisted preference: open the videos without the confirmation
+    , prompt : Maybe { url : String, dontAsk : Bool } -- while the modal is open
+    }
+
+
+type Msg
+    = Ask String
+    | SetDontAsk Bool
+    | Confirm
+    | Cancel
+    | Saved
+
+
+skipWarningKey : String
+skipWarningKey =
+    "aikido.skipVideoWarning"
+
+
+init : Bool -> Model
+init skipWarning =
+    { skipWarning = skipWarning, prompt = Nothing }
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg }
+update msg model =
+    when msg is
+        Ask url ->
+            { model = { model | prompt = Just { url = url, dontAsk = False } }, command = Cmd.none }
+
+        SetDontAsk checked ->
+            { model = { model | prompt = Maybe.map (\prompt -> { prompt | dontAsk = checked }) model.prompt }
+            , command = Cmd.none
+            }
+
+        -- The link of the modal opens the video by itself: only the preference remains to be saved.
+        Confirm ->
+            let
+                dontAsk =
+                    model.prompt
+                        |> Maybe.map .dontAsk
+                        |> Maybe.withDefault False
+            in
+            { model = { model | prompt = Nothing, skipWarning = model.skipWarning || dontAsk }
+            , command =
+                if dontAsk then
+                    LocalStorage.set skipWarningKey "1"
+                        |> Task.attempt (\_ -> Saved)
+
+                else
+                    Cmd.none
+            }
+
+        Cancel ->
+            { model = { model | prompt = Nothing }, command = Cmd.none }
+
+        Saved ->
+            { model = model, command = Cmd.none }

@@ -1,0 +1,53 @@
+module Video.View exposing (anchor, modal)
+
+{-| The video link (shared by the cards) and the confirmation modal.
+-}
+
+import Html exposing (Html, a, button, div, input, label, p, text)
+import Html.Attributes as Attr exposing (class, id)
+import Html.Events as Events
+import Json.Decode as Decode
+import Video.Video as Video
+
+
+{-| Link to a video: it asks for confirmation first (`onAsk`), unless the user chose not to be asked again.
+-}
+anchor : { skipWarning : Bool, onAsk : String -> msg } -> String -> String -> Html msg
+anchor config anchorId url =
+    let
+        attributes =
+            [ id anchorId, class "video", Attr.href url, Attr.target "_blank", Attr.rel "noopener" ]
+    in
+    a
+        (if config.skipWarning then
+            attributes
+
+         else
+            Array.pushLast
+                (Events.preventDefaultOn "click" (Decode.succeed { message = config.onAsk url, preventDefault = True }))
+                attributes
+        )
+        [ text "▶ Voir la vidéo" ]
+
+
+modal : Video.Model -> Html Video.Msg
+modal model =
+    when model.prompt is
+        Nothing ->
+            text ""
+
+        Just prompt ->
+            div [ id "video-modal", class "modal-backdrop" ]
+                [ div [ class "modal", Attr.attribute "role" "dialog", Attr.attribute "aria-modal" "true", Attr.attribute "aria-labelledby" "video-modal-text" ]
+                    [ p [ id "video-modal-text" ] [ text "Attention la technique de la vidéo n'est peut-être pas exactement celle attendue lors de votre passage. Voulez-vous vraiment aller voir cette vidéo ?" ]
+                    , label [ class "field" ]
+                        [ input [ Attr.type_ "checkbox", id "video-dont-ask", Attr.checked prompt.dontAsk, Events.onCheck Video.SetDontAsk ] []
+                        , text " Ne plus afficher ce message"
+                        ]
+                    , div [ class "buttons" ]
+                        -- A link, so that the browser opens the video in a new tab by itself.
+                        [ a [ id "video-confirm", class "button", Attr.href prompt.url, Attr.target "_blank", Attr.rel "noopener", Events.onClick Video.Confirm ] [ text "Voir la vidéo" ]
+                        , button [ id "video-cancel", class "secondary", Events.onClick Video.Cancel ] [ text "Annuler" ]
+                        ]
+                    ]
+                ]

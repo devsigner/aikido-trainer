@@ -102,6 +102,7 @@ Tout l'état vit dans un seul `Model`, ne change que par des `Msg`, et l'afficha
 | `src/Types.gren` | `Model`, `Msg`, `Screen` (Home, Quiz, Program), `routeOf` |
 | `src/Shared/Grade.gren` | données des grades : décodeurs JSON, fusion (héritage), pool pondéré, tirage, tri |
 | `src/Shared/Route.gren` | lecture et écriture de l'URL `#/grade/waza/program/attack/technique` |
+| `src/Slide/`, `src/Video/`, `src/Layout/` | découpage par feature : direction des slides, vidéo (modèle, `update`, modale), page et carte partagées |
 | `src/View.gren` | toute la vue (mêmes ids et classes CSS que `style.css`) |
 
 - **Hasard** : `Random.generate Rolled` ; `Rolled` retire l'entrée tirée du pool (pas de répétition).

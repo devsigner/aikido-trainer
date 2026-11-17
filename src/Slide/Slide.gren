@@ -1,0 +1,27 @@
+module Slide.Slide exposing (Direction(..), Model, advance, init)
+
+{-| The cards slide in a direction when what they show changes.
+A new `count` makes the cards be created again, so their CSS animation restarts.
+-}
+
+
+type Direction
+    = Back
+    | Forward
+    | Still
+
+
+type alias Model =
+    { direction : Direction
+    , count : Int
+    }
+
+
+init : Model
+init =
+    { direction = Still, count = 0 }
+
+
+advance : Direction -> Model -> Model
+advance direction model =
+    { direction = direction, count = model.count + 1 }
