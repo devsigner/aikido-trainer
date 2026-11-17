@@ -103,10 +103,13 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
   return fun.a9 ? fun.a9(a, b, c, d, e, f, g, h, i) : fun(a)(b)(c)(d)(e)(f)(g)(h)(i);
 }
 
-var $author$project$Types$UrlChanged = function (a) {
+var $author$project$Types$NavigationMsg = function (a) {
+	return { $: 'NavigationMsg', a: a };
+};
+var $author$project$Navigation$Navigation$UrlChanged = function (a) {
 	return { $: 'UrlChanged', a: a };
 };
-var $author$project$Types$UrlRequested = function (a) {
+var $author$project$Navigation$Navigation$UrlRequested = function (a) {
 	return { $: 'UrlRequested', a: a };
 };
 
@@ -5660,11 +5663,6 @@ var $author$project$Catalog$Catalog$loadGrades = A2($gren_lang$core$Task$andThen
 					}, files)));
 	}, $author$project$Catalog$Catalog$fetchJson$('data/grades.json', $gren_lang$core$Json$Decode$array($author$project$Shared$Grade$gradeInfoDecoder)));
 var $author$project$Catalog$Catalog$init = { command: $gren_lang$core$Task$attempt$($author$project$Catalog$Catalog$Loaded, $author$project$Catalog$Catalog$loadGrades), model: { filters: { isNew: false, isWarning: false }, gradeId: '', grades: [  ], status: $author$project$Catalog$Catalog$Loading } };
-var $author$project$Slide$Slide$Still = { $: 'Still' };
-var $author$project$Slide$Slide$init = { count: 0, direction: $author$project$Slide$Slide$Still };
-var $author$project$Video$Video$init = function(skipWarning) {
-	return { prompt: $gren_lang$core$Maybe$Nothing, skipWarning: skipWarning };
-};
 var $author$project$Shared$Route$Attacks = { $: 'Attacks' };
 var $author$project$Shared$Route$TechniqueCard = function (a) {
 	return { $: 'TechniqueCard', a: a };
@@ -5715,14 +5713,25 @@ var $author$project$Shared$Route$parse = function(fragment) {
 			}
 		}()) : $gren_lang$core$Maybe$Nothing, waza: A2($gren_lang$core$Array$get, 1, parts) };
 };
+var $author$project$Navigation$Navigation$routeOf = function(url) {
+	return $author$project$Shared$Route$parse($gren_lang$core$Maybe$withDefault$('', url.fragment));
+};
+var $author$project$Navigation$Navigation$init$ = function(key, url) {
+	return { initialRoute: $author$project$Navigation$Navigation$routeOf(url), key: key };
+};
+var $author$project$Navigation$Navigation$init = F2($author$project$Navigation$Navigation$init$);
+var $author$project$Slide$Slide$Still = { $: 'Still' };
+var $author$project$Slide$Slide$init = { count: 0, direction: $author$project$Slide$Slide$Still };
+var $author$project$Video$Video$init = function(skipWarning) {
+	return { prompt: $gren_lang$core$Maybe$Nothing, skipWarning: skipWarning };
+};
 var $author$project$Main$init$ = function(flags, url, key) {
 	var catalog = $author$project$Catalog$Catalog$init;
-	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$CatalogMsg, catalog.command), model: { catalog: catalog.model, initialRoute: $author$project$Shared$Route$parse($gren_lang$core$Maybe$withDefault$('', url.fragment)), key: key, screen: $author$project$Types$Home, slide: $author$project$Slide$Slide$init, video: $author$project$Video$Video$init(flags.skipVideoWarning) } };
+	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$CatalogMsg, catalog.command), model: { catalog: catalog.model, navigation: $author$project$Navigation$Navigation$init$(key, url), screen: $author$project$Types$Home, slide: $author$project$Slide$Slide$init, video: $author$project$Video$Video$init(flags.skipVideoWarning) } };
 };
 var $author$project$Main$init = F3($author$project$Main$init$);
 var $gren_lang$core$Platform$Sub$batch = _Platform_batch;
 var $gren_lang$core$Platform$Sub$none = $gren_lang$core$Platform$Sub$batch([  ]);
-var $author$project$Slide$Slide$Back = { $: 'Back' };
 var $author$project$Slide$Slide$Forward = { $: 'Forward' };
 var $author$project$Types$Program = function (a) {
 	return { $: 'Program', a: a };
@@ -5736,26 +5745,19 @@ var $author$project$Types$Quiz = function (a) {
 var $author$project$Types$QuizMsg = function (a) {
 	return { $: 'QuizMsg', a: a };
 };
-var $author$project$Catalog$Catalog$Ready = { $: 'Ready' };
 var $author$project$Types$VideoMsg = function (a) {
 	return { $: 'VideoMsg', a: a };
 };
 var $gren_lang$core$Platform$Cmd$batch = _Platform_batch;
-var $gren_lang$browser$Browser$Navigation$replaceUrl = _Browser_replaceUrl;
-var $author$project$Types$routeOf = function(model) {
-	var base = { grade: $gren_lang$core$Maybe$Just(model.catalog.gradeId), program: $gren_lang$core$Maybe$Nothing, waza: $gren_lang$core$Maybe$Nothing };
-	var _v0 = model.screen;
-	switch (_v0.$) {
-		case 'Home':
-			return base;
-		case 'Quiz':
-			var quiz = _v0.a;
-			return _Utils_update(base, { waza: $gren_lang$core$Maybe$Just(quiz.waza) });
-		default:
-			var program = _v0.a;
-			return _Utils_update(base, { program: $gren_lang$core$Maybe$Just(program.level), waza: $gren_lang$core$Maybe$Just(program.waza) });
-	}
+var $author$project$Main$applyEvents$ = function(handle, events, initial) {
+	return A3($gren_lang$core$Array$foldl, F2(function(event, acc) {
+				var handled = A2(handle, event, acc.model);
+				return { command: $gren_lang$core$Platform$Cmd$batch([ acc.command, handled.command ]), model: handled.model };
+			}), initial, events);
 };
+var $author$project$Main$applyEvents = F3($author$project$Main$applyEvents$);
+var $author$project$Slide$Slide$Back = { $: 'Back' };
+var $gren_lang$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $gren_lang$url$Url$percentEncode = _Url_percentEncode;
 var $gren_lang$core$Array$prepend = _Array_append;
 var $author$project$Shared$Route$toHash = function(route) {
@@ -5780,28 +5782,58 @@ var $author$project$Shared$Route$toHash = function(route) {
 	var parts = A2($gren_lang$core$Array$prepend, $gren_lang$core$Array$mapAndKeepJust$($gren_lang$core$Basics$identity, [ route.grade, route.waza ]), program);
 	return '#/' + A2($gren_lang$core$String$join, '/', A2($gren_lang$core$Array$map, $gren_lang$url$Url$percentEncode, parts));
 };
-var $author$project$Main$urlOf = function(model) {
-	return $author$project$Shared$Route$toHash($author$project$Types$routeOf(model));
+var $author$project$Navigation$Navigation$push$ = function(model, route) {
+	return A2($gren_lang$browser$Browser$Navigation$pushUrl, model.key, $author$project$Shared$Route$toHash(route));
 };
-var $author$project$Main$andReplaceUrl = function(result) {
-	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, A2($gren_lang$browser$Browser$Navigation$replaceUrl, result.model.key, $author$project$Main$urlOf(result.model)) ]), model: result.model };
-};
-var $author$project$Main$applyEvents$ = function(handle, events, initial) {
-	return A3($gren_lang$core$Array$foldl, F2(function(event, acc) {
-				var handled = A2(handle, event, acc.model);
-				return { command: $gren_lang$core$Platform$Cmd$batch([ acc.command, handled.command ]), model: handled.model };
-			}), initial, events);
-};
-var $author$project$Main$applyEvents = F3($author$project$Main$applyEvents$);
-var $gren_lang$core$Maybe$andThen$ = function(callback, maybeValue) {
-	if (maybeValue.$ === 'Just') {
-		var value = maybeValue.a;
-		return callback(value);
-	} else {
-		return $gren_lang$core$Maybe$Nothing;
+var $author$project$Navigation$Navigation$push = F2($author$project$Navigation$Navigation$push$);
+var $author$project$Types$routeOf = function(model) {
+	var base = { grade: $gren_lang$core$Maybe$Just(model.catalog.gradeId), program: $gren_lang$core$Maybe$Nothing, waza: $gren_lang$core$Maybe$Nothing };
+	var _v0 = model.screen;
+	switch (_v0.$) {
+		case 'Home':
+			return base;
+		case 'Quiz':
+			var quiz = _v0.a;
+			return _Utils_update(base, { waza: $gren_lang$core$Maybe$Just(quiz.waza) });
+		default:
+			var program = _v0.a;
+			return _Utils_update(base, { program: $gren_lang$core$Maybe$Just(program.level), waza: $gren_lang$core$Maybe$Just(program.waza) });
 	}
 };
-var $gren_lang$core$Maybe$andThen = F2($gren_lang$core$Maybe$andThen$);
+var $author$project$Main$pushUrl = function(result) {
+	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, $author$project$Navigation$Navigation$push$(result.model.navigation, $author$project$Types$routeOf(result.model)) ]), model: result.model };
+};
+var $author$project$Types$NoOp = { $: 'NoOp' };
+var $gren_lang$browser$Browser$Dom$setViewport = _Browser_setViewport;
+var $author$project$Shared$Effect$scrollTop = function(done) {
+	return $gren_lang$core$Task$perform$(function(_v0) {
+			return done;
+		}, A2($gren_lang$browser$Browser$Dom$setViewport, 0, 0));
+};
+var $author$project$Main$scrollTop = $author$project$Shared$Effect$scrollTop($author$project$Types$NoOp);
+var $author$project$Slide$Slide$advance$ = function(direction, model) {
+	return { count: model.count + 1, direction: direction };
+};
+var $author$project$Slide$Slide$advance = F2($author$project$Slide$Slide$advance$);
+var $author$project$Main$slide$ = function(direction, model) {
+	return _Utils_update(model, { slide: $author$project$Slide$Slide$advance$(direction, model.slide) });
+};
+var $author$project$Main$slide = F2($author$project$Main$slide$);
+var $gren_lang$core$Platform$Cmd$none = $gren_lang$core$Platform$Cmd$batch([  ]);
+var $author$project$Main$stay = function(model) {
+	return { command: $gren_lang$core$Platform$Cmd$none, model: model };
+};
+var $author$project$Main$goHome = function(model) {
+	var _v0 = model.screen;
+	switch (_v0.$) {
+		case 'Home':
+			return $author$project$Main$stay(model);
+		case 'Quiz':
+			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Home })) });
+		default:
+			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Back, _Utils_update(model, { screen: $author$project$Types$Home })) });
+	}
+};
 var $author$project$Catalog$Catalog$currentData = function(model) {
 	return $gren_lang$core$Maybe$withDefault$($gren_lang$core$Dict$empty, $gren_lang$core$Maybe$map$(function(found) {
 				return found.value.data;
@@ -5812,14 +5844,6 @@ var $author$project$Catalog$Catalog$currentData = function(model) {
 var $author$project$Types$currentData = function(model) {
 	return $author$project$Catalog$Catalog$currentData(model.catalog);
 };
-var $author$project$Slide$Slide$advance$ = function(direction, model) {
-	return { count: model.count + 1, direction: direction };
-};
-var $author$project$Slide$Slide$advance = F2($author$project$Slide$Slide$advance$);
-var $author$project$Main$slide$ = function(direction, model) {
-	return _Utils_update(model, { slide: $author$project$Slide$Slide$advance$(direction, model.slide) });
-};
-var $author$project$Main$slide = F2($author$project$Main$slide$);
 var $author$project$Shared$Grade$attacksOf$ = function(data, waza) {
 	return $gren_lang$core$Maybe$withDefault$([  ], $gren_lang$core$Dict$get$(waza, data));
 };
@@ -5848,7 +5872,6 @@ var $author$project$Shared$Grade$buildPool$ = function(data, waza, filters) {
 		}, $author$project$Shared$Grade$attacksOf$(data, waza));
 };
 var $author$project$Shared$Grade$buildPool = F3($author$project$Shared$Grade$buildPool$);
-var $gren_lang$core$Platform$Cmd$none = $gren_lang$core$Platform$Cmd$batch([  ]);
 var $author$project$Quiz$Quiz$Rolled = function (a) {
 	return { $: 'Rolled', a: a };
 };
@@ -6078,8 +6101,21 @@ var $author$project$Main$startSession$ = function(model, waza) {
 	return { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$QuizMsg, started.command), model: _Utils_update(model, { screen: $author$project$Types$Quiz(started.model) }) };
 };
 var $author$project$Main$startSession = F2($author$project$Main$startSession$);
-var $author$project$Main$stay = function(model) {
-	return { command: $gren_lang$core$Platform$Cmd$none, model: model };
+var $author$project$Main$startQuiz$ = function(direction, waza, model) {
+	var started = $author$project$Main$startSession$(model, waza);
+	return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$(direction, started.model) });
+};
+var $author$project$Main$startQuiz = F3($author$project$Main$startQuiz$);
+var $author$project$Catalog$Catalog$Failed = function (a) {
+	return { $: 'Failed', a: a };
+};
+var $author$project$Catalog$Catalog$GradeChanged = { $: 'GradeChanged' };
+var $author$project$Catalog$Catalog$GradesReady = { $: 'GradesReady' };
+var $author$project$Catalog$Catalog$Ready = { $: 'Ready' };
+var $author$project$Catalog$Catalog$firstGrade = function(grades) {
+	return $gren_lang$core$Maybe$withDefault$('', $gren_lang$core$Maybe$map$(function(grade) {
+				return grade.info.id;
+			}, A2($gren_lang$core$Array$get, 0, grades)));
 };
 var $gren_lang$core$Array$any$ = function(fn, array) {
 	var _v0 = A2($gren_lang$core$Array$findFirst, fn, array);
@@ -6090,152 +6126,38 @@ var $gren_lang$core$Array$any$ = function(fn, array) {
 	}
 };
 var $gren_lang$core$Array$any = F2($gren_lang$core$Array$any$);
-var $gren_lang$core$String$foldl = _String_foldl;
-var $gren_lang$core$String$pushLast = _String_pushLast;
-var $gren_lang$core$String$map$ = function(fn, str) {
-	return A3($gren_lang$core$String$foldl, F2(function(_char, acc) {
-				return A2($gren_lang$core$String$pushLast, fn(_char), acc);
-			}), '', str);
+var $author$project$Catalog$Catalog$isKnown$ = function(id, model) {
+	return $gren_lang$core$Array$any$(function(grade) {
+			return _Utils_eq(grade.info.id, id);
+		}, model.grades);
 };
-var $gren_lang$core$String$map = F2($gren_lang$core$String$map$);
-var $gren_lang$core$String$toLower = _String_toLower;
-var $gren_lang$core$String$trim = _String_trim;
-var $gren_lang$core$String$pushFirst = _String_pushFirst;
-var $gren_lang$core$String$fromChar = function(_char) {
-	return A2($gren_lang$core$String$pushFirst, _char, '');
-};
-var $author$project$Shared$Grade$unaccent = function(_char) {
-	return A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'àáâãä') ? _Utils_chr('a') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'èéêë') ? _Utils_chr('e') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'ìíîï') ? _Utils_chr('i') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'òóôõö') ? _Utils_chr('o') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'ùúûü') ? _Utils_chr('u') : (_Utils_eq(_char, _Utils_chr('ç')) ? _Utils_chr('c') : _char)))));
-};
-var $author$project$Shared$Grade$norm = function(text) {
-	return $gren_lang$core$String$trim($gren_lang$core$String$map$($author$project$Shared$Grade$unaccent, $gren_lang$core$String$toLower(text)));
-};
-var $author$project$Shared$Grade$byOrder$ = function(first, second) {
-	var _v0 = A2($gren_lang$core$Basics$compare, first.order, second.order);
-	if (_v0.$ === 'EQ') {
-		return A2($gren_lang$core$Basics$compare, $author$project$Shared$Grade$norm(first.name), $author$project$Shared$Grade$norm(second.name));
-	} else {
-		var other = _v0;
-		return other;
-	}
-};
-var $author$project$Shared$Grade$byOrder = F2($author$project$Shared$Grade$byOrder$);
-var $gren_lang$core$Array$sortWith = _Array_sortWith;
-var $author$project$Shared$Grade$listAttacks$ = function(data, waza) {
-	return A2($gren_lang$core$Array$sortWith, $author$project$Shared$Grade$byOrder, $author$project$Shared$Grade$attacksOf$(data, waza));
-};
-var $author$project$Shared$Grade$listAttacks = F2($author$project$Shared$Grade$listAttacks$);
-var $author$project$Shared$Grade$listTechniques$ = function(data, waza, attackName) {
-	return $gren_lang$core$Maybe$withDefault$([  ], $gren_lang$core$Maybe$map$(function(attack) {
-				return A2($gren_lang$core$Array$sortWith, $author$project$Shared$Grade$byOrder, attack.techniques);
-			}, $author$project$Shared$Grade$found$(function(attack) {
-					return _Utils_eq(attack.name, attackName);
-				}, $author$project$Shared$Grade$attacksOf$(data, waza))));
-};
-var $author$project$Shared$Grade$listTechniques = F3($author$project$Shared$Grade$listTechniques$);
-var $author$project$Program$Program$validLevel$ = function(data, waza, wanted) {
-	var techniqueExists = F2(function(attack, name) {
-			return $gren_lang$core$Array$any$(function(technique) {
-					return _Utils_eq(technique.name, name);
-				}, $author$project$Shared$Grade$listTechniques$(data, waza, attack));
-		});
-	var attackExists = function(name) {
-		return $gren_lang$core$Array$any$(function(attack) {
-				return _Utils_eq(attack.name, name);
-			}, $author$project$Shared$Grade$listAttacks$(data, waza));
-	};
-	switch (wanted.$) {
-		case 'Attacks':
-			return $author$project$Shared$Route$Attacks;
-		case 'Techniques':
-			var attack = wanted.a;
-			return attackExists(attack) ? $author$project$Shared$Route$Techniques(attack) : $author$project$Shared$Route$Attacks;
-		default:
-			var card = wanted.a;
-			return (!attackExists(card.attack)) ? $author$project$Shared$Route$Attacks : (A2(techniqueExists, card.attack, card.technique) ? $author$project$Shared$Route$TechniqueCard(card) : $author$project$Shared$Route$Techniques(card.attack));
-	}
-};
-var $author$project$Program$Program$validLevel = F3($author$project$Program$Program$validLevel$);
-var $author$project$Shared$Grade$wazaOrder = [ 'Tachi waza', 'Hanmi Handachi waza', 'Suwari waza' ];
-var $author$project$Main$applyRoute$ = function(route, direction, model) {
-	var validWaza = $gren_lang$core$Maybe$andThen$(function(waza) {
-			return $gren_lang$core$Array$member$(waza, $author$project$Shared$Grade$wazaOrder) ? $gren_lang$core$Maybe$Just(waza) : $gren_lang$core$Maybe$Nothing;
-		}, route.waza);
-	var data = $author$project$Types$currentData(model);
-	var result = function () {
-		if (validWaza.$ === 'Nothing') {
-			return $author$project$Main$stay(_Utils_update(model, { screen: $author$project$Types$Home }));
-		} else {
-			var waza = validWaza.a;
-			var _v1 = route.program;
-			if (_v1.$ === 'Just') {
-				var wanted = _v1.a;
-				return $author$project$Main$stay(_Utils_update(model, { screen: $author$project$Types$Program({ level: $author$project$Program$Program$validLevel$(data, waza, wanted), waza: waza }) }));
+var $author$project$Catalog$Catalog$isKnown = F2($author$project$Catalog$Catalog$isKnown$);
+var $author$project$Catalog$Catalog$update$ = function(msg, model) {
+	switch (msg.$) {
+		case 'Loaded':
+			if (msg.a.$ === 'Err') {
+				var message = msg.a.a;
+				return { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: _Utils_update(model, { status: $author$project$Catalog$Catalog$Failed('Chargement impossible (' + (message + ')')) }) };
 			} else {
-				var _v2 = model.screen;
-				if (_v2.$ === 'Quiz') {
-					var quiz = _v2.a;
-					return _Utils_eq(quiz.waza, waza) ? $author$project$Main$stay(model) : $author$project$Main$startSession$(model, waza);
-				} else {
-					return $author$project$Main$startSession$(model, waza);
-				}
+				var grades = msg.a.a;
+				return { command: $gren_lang$core$Platform$Cmd$none, events: [ $author$project$Catalog$Catalog$GradesReady ], model: _Utils_update(model, { gradeId: $author$project$Catalog$Catalog$firstGrade(grades), grades: grades, status: $author$project$Catalog$Catalog$Ready }) };
 			}
-		}
-	}();
-	var changed = !_Utils_eq($author$project$Types$routeOf(result.model), $author$project$Types$routeOf(model));
-	return { command: result.command, model: changed ? $author$project$Main$slide$(direction, result.model) : result.model };
-};
-var $author$project$Main$applyRoute = F3($author$project$Main$applyRoute$);
-var $author$project$Shared$Route$depth = function(route) {
-	var _v0 = route.program;
-	if (_v0.$ === 'Just') {
-		switch (_v0.a.$) {
-			case 'Attacks':
-				var _v1 = _v0.a;
-				return 3;
-			case 'Techniques':
-				return 4;
-			default:
-				return 5;
-		}
-	} else {
-		var _v2 = route.waza;
-		if (_v2.$ === 'Just') {
-			return 2;
-		} else {
-			return 1;
-		}
-	}
-};
-var $gren_lang$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
-var $author$project$Main$pushUrl = function(result) {
-	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, A2($gren_lang$browser$Browser$Navigation$pushUrl, result.model.key, $author$project$Main$urlOf(result.model)) ]), model: result.model };
-};
-var $author$project$Types$NoOp = { $: 'NoOp' };
-var $gren_lang$browser$Browser$Dom$setViewport = _Browser_setViewport;
-var $author$project$Shared$Effect$scrollTop = function(done) {
-	return $gren_lang$core$Task$perform$(function(_v0) {
-			return done;
-		}, A2($gren_lang$browser$Browser$Dom$setViewport, 0, 0));
-};
-var $author$project$Main$scrollTop = $author$project$Shared$Effect$scrollTop($author$project$Types$NoOp);
-var $author$project$Main$goHome = function(model) {
-	var _v0 = model.screen;
-	switch (_v0.$) {
-		case 'Home':
-			return $author$project$Main$stay(model);
-		case 'Quiz':
-			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Forward, _Utils_update(model, { screen: $author$project$Types$Home })) });
+		case 'SelectGrade':
+			var id = msg.a;
+			return $author$project$Catalog$Catalog$isKnown$(id, model) ? { command: $gren_lang$core$Platform$Cmd$none, events: [ $author$project$Catalog$Catalog$GradeChanged ], model: _Utils_update(model, { gradeId: id }) } : { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: model };
+		case 'FilterNew':
+			var checked = msg.a;
+			return { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: _Utils_update(model, { filters: { isNew: checked, isWarning: model.filters.isWarning } }) };
 		default:
-			return $author$project$Main$pushUrl({ command: $author$project$Main$scrollTop, model: $author$project$Main$slide$($author$project$Slide$Slide$Back, _Utils_update(model, { screen: $author$project$Types$Home })) });
+			var checked = msg.a;
+			return { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: _Utils_update(model, { filters: { isNew: model.filters.isNew, isWarning: checked } }) };
 	}
+};
+var $author$project$Catalog$Catalog$update = F2($author$project$Catalog$Catalog$update$);
+var $author$project$Navigation$Navigation$RouteChanged = function (a) {
+	return { $: 'RouteChanged', a: a };
 };
 var $gren_lang$browser$Browser$Navigation$load = _Browser_load;
-var $author$project$Main$startQuiz$ = function(direction, waza, model) {
-	var started = $author$project$Main$startSession$(model, waza);
-	return $author$project$Main$pushUrl({ command: $gren_lang$core$Platform$Cmd$batch([ started.command, $author$project$Main$scrollTop ]), model: $author$project$Main$slide$(direction, started.model) });
-};
-var $author$project$Main$startQuiz = F3($author$project$Main$startQuiz$);
 var $gren_lang$url$Url$addPort$ = function(maybePort, starter) {
 	if (maybePort.$ === 'Nothing') {
 		return starter;
@@ -6265,44 +6187,21 @@ var $gren_lang$url$Url$toString = function(url) {
 	}();
 	return $gren_lang$url$Url$addPrefixed$('#', url.fragment, $gren_lang$url$Url$addPrefixed$('?', url.query, _Utils_ap($gren_lang$url$Url$addPort$(url.port_, _Utils_ap(http, url.host)), url.path)));
 };
-var $author$project$Catalog$Catalog$Failed = function (a) {
-	return { $: 'Failed', a: a };
-};
-var $author$project$Catalog$Catalog$GradeChanged = { $: 'GradeChanged' };
-var $author$project$Catalog$Catalog$GradesReady = { $: 'GradesReady' };
-var $author$project$Catalog$Catalog$firstGrade = function(grades) {
-	return $gren_lang$core$Maybe$withDefault$('', $gren_lang$core$Maybe$map$(function(grade) {
-				return grade.info.id;
-			}, A2($gren_lang$core$Array$get, 0, grades)));
-};
-var $author$project$Catalog$Catalog$isKnown$ = function(id, model) {
-	return $gren_lang$core$Array$any$(function(grade) {
-			return _Utils_eq(grade.info.id, id);
-		}, model.grades);
-};
-var $author$project$Catalog$Catalog$isKnown = F2($author$project$Catalog$Catalog$isKnown$);
-var $author$project$Catalog$Catalog$update$ = function(msg, model) {
-	switch (msg.$) {
-		case 'Loaded':
-			if (msg.a.$ === 'Err') {
-				var message = msg.a.a;
-				return { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: _Utils_update(model, { status: $author$project$Catalog$Catalog$Failed('Chargement impossible (' + (message + ')')) }) };
-			} else {
-				var grades = msg.a.a;
-				return { command: $gren_lang$core$Platform$Cmd$none, events: [ $author$project$Catalog$Catalog$GradesReady ], model: _Utils_update(model, { gradeId: $author$project$Catalog$Catalog$firstGrade(grades), grades: grades, status: $author$project$Catalog$Catalog$Ready }) };
-			}
-		case 'SelectGrade':
-			var id = msg.a;
-			return $author$project$Catalog$Catalog$isKnown$(id, model) ? { command: $gren_lang$core$Platform$Cmd$none, events: [ $author$project$Catalog$Catalog$GradeChanged ], model: _Utils_update(model, { gradeId: id }) } : { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: model };
-		case 'FilterNew':
-			var checked = msg.a;
-			return { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: _Utils_update(model, { filters: { isNew: checked, isWarning: model.filters.isWarning } }) };
-		default:
-			var checked = msg.a;
-			return { command: $gren_lang$core$Platform$Cmd$none, events: [  ], model: _Utils_update(model, { filters: { isNew: model.filters.isNew, isWarning: checked } }) };
+var $author$project$Navigation$Navigation$update$ = function(msg, model) {
+	if (msg.$ === 'UrlRequested') {
+		if (msg.a.$ === 'Internal') {
+			var url = msg.a.a;
+			return { command: $gren_lang$browser$Browser$Navigation$load($gren_lang$url$Url$toString(url)), events: [  ], model: model };
+		} else {
+			var url = msg.a.a;
+			return { command: $gren_lang$browser$Browser$Navigation$load(url), events: [  ], model: model };
+		}
+	} else {
+		var url = msg.a;
+		return { command: $gren_lang$core$Platform$Cmd$none, events: [ $author$project$Navigation$Navigation$RouteChanged($author$project$Navigation$Navigation$routeOf(url)) ], model: model };
 	}
 };
-var $author$project$Catalog$Catalog$update = F2($author$project$Catalog$Catalog$update$);
+var $author$project$Navigation$Navigation$update = F2($author$project$Navigation$Navigation$update$);
 var $author$project$Program$Program$Closed = function (a) {
 	return { $: 'Closed', a: a };
 };
@@ -6543,8 +6442,121 @@ var $author$project$Video$Video$update$ = function(msg, model) {
 	}
 };
 var $author$project$Video$Video$update = F2($author$project$Video$Video$update$);
+var $gren_lang$browser$Browser$Navigation$replaceUrl = _Browser_replaceUrl;
+var $author$project$Navigation$Navigation$replace$ = function(model, route) {
+	return A2($gren_lang$browser$Browser$Navigation$replaceUrl, model.key, $author$project$Shared$Route$toHash(route));
+};
+var $author$project$Navigation$Navigation$replace = F2($author$project$Navigation$Navigation$replace$);
+var $author$project$Main$andReplaceUrl = function(result) {
+	return { command: $gren_lang$core$Platform$Cmd$batch([ result.command, $author$project$Navigation$Navigation$replace$(result.model.navigation, $author$project$Types$routeOf(result.model)) ]), model: result.model };
+};
+var $gren_lang$core$Maybe$andThen$ = function(callback, maybeValue) {
+	if (maybeValue.$ === 'Just') {
+		var value = maybeValue.a;
+		return callback(value);
+	} else {
+		return $gren_lang$core$Maybe$Nothing;
+	}
+};
+var $gren_lang$core$Maybe$andThen = F2($gren_lang$core$Maybe$andThen$);
+var $gren_lang$core$String$foldl = _String_foldl;
+var $gren_lang$core$String$pushLast = _String_pushLast;
+var $gren_lang$core$String$map$ = function(fn, str) {
+	return A3($gren_lang$core$String$foldl, F2(function(_char, acc) {
+				return A2($gren_lang$core$String$pushLast, fn(_char), acc);
+			}), '', str);
+};
+var $gren_lang$core$String$map = F2($gren_lang$core$String$map$);
+var $gren_lang$core$String$toLower = _String_toLower;
+var $gren_lang$core$String$trim = _String_trim;
+var $gren_lang$core$String$pushFirst = _String_pushFirst;
+var $gren_lang$core$String$fromChar = function(_char) {
+	return A2($gren_lang$core$String$pushFirst, _char, '');
+};
+var $author$project$Shared$Grade$unaccent = function(_char) {
+	return A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'àáâãä') ? _Utils_chr('a') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'èéêë') ? _Utils_chr('e') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'ìíîï') ? _Utils_chr('i') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'òóôõö') ? _Utils_chr('o') : (A2($gren_lang$core$String$contains, $gren_lang$core$String$fromChar(_char), 'ùúûü') ? _Utils_chr('u') : (_Utils_eq(_char, _Utils_chr('ç')) ? _Utils_chr('c') : _char)))));
+};
+var $author$project$Shared$Grade$norm = function(text) {
+	return $gren_lang$core$String$trim($gren_lang$core$String$map$($author$project$Shared$Grade$unaccent, $gren_lang$core$String$toLower(text)));
+};
+var $author$project$Shared$Grade$byOrder$ = function(first, second) {
+	var _v0 = A2($gren_lang$core$Basics$compare, first.order, second.order);
+	if (_v0.$ === 'EQ') {
+		return A2($gren_lang$core$Basics$compare, $author$project$Shared$Grade$norm(first.name), $author$project$Shared$Grade$norm(second.name));
+	} else {
+		var other = _v0;
+		return other;
+	}
+};
+var $author$project$Shared$Grade$byOrder = F2($author$project$Shared$Grade$byOrder$);
+var $gren_lang$core$Array$sortWith = _Array_sortWith;
+var $author$project$Shared$Grade$listAttacks$ = function(data, waza) {
+	return A2($gren_lang$core$Array$sortWith, $author$project$Shared$Grade$byOrder, $author$project$Shared$Grade$attacksOf$(data, waza));
+};
+var $author$project$Shared$Grade$listAttacks = F2($author$project$Shared$Grade$listAttacks$);
+var $author$project$Shared$Grade$listTechniques$ = function(data, waza, attackName) {
+	return $gren_lang$core$Maybe$withDefault$([  ], $gren_lang$core$Maybe$map$(function(attack) {
+				return A2($gren_lang$core$Array$sortWith, $author$project$Shared$Grade$byOrder, attack.techniques);
+			}, $author$project$Shared$Grade$found$(function(attack) {
+					return _Utils_eq(attack.name, attackName);
+				}, $author$project$Shared$Grade$attacksOf$(data, waza))));
+};
+var $author$project$Shared$Grade$listTechniques = F3($author$project$Shared$Grade$listTechniques$);
+var $author$project$Program$Program$validLevel$ = function(data, waza, wanted) {
+	var techniqueExists = F2(function(attack, name) {
+			return $gren_lang$core$Array$any$(function(technique) {
+					return _Utils_eq(technique.name, name);
+				}, $author$project$Shared$Grade$listTechniques$(data, waza, attack));
+		});
+	var attackExists = function(name) {
+		return $gren_lang$core$Array$any$(function(attack) {
+				return _Utils_eq(attack.name, name);
+			}, $author$project$Shared$Grade$listAttacks$(data, waza));
+	};
+	switch (wanted.$) {
+		case 'Attacks':
+			return $author$project$Shared$Route$Attacks;
+		case 'Techniques':
+			var attack = wanted.a;
+			return attackExists(attack) ? $author$project$Shared$Route$Techniques(attack) : $author$project$Shared$Route$Attacks;
+		default:
+			var card = wanted.a;
+			return (!attackExists(card.attack)) ? $author$project$Shared$Route$Attacks : (A2(techniqueExists, card.attack, card.technique) ? $author$project$Shared$Route$TechniqueCard(card) : $author$project$Shared$Route$Techniques(card.attack));
+	}
+};
+var $author$project$Program$Program$validLevel = F3($author$project$Program$Program$validLevel$);
+var $author$project$Shared$Grade$wazaOrder = [ 'Tachi waza', 'Hanmi Handachi waza', 'Suwari waza' ];
+var $author$project$Main$applyRoute$ = function(route, direction, model) {
+	var validWaza = $gren_lang$core$Maybe$andThen$(function(waza) {
+			return $gren_lang$core$Array$member$(waza, $author$project$Shared$Grade$wazaOrder) ? $gren_lang$core$Maybe$Just(waza) : $gren_lang$core$Maybe$Nothing;
+		}, route.waza);
+	var data = $author$project$Types$currentData(model);
+	var result = function () {
+		if (validWaza.$ === 'Nothing') {
+			return $author$project$Main$stay(_Utils_update(model, { screen: $author$project$Types$Home }));
+		} else {
+			var waza = validWaza.a;
+			var _v1 = route.program;
+			if (_v1.$ === 'Just') {
+				var wanted = _v1.a;
+				return $author$project$Main$stay(_Utils_update(model, { screen: $author$project$Types$Program({ level: $author$project$Program$Program$validLevel$(data, waza, wanted), waza: waza }) }));
+			} else {
+				var _v2 = model.screen;
+				if (_v2.$ === 'Quiz') {
+					var quiz = _v2.a;
+					return _Utils_eq(quiz.waza, waza) ? $author$project$Main$stay(model) : $author$project$Main$startSession$(model, waza);
+				} else {
+					return $author$project$Main$startSession$(model, waza);
+				}
+			}
+		}
+	}();
+	var changed = !_Utils_eq($author$project$Types$routeOf(result.model), $author$project$Types$routeOf(model));
+	return { command: result.command, model: changed ? $author$project$Main$slide$(direction, result.model) : result.model };
+};
+var $author$project$Main$applyRoute = F3($author$project$Main$applyRoute$);
 var $author$project$Main$replaceUrl = function(model) {
-	return { command: A2($gren_lang$browser$Browser$Navigation$replaceUrl, model.key, $author$project$Main$urlOf(model)), model: model };
+	return { command: $author$project$Navigation$Navigation$replace$(model.navigation, $author$project$Types$routeOf(model)), model: model };
 };
 var $author$project$Catalog$Catalog$select$ = function(id, model) {
 	return $author$project$Catalog$Catalog$isKnown$(id, model) ? _Utils_update(model, { gradeId: id }) : model;
@@ -6552,7 +6564,7 @@ var $author$project$Catalog$Catalog$select$ = function(id, model) {
 var $author$project$Catalog$Catalog$select = F2($author$project$Catalog$Catalog$select$);
 var $author$project$Main$whenCatalogEvent$ = function(event, model) {
 	if (event.$ === 'GradesReady') {
-		var route = model.initialRoute;
+		var route = model.navigation.initialRoute;
 		var selected = function () {
 			var _v1 = route.grade;
 			if (_v1.$ === 'Just') {
@@ -6568,6 +6580,37 @@ var $author$project$Main$whenCatalogEvent$ = function(event, model) {
 	}
 };
 var $author$project$Main$whenCatalogEvent = F2($author$project$Main$whenCatalogEvent$);
+var $author$project$Shared$Route$depth = function(route) {
+	var _v0 = route.program;
+	if (_v0.$ === 'Just') {
+		switch (_v0.a.$) {
+			case 'Attacks':
+				var _v1 = _v0.a;
+				return 3;
+			case 'Techniques':
+				return 4;
+			default:
+				return 5;
+		}
+	} else {
+		var _v2 = route.waza;
+		if (_v2.$ === 'Just') {
+			return 2;
+		} else {
+			return 1;
+		}
+	}
+};
+var $author$project$Main$whenNavigationEvent$ = function(event, model) {
+	var route = event.a;
+	if ((!_Utils_eq(model.catalog.status, $author$project$Catalog$Catalog$Ready)) || _Utils_eq(route, $author$project$Types$routeOf(model))) {
+		return $author$project$Main$stay(model);
+	} else {
+		var direction = (_Utils_cmp($author$project$Shared$Route$depth(route), $author$project$Shared$Route$depth($author$project$Types$routeOf(model))) < 0) ? $author$project$Slide$Slide$Back : $author$project$Slide$Slide$Forward;
+		return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, direction, model));
+	}
+};
+var $author$project$Main$whenNavigationEvent = F2($author$project$Main$whenNavigationEvent$);
 var $author$project$Video$Video$Ask = function (a) {
 	return { $: 'Ask', a: a };
 };
@@ -6641,23 +6684,10 @@ var $author$project$Main$update$ = function(msg, model) {
 			}
 		case 'GoHome':
 			return $author$project$Main$goHome(model);
-		case 'UrlRequested':
-			if (msg.a.$ === 'Internal') {
-				var url = msg.a.a;
-				return { command: $gren_lang$browser$Browser$Navigation$load($gren_lang$url$Url$toString(url)), model: model };
-			} else {
-				var url = msg.a.a;
-				return { command: $gren_lang$browser$Browser$Navigation$load(url), model: model };
-			}
-		case 'UrlChanged':
-			var url = msg.a;
-			var route = $author$project$Shared$Route$parse($gren_lang$core$Maybe$withDefault$('', url.fragment));
-			if ((!_Utils_eq(model.catalog.status, $author$project$Catalog$Catalog$Ready)) || _Utils_eq(route, $author$project$Types$routeOf(model))) {
-				return $author$project$Main$stay(model);
-			} else {
-				var direction = (_Utils_cmp($author$project$Shared$Route$depth(route), $author$project$Shared$Route$depth($author$project$Types$routeOf(model))) < 0) ? $author$project$Slide$Slide$Back : $author$project$Slide$Slide$Forward;
-				return $author$project$Main$andReplaceUrl($author$project$Main$applyRoute$(route, direction, model));
-			}
+		case 'NavigationMsg':
+			var navigationMsg = msg.a;
+			var result = $author$project$Navigation$Navigation$update$(navigationMsg, model.navigation);
+			return $author$project$Main$applyEvents$($author$project$Main$whenNavigationEvent, result.events, { command: A2($gren_lang$core$Platform$Cmd$map, $author$project$Types$NavigationMsg, result.command), model: _Utils_update(model, { navigation: result.model }) });
 		case 'VideoMsg':
 			var videoMsg = msg.a;
 			var result = $author$project$Video$Video$update$(videoMsg, model.video);
@@ -7021,7 +7051,11 @@ var $author$project$View$screens = function(model) {
 var $author$project$View$view = function(model) {
 	return { body: [ $author$project$View$page$(model, $author$project$View$screens(model)) ], title: 'Aïkido – Entraînement' };
 };
-var $author$project$Main$main = $gren_lang$browser$Browser$application({ init: $author$project$Main$init, onUrlChange: $author$project$Types$UrlChanged, onUrlRequest: $author$project$Types$UrlRequested, subscriptions: function(_v0) {
+var $author$project$Main$main = $gren_lang$browser$Browser$application({ init: $author$project$Main$init, onUrlChange: function(url) {
+		return $author$project$Types$NavigationMsg($author$project$Navigation$Navigation$UrlChanged(url));
+	}, onUrlRequest: function(request) {
+		return $author$project$Types$NavigationMsg($author$project$Navigation$Navigation$UrlRequested(request));
+	}, subscriptions: function(_v0) {
 		return $gren_lang$core$Platform$Sub$none;
 	}, update: $author$project$Main$update, view: $author$project$View$view });
 _Platform_export({'Main':{'init':$author$project$Main$main(A2($gren_lang$core$Json$Decode$andThen, function(skipVideoWarning) {

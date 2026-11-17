@@ -5,7 +5,7 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
-import Browser.Navigation as Navigation
+import Navigation.Navigation as Navigation
 import Catalog.Catalog as Catalog
 import Shared.Grade as Grade exposing (GradeData)
 import Shared.Route as Route exposing (Route)
@@ -30,8 +30,8 @@ main =
         , view = View.view
         , update = update
         , subscriptions = \_ -> Sub.none
-        , onUrlRequest = UrlRequested
-        , onUrlChange = UrlChanged
+        , onUrlRequest = \request -> NavigationMsg (Navigation.UrlRequested request)
+        , onUrlChange = \url -> NavigationMsg (Navigation.UrlChanged url)
         }
 
 
@@ -42,10 +42,9 @@ init flags url key =
             Catalog.init
     in
     { model =
-        { key = key
+        { navigation = Navigation.init key url
         , catalog = catalog.model
         , screen = Home
-        , initialRoute = Route.parse (Maybe.withDefault "" url.fragment)
         , slide = Slide.init
         , video = Video.init flags.skipVideoWarning
         }
@@ -103,33 +102,14 @@ update msg model =
         GoHome ->
             goHome model
 
-        -- The only internal link is the manual: it leaves the app.
-        UrlRequested (Browser.Internal url) ->
-            { model = model, command = Navigation.load (Url.toString url) }
-
-        UrlRequested (Browser.External url) ->
-            { model = model, command = Navigation.load url }
-
-        -- The browser went back or forward (or the URL was edited): the URL is the source of truth.
-        UrlChanged url ->
+        NavigationMsg navigationMsg ->
             let
-                route =
-                    Route.parse (Maybe.withDefault "" url.fragment)
+                result =
+                    Navigation.update navigationMsg model.navigation
             in
-            if model.catalog.status /= Catalog.Ready || route == routeOf model then
-                stay model
-
-            else
-                let
-                    direction =
-                        if Route.depth route < Route.depth (routeOf model) then
-                            Back
-
-                        else
-                            Forward
-                in
-                applyRoute route direction model
-                    |> andReplaceUrl
+            applyEvents whenNavigationEvent
+                result.events
+                { model = { model | navigation = result.model }, command = Cmd.map NavigationMsg result.command }
 
         VideoMsg videoMsg ->
             let
@@ -157,7 +137,7 @@ whenCatalogEvent event model =
         Catalog.GradesReady ->
             let
                 route =
-                    model.initialRoute
+                    model.navigation.initialRoute
 
                 selected =
                     when route.grade is
@@ -172,6 +152,27 @@ whenCatalogEvent event model =
 
         Catalog.GradeChanged ->
             replaceUrl model
+
+
+-- The browser went back or forward (or the URL was edited): the URL is the source of truth.
+whenNavigationEvent : Navigation.Event -> Model -> { model : Model, command : Cmd Msg }
+whenNavigationEvent event model =
+    when event is
+        Navigation.RouteChanged route ->
+            if model.catalog.status /= Catalog.Ready || route == routeOf model then
+                stay model
+
+            else
+                let
+                    direction =
+                        if Route.depth route < Route.depth (routeOf model) then
+                            Back
+
+                        else
+                            Forward
+                in
+                applyRoute route direction model
+                    |> andReplaceUrl
 
 
 {-| Handles each event of a feature, one after the other; the commands add up.
@@ -342,27 +343,22 @@ applyRoute route direction model =
     }
 
 
-urlOf : Model -> String
-urlOf model =
-    Route.toHash (routeOf model)
-
-
 {-| A user action changed what the screen shows: the URL follows, with a history entry.
 -}
 pushUrl : { model : Model, command : Cmd Msg } -> { model : Model, command : Cmd Msg }
 pushUrl result =
     { model = result.model
-    , command = Cmd.batch [ result.command, Navigation.pushUrl result.model.key (urlOf result.model) ]
+    , command = Cmd.batch [ result.command, Navigation.push result.model.navigation (routeOf result.model) ]
     }
 
 
 replaceUrl : Model -> { model : Model, command : Cmd Msg }
 replaceUrl model =
-    { model = model, command = Navigation.replaceUrl model.key (urlOf model) }
+    { model = model, command = Navigation.replace model.navigation (routeOf model) }
 
 
 andReplaceUrl : { model : Model, command : Cmd Msg } -> { model : Model, command : Cmd Msg }
 andReplaceUrl result =
     { model = result.model
-    , command = Cmd.batch [ result.command, Navigation.replaceUrl result.model.key (urlOf result.model) ]
+    , command = Cmd.batch [ result.command, Navigation.replace result.model.navigation (routeOf result.model) ]
     }

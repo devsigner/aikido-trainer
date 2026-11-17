@@ -9,15 +9,13 @@ module Types exposing
 {-| The model and the messages of the app.
 -}
 
-import Browser
-import Browser.Navigation as Navigation
 import Catalog.Catalog as Catalog
+import Navigation.Navigation as Navigation
 import Program.Program as Program
 import Quiz.Quiz as Quiz
 import Shared.Grade exposing (GradeData)
 import Shared.Route exposing (Route)
 import Slide.Slide as Slide
-import Url exposing (Url)
 import Video.Video as Video
 
 
@@ -30,10 +28,9 @@ type Screen
 
 
 type alias Model =
-    { key : Navigation.Key
+    { navigation : Navigation.Model
     , catalog : Catalog.Model
     , screen : Screen
-    , initialRoute : Route
     , slide : Slide.Model
     , video : Video.Model
     }
@@ -45,8 +42,7 @@ type Msg
     | QuizMsg Quiz.Msg
     | ProgramMsg Program.Msg
     | GoHome
-    | UrlRequested Browser.UrlRequest
-    | UrlChanged Url
+    | NavigationMsg Navigation.Msg
     | VideoMsg Video.Msg
     | NoOp
 

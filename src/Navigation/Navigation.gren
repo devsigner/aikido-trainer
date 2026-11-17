@@ -1,0 +1,68 @@
+module Navigation.Navigation exposing (Event(..), Key, Model, Msg(..), init, push, replace, update)
+
+{-| Feature "navigation": the URL (`#/grade/waza/program/…`) follows the screen, and the screen follows the URL.
+Publishes `RouteChanged` when the browser went back or forward, or the URL was edited (the URL is the source of truth).
+-}
+
+import Array exposing (Array)
+import Browser
+import Browser.Navigation as BrowserNavigation
+import Shared.Route as Route exposing (Route)
+import Url exposing (Url)
+
+
+type alias Key =
+    BrowserNavigation.Key
+
+
+type alias Model =
+    { key : Key
+    , initialRoute : Route -- the route of the URL at startup, applied when the data is loaded
+    }
+
+
+type Msg
+    = UrlRequested Browser.UrlRequest
+    | UrlChanged Url
+
+
+type Event
+    = RouteChanged Route
+
+
+init : Key -> Url -> Model
+init key url =
+    { key = key, initialRoute = routeOf url }
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg, events : Array Event }
+update msg model =
+    when msg is
+        -- The only internal link is the manual: it leaves the app.
+        UrlRequested (Browser.Internal url) ->
+            { model = model, command = BrowserNavigation.load (Url.toString url), events = [] }
+
+        UrlRequested (Browser.External url) ->
+            { model = model, command = BrowserNavigation.load url, events = [] }
+
+        UrlChanged url ->
+            { model = model, command = Cmd.none, events = [ RouteChanged (routeOf url) ] }
+
+
+{-| A user action changed what the screen shows: the URL follows, with a history entry.
+-}
+push : Model -> Route -> Cmd msg
+push model route =
+    BrowserNavigation.pushUrl model.key (Route.toHash route)
+
+
+{-| The URL is corrected without a history entry.
+-}
+replace : Model -> Route -> Cmd msg
+replace model route =
+    BrowserNavigation.replaceUrl model.key (Route.toHash route)
+
+
+routeOf : Url -> Route
+routeOf url =
+    Route.parse (Maybe.withDefault "" url.fragment)
