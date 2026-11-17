@@ -20,7 +20,7 @@ export const feature = defineFeature({
     ConfirmVideo: confirmVideoMessage
   },
   view,
-  views: { link: videoLink },
+  views: { link: videoLinkView },
   effects: ({ open, storage }) => ({
     OpenUrl: ({ url }) => open?.(url, "_blank", "noopener"),
     SaveSkipVideoWarning: () => saveSkipWarning(storage),
@@ -42,7 +42,7 @@ function view(model) {
 }
 
 // Link to a video: it asks for confirmation first, unless the user chose not to be asked again.
-function videoLink(root, url, id) {
+function videoLinkView(root, url, id) {
   return h("a", { id, className: "video", href: url, target: "_blank", rel: "noopener", onClick: root.video.skipWarning ? null : askVideo(url) }, "▶ Voir la vidéo");
 }
 

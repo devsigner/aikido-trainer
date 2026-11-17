@@ -37,7 +37,7 @@ export const feature = defineFeature({
     ProgramClosed: whenProgramClosed
   },
   view,
-  views: { picker },
+  views: { picker: pickerView },
   effects: ({ random }) => ({
     Random: (_, dispatch) => dispatch({ type: "Rolled", value: random() }),
   }),
@@ -58,7 +58,7 @@ function view(model, root) {
 }
 
 // Waza buttons of the home screen: start a session (a waza with no technique for the filters is disabled).
-function picker(root) {
+function pickerView(root) {
   const empty = Object.fromEntries(WAZA_ORDER.map((waza) => [waza, buildPool(gradeData(root), waza, root.catalog.filters).length === 0]));
   return h("div", { className: "group grow" },
     h("p", { className: "hint" }, "Choisis un waza et teste-toi !"),
