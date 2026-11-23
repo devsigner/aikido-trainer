@@ -63,13 +63,14 @@ Same rules as for techniques: a new attack gets the value of its name if it is i
 
 ## Program
 
-The "Voir le programme" (View the program) button (quiz screen, under "Retour à l'accueil" (Back to home)) opens the full listing of the selected waza and grade; the draw session ends (back to the quiz starts a new one at 0). The 🆕/⚠️ filters do not apply there.
+The "Programme" (Program) button (home screen, right under the grade selector) opens the full listing of the selected grade; the draw session is kept (coming back to the home resumes it). The 🆕/⚠️ filters do not apply there.
 
-1. List of all attacks (sorted by `order`, then alphabetically).
+0. Choice of the waza (a waza with no attack is disabled).
+1. List of all attacks of the waza (sorted by `order`, then alphabetically).
 2. Click on an attack: its card and the list of its techniques (sorted by `order`, then alphabetically).
 3. Click on a technique: its card (forms, badges, note, video) and, below it, the other attacks of the same waza that have the same technique (name compared ignoring case and accents). Clicking one of them opens its card.
 
-The ← button and the browser back action (`history`) go up one level, then return to the quiz.
+The ← button and the browser back action (`history`) go up one level, then (from the waza list) the "Retour à l'accueil" (Back to home) button returns to the quiz.
 
 ## Mobile app (PWA)
 
@@ -128,14 +129,14 @@ Run the tests before every commit and add some for any new rule.
 
 Unidirectional flow, no dependencies and no build (native ES modules + versioned import map):
 
-- **Features** (`src/features/*.js`, composed by `combine` in `framework/elmer/feature.js`): each one exports `feature = defineFeature({ name, initialState, lazy?, init?(flags, model), messages, on, view, views, events, effects, subscribe })` and has its own model slice (`model.catalog`, `quiz`, `program`, `video`, `navigation`, `slide`; the name is its `name`, composed by the `features` list of `src/update.js`; the definition comes right after the imports, the handlers are hoisted `function`s below; a handler may return `model`, `[model]`, `[model, cmds]` or `[model, cmds, events]` with `cmd()`/`emit()` helpers; `messages` handlers are `(slice, msg, root)`; `views`/`events` expose view pieces and event builders to the others, e.g. `navigation.events.navigated`), `subscribe` (browser events, e.g. `popstate` in navigation). `quiz` and `program` are `lazy`: their slice only exists during a session / while the program is open (they never coexist: `program` keeps its own `waza`; `ProgramClosed` starts a fresh session) (`UNMOUNT` frees it), so read them with `?.` (see `screenOf`). The root model is `{ catalog, quiz, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
-- `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `StartSession`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
+- **Features** (`src/features/*.js`, composed by `combine` in `framework/elmer/feature.js`): each one exports `feature = defineFeature({ name, initialState, lazy?, init?(flags, model), messages, on, view, views, events, effects, subscribe })` and has its own model slice (`model.catalog`, `quiz`, `program`, `video`, `navigation`, `slide`; the name is its `name`, composed by the `features` list of `src/update.js`; the definition comes right after the imports, the handlers are hoisted `function`s below; a handler may return `model`, `[model]`, `[model, cmds]` or `[model, cmds, events]` with `cmd()`/`emit()` helpers; `messages` handlers are `(slice, msg, root)`; `views`/`events` expose view pieces and event builders to the others, e.g. `navigation.events.navigated`), `subscribe` (browser events, e.g. `popstate` in navigation). `program` is `lazy`: its slice only exists while the program is open (`UNMOUNT` frees it; the `quiz` slice always exists and runs behind it), so read it with `?.` (see `screenOf`). The root model is `{ catalog, quiz, program, video, navigation, slide }`; the screen is derived (`screenOf`). A feature never writes another slice: it reads `root` and publishes events (`ProgramOpened`, `ProgramClosed`, `HomeRequested`, `Navigated`, `RouteChanged`, `ViewChanged`, `GradesLoaded`…) that other features subscribe to in `on`.
+- `Msg`: envelopes `{ feature, msg }` (`to(feature, msg)`), `msg` being `{ type, ... }` (`SelectGrade`, `Next`, `Rolled`, `OpenProgram`, `Navigate`, `Popped`…). `embed` envelopes the handlers of a feature view.
 - `update(model, msg) → [model, cmds]`: pure function, never accesses the DOM, randomness or the network.
 - `cmds`: effects described as data (`LoadGrade`, `Random`, `PushHistory`…), executed by the effects of the features (table built by `framework/elmer/effects.js`), which returns a `Msg`. Randomness is an effect (`Random` → `Rolled`) to stay testable.
 - `view(model) → vnode` (`src/view.js`): pure function; handlers are messages. `framework/elmer/vdom.js` provides `h()` and diff-based rendering; `framework/elmer/runtime.js` loops `update → effects → view → render`.
 - **`elmer` feature** (`framework/elmer/elmer.js`): added by `combine` to every app (reserved name, last slice): `model.elmer = { debug, persist, historySize }`, messages `DebugOn`/`DebugOff`/`PersistOn`/`PersistOff` (commands `SaveSetting`/`ForgetSetting`, only while `persist`, off by default, true at start if a choice was saved → `localStorage` `elmer.debug`); its `init` reads the environment (`settingsFromEnvironment`, `flags.elmer` wins); `restore` keeps `model.elmer` (`keepSettings`). The debugger mounts/unmounts according to `model.elmer.debug`.
 - **Debug mode** (`framework/elmer/devtools.js` for the history, the `__elmer` API and the lazy mount; `debug/` for the panel: `mount.js`, `panel.js`, `inspect.js`, `style.js`): built into `run` (`devtools: { hide }`): mounted automatically on a local host (`localhost`, `127.x`, `*.local`), elsewhere `__elmer.debug.on()` / `.off()` in the console mount/unmount it (module loaded on demand, last 200 steps always kept and replayed). The panel (its own tiny Elm app, outside the app tree) with the current model, the message log, the commands and model changes of each message, and time travel (`restore`: the log entries after the restored one are dropped, in the panel and in the kept history). The panel floats (`position: fixed`), starts on the left, and is moved/resized with pointer events (state `box` and `drag`, listeners on the document while dragging). `run` also takes an optional explicit `debug` observer (`attach({ getModel, restore })`, `record({ msg, before, after, cmds })`). Console helper: `__elmer` (`model`, `help`, `debug.on()`, `debug.off()`, then `debug.log`, `debug.restore(id)`).
-- **URL** (`toHash`/`parseHash` in `src/features/navigation.js`): `#/grade[/waza[/program[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the state: a waza starts a new quiz (the pool is not kept); an unknown attack or technique falls back to the level above. Filters are not in the URL.
+- **URL** (`toHash`/`parseHash` in `src/features/navigation.js`): `#/grade[/program[/waza[/attack[/technique]]]]`, derived from the model (`toHash`) and re-read on load or browser back (`parseHash`). Each screen change adds a history entry (`Url` command), changing grade replaces the URL. Reloading a URL restores the program; the quiz is not in the URL (a new session starts); an unknown waza, attack or technique falls back to the level above (an old URL with a waza and no `program` shows the home). Filters are not in the URL.
 - The ids and CSS classes of the views are stable (used by `style.css` and the tests).
 
 ## Structure
@@ -215,11 +216,11 @@ Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits fro
 
 ## Application rules
 
-- **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then one button per waza (order defined by `WAZA_ORDER`).
-- **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. A waza with no matching technique is disabled.
+- **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then the "Programme" button right under the grade selector (before the filters), then the quiz (a technique drawn among the selected waza; `WAZA_ORDER` gives the order of the waza).
+- **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. Waza filter (a select: all, or one waza; `filters.waza` = list of the waza drawn, never empty, not persisted): AND with the markers, applied by `buildFullPool`; not applied to the program. Changing a filter (or the grade) starts a new session; with no matching technique the quiz shows a message.
 - **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `WEIGHT_NEW` and `WEIGHT_WARNING` at the top of `src/shared/logic.js`.
-- **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Waza terminé 🎉" (Waza finished).
-- **Session**: reset by "Retour à l'accueil" (Back to home). Filters are taken into account when the waza is chosen.
+- **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Session terminée 🎉" (Session finished).
+- **Session**: starts when the data is loaded, restarts when the grade or a filter changes; opening the program keeps it.
 - **Display**: waza, attack, technique, form, 🆕/⚠️ badges, note, video link, progress counter ("n / total", per combination).
-- **Buttons**: "Technique suivante" (Next technique, same waza) and "Retour à l'accueil" (Back to home).
+- **Buttons**: "Technique suivante" (Next technique) and "Programme" on the home screen.
 - The grade selector's counter counts techniques per attack, without multiplying by forms.

@@ -1,10 +1,10 @@
 // src/features/navigation.js
 
 // Feature "navigation": the URL is the source of truth (reload, browser back/forward).
-// Also owns the URL format `#/grade[/waza[/program[/attack[/technique]]]]` (`toHash`, `parseHash`: pure helpers).
+// Also owns the URL format `#/grade[/program[/waza[/attack[/technique]]]]` (`toHash`, `parseHash`: pure helpers).
 // Owns: pending (the route waiting for the data) and position (index of the current history entry, tells back from forward).
 // Does not write other slices: it publishes events.
-// Publishes `HomeRequested` (quiz and program close), `RouteChanged` ({ route }: quiz and program put themselves in its state) and `GradeWanted` ({ id }: the route is of another grade).
+// Publishes `HomeRequested` (the program closes), `RouteChanged` ({ route }: the program puts itself in its state) and `GradeWanted` ({ id }: the route is of another grade).
 // Reacts to `Navigated` (a feature changed what the URL shows) by writing the URL, stamped with the position (+1 on a push).
 import { cmd, defineFeature, emit } from "../../framework/elmer/index.js";
 import { screenOf } from "../shared/screen.js";
@@ -77,21 +77,20 @@ function goTo(model, route, root, direction) {
   return [model, [], routeChangedEvent(route, direction)];
 }
 
-// URL ⇄ model: #/grade[/waza[/program[/attack[/technique]]]] (hash routing works on GitHub Pages).
+// URL ⇄ model: #/grade[/program[/waza[/attack[/technique]]]] (hash routing works on GitHub Pages).
 export function toHash(model) {
   const parts = [model.catalog.id];
-  const waza = model.program?.waza || model.quiz?.waza;
-  if (waza) parts.push(waza);
   if (model.program?.current) {
-    const { level, attack, technique } = model.program.current;
+    const { level, waza, attack, technique } = model.program.current;
     parts.push("program");
+    if (level >= 1) parts.push(waza);
     if (level >= 2) parts.push(attack);
     if (level === 3) parts.push(technique);
   }
   return `#/${parts.map(encodeURIComponent).join("/")}`;
 }
 
-// Returns { grade?, waza?, program? }; an unreadable URL gives an empty route (home).
+// Returns { grade?, program? }; an unreadable URL gives an empty route (home).
 export function parseHash(hash) {
   let parts;
   try {
@@ -99,7 +98,7 @@ export function parseHash(hash) {
   } catch {
     return {};
   }
-  const [grade, waza, segment, attack, technique] = parts;
-  const program = segment === "program" ? { level: technique ? 3 : attack ? 2 : 1, attack, technique } : null;
-  return { grade, waza, program };
+  const [grade, segment, waza, attack, technique] = parts;
+  const program = segment === "program" ? { level: technique ? 3 : attack ? 2 : waza ? 1 : 0, waza, attack, technique } : null;
+  return { grade, program };
 }

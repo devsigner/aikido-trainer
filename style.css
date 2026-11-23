@@ -20,7 +20,7 @@ h1 { text-align: center; margin: 0; cursor: pointer; }
 .center { text-align: center; }
 .field { display: block; }
 select { width: 100%; padding: .7rem; font-size: 16px; border-radius: 8px; background: var(--card); color: var(--fg); border: 1px solid #333; margin-top: .3rem; }
-.filters { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.filters { display: flex; gap: 0.5rem 1.5rem; flex-wrap: wrap; }
 .filters label { cursor: pointer; padding: .5rem 0; }
 .hint { color: var(--muted); margin: 0; }
 .buttons { display: flex; flex-direction: column; gap: .8rem; }
@@ -45,7 +45,8 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .screen { display: flex; flex-direction: column; gap: 1.5rem; }
 .screen.full { min-height: calc(100vh - 3rem); min-height: calc(100dvh - var(--pad-top) - var(--pad-bottom)); }
 #program .screen.full .card { flex: 1; }
-.screen.full > #quiz { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+.screen.full > #home { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+#home > #quiz { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 button.back { padding: .8rem 1rem; font-size: 1rem; text-align: left; }
 button.item { display: flex; justify-content: space-between; text-align: left; padding: 1rem 1.2rem; background: var(--card); }
 button.item::after { content: "›"; color: var(--muted); }

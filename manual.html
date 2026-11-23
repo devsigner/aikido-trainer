@@ -33,15 +33,18 @@
   <p>Aïkido Trainer sert à <strong>s'entraîner et réviser les techniques d'aïkido</strong> : l'app tire au hasard une technique, te laisse réfléchir, puis te donne la suivante.</p>
   <div class="shots">
     <img src="docs/screenshots/1-home.png" alt="Accueil">
-    <img src="docs/screenshots/2-draw.png" alt="Tirage">
+    <img src="docs/screenshots/2-waza.png" alt="Choix du waza">
     <img src="docs/screenshots/5-technique.png" alt="Fiche technique">
   </div>
 
   <h2>1. Accueil</h2>
+  <p>Le tirage démarre dès l'ouverture : une technique est déjà affichée, tous waza confondus.</p>
   <ul>
-    <li><strong>Grade</strong> : choisis le grade à réviser (1er, 2ème ou 3ème Kyo). Les grades se cumulent : le 2ème Kyo inclut le 3ème, et le 1er Kyo inclut le 2ème et le 3ème.</li>
+    <li><strong>Grade</strong> : choisis le grade à réviser (1er, 2ème ou 3ème Kyo). Les grades se cumulent : le 2ème Kyo inclut le 3ème, et le 1er Kyo inclut le 2ème et le 3ème. Changer de grade relance une session.</li>
+    <li><strong>Programme</strong> : bouton juste sous le grade, ouvre le programme (voir plus bas).</li>
     <li><strong>Filtres</strong> : 🆕 <em>Nouveautés</em> et ⚠️ <em>Attention</em>. Les deux cochés : l'un <strong>ou</strong> l'autre ; aucun coché : tout le programme.</li>
-    <li><strong>Waza</strong> : touche <em>Tachi waza</em>, <em>Hanmi Handachi waza</em> ou <em>Suwari waza</em> pour lancer une session.</li>
+    <li><strong>Waza</strong> : liste « Tous les waza » (par défaut), <em>Tachi waza</em>, <em>Hanmi Handachi waza</em> ou <em>Suwari waza</em>. Le waza et les marqueurs se cumulent : Suwari waza + ⚠️ = les techniques « Attention » de Suwari waza.</li>
+    <li>Changer un filtre ou un waza relance une session. Ces filtres ne s'appliquent pas au programme.</li>
   </ul>
 
   <h2>2. Tirage</h2>
@@ -57,10 +60,8 @@
   <p>Le lien « ▶ Voir la vidéo » demande d'abord une confirmation (la technique filmée peut différer de celle attendue au passage de grade) ; une case permet de ne plus afficher ce message.</p>
   <ul>
     <li><strong>Technique suivante</strong> : tire la suivante.</li>
-    <li><strong>Voir le programme</strong> : ouvre le programme sans interrompre la session.</li>
-    <li><strong>Retour à l'accueil</strong> : termine la session (tu peux aussi toucher le titre « 合気道 Aïkido »).</li>
   </ul>
-  <p>Le tirage est <strong>uniforme</strong> sur toutes les combinaisons attaque × technique × forme. Les techniques 🆕 et ⚠️ sortent <strong>un peu plus souvent</strong> (×1,5 chacune, cumulables). <strong>Aucune répétition</strong> pendant une session : quand tout est passé, l'app affiche « Waza terminé 🎉 ».</p>
+  <p>Le tirage est <strong>uniforme</strong> sur toutes les combinaisons attaque × technique × forme. Les techniques 🆕 et ⚠️ sortent <strong>un peu plus souvent</strong> (×1,5 chacune, cumulables). <strong>Aucune répétition</strong> pendant une session : quand tout est passé, l'app affiche « Session terminée 🎉 ». Ouvrir le programme ne change pas la session : à ton retour, tu reprends où tu t'étais arrêté.</p>
 
   <h2>3. Programme</h2>
   <div class="shots">
@@ -69,15 +70,16 @@
     <img src="docs/screenshots/5-technique.png" alt="Fiche technique">
   </div>
   <ol>
+    <li><strong>Waza</strong> : <em>Tachi waza</em>, <em>Hanmi Handachi waza</em> ou <em>Suwari waza</em>.</li>
     <li><strong>Attaques</strong> : liste du waza.</li>
     <li><strong>Techniques</strong> : celles de l'attaque choisie.</li>
     <li><strong>Fiche technique</strong> : la carte complète et, en bas, <strong>Précédente / Suivante</strong>. En défilant, la liste « Même technique, autres attaques » permet de comparer la même technique sur d'autres attaques.</li>
   </ol>
-  <p>Les boutons « ← … » en haut remontent d'un niveau. Les filtres 🆕/⚠️ ne s'appliquent pas au programme.</p>
+  <p>Les boutons « ← … » en haut remontent d'un niveau, et « Retour à l'accueil » revient au tirage (tu peux aussi toucher le titre « 合気道 Aïkido »). Les filtres 🆕/⚠️ ne s'appliquent pas au programme.</p>
 
   <h2>4. Navigation</h2>
   <ul>
-    <li><strong>Chaque écran a sa propre URL</strong> (<code>#/2eme-kyo/Tachi%20waza/program/Katate%20dori/Sankyo</code>) : tu peux recharger la page ou partager un lien.</li>
+    <li><strong>Chaque écran a sa propre URL</strong> (<code>#/2eme-kyo/program/Tachi%20waza/Katate%20dori/Sankyo</code>) : tu peux recharger la page ou partager un lien.</li>
   </ul>
 
   <h2>5. Installation et hors ligne</h2>

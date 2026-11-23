@@ -4,7 +4,7 @@
 
 // Hash of all the served files (see CLAUDE.md, `yarn bump`): renews the offline cache as soon as one of them changes.
 // The `?v=` of each file below is the hash of that file only.
-const VERSION = "3b5e3413";
+const VERSION = "5f701e2c";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -12,11 +12,11 @@ const PRECACHE = [
   "index.html",
   "manual.html",
   "docs/screenshots/1-home.png",
-  "docs/screenshots/2-draw.png",
+  "docs/screenshots/2-waza.png",
   "docs/screenshots/3-attacks.png",
   "docs/screenshots/4-techniques.png",
   "docs/screenshots/5-technique.png",
-  "style.css?v=0242dc0d",
+  "style.css?v=8ebf3002",
   "app.js?v=ff405f5f",
   "framework/elmer/index.js?v=8ae72091",
   "framework/elmer/runtime.js?v=8d373247",
@@ -27,21 +27,21 @@ const PRECACHE = [
   "framework/elmer/vdom.js?v=4cfa45d5",
   "src/update.js?v=aaaf8f14",
   "src/features/video.js?v=ab6f2974",
-  "src/features/program.js?v=ca4264bd",
-  "src/features/navigation.js?v=847b8872",
-  "src/shared/screen.js?v=357675a7",
+  "src/features/program.js?v=9cb9186f",
+  "src/features/navigation.js?v=bbcb9477",
+  "src/shared/screen.js?v=c546dc28",
   "src/shared/grades.js?v=cf6f715e",
   "src/features/slide.js?v=5736935d",
-  "src/features/catalog.js?v=2fced0c4",
-  "src/features/quiz.js?v=54faf665",
+  "src/features/catalog.js?v=655e5a01",
+  "src/features/quiz.js?v=5fa7b3ae",
   "framework/elmer/feature.js?v=9ff87f04",
   "src/layout/card.js?v=7f6a0be7",
-  "src/view.js?v=8526c65d",
-  "src/layout/footer.js?v=2c6a521b",
+  "src/view.js?v=8c46cc00",
+  "src/layout/footer.js?v=9ba59102",
   "src/layout/title.js?v=b05b6e23",
   "src/layout/page.js?v=8ae1bb18",
-  "src/layout/home.js?v=eaf88272",
-  "src/shared/logic.js?v=c1a37c7c",
+  "src/layout/home.js?v=42557254",
+  "src/shared/logic.js?v=2dba9594",
   "framework/elmer/debug/mount.js?v=65c1e9f1",
   "framework/elmer/debug/panel.js?v=9cdea2e2",
   "framework/elmer/debug/inspect.js?v=0b6dcfdc",

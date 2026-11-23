@@ -41,14 +41,18 @@ export function buildPool(data, waza, { isNew = false, isWarning = false } = {})
       if ((isNew || isWarning) && !((isNew && technique.isNew) || (isWarning && technique.isWarning))) continue;
       const weight = (technique.isNew ? WEIGHT_NEW : 1) * (technique.isWarning ? WEIGHT_WARNING : 1);
       const forms = technique.forms.length ? technique.forms : [null];
-      for (const form of forms) items.push({ attack: attack.name, technique: technique.name, form, weight });
+      for (const form of forms) items.push({ waza, attack: attack.name, technique: technique.name, form, weight });
     }
   }
   return items;
 }
 
+// Pool of the quiz of the home screen: the waza selected by `filters.waza` (all by default).
+export const buildFullPool = (data, filters = {}) =>
+  WAZA_ORDER.filter((waza) => !filters.waza || filters.waza.includes(waza)).flatMap((waza) => buildPool(data, waza, filters));
+
 // Weighted draw: `random` ∈ [0, 1[ comes from an effect (Random), so the function stays pure.
-// The pool is an array of references { attack, technique, form, weight } (names; the rest is looked up in the data).
+// The pool is an array of references { waza, attack, technique, form, weight } (names; the rest is looked up in the data).
 // The function returns the index of the drawn technique in the pool.
 export function pickIndex(pool, random) {
   let left = random * pool.reduce((sum, entry) => sum + entry.weight, 0);

@@ -1,9 +1,9 @@
 // src/features/catalog.js
 
-// Feature "catalog": the list of grades, the selected grade, and the filters.
+// Feature "catalog": the list of grades and the selected grade.
 // The data of the grades is not in the model: it is cached in the browser (src/shared/grades.js).
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
-// Publishes the events `GradesLoaded` (first load) and `GradeLoaded` (another grade loaded) for the features that depend on the data.
+// Publishes the events `GradesLoaded` (first load), and `GradeLoaded` (another grade loaded) for the features that depend on the data.
 import { cmd, defineFeature, emit, html } from "../../framework/elmer/index.js";
 import { cacheGrade, clearGrades } from "../shared/grades.js";
 import { countTechniques, mergeGrades } from "../shared/logic.js";
@@ -18,20 +18,17 @@ export const feature = defineFeature({
     error: "", // error message if status is "error"
     list: [], // [{ id, label, file, includes?, count }]
     id: "", // id of the selected grade
-    filters: { isNew: false, isWarning: false },
   },
   init: ({ hash = "" } = {}, model) => [model, cmd("LoadGrades", { gradeId: parseHash(hash).grade })],
   messages: {
     GradesLoaded: gradesLoadedMessage,
     Failed: failedMessage,
     SelectGrade: selectGradeMessage,
-    GradeLoaded: gradeLoadedMessage,
-    SetFilter: setFilterMessage
+    GradeLoaded: gradeLoadedMessage
   },
   // The navigation needs another grade: select it and load its data.
   on: { GradeWanted: whenGradeWanted },
-  view,
-  views: { loadingStatus: loadingStatusView },
+  views: { grade: gradeView, loadingStatus: loadingStatusView },
   effects: ({ fetchJson }) => {
     const loading = (fn) => async (cmd, dispatch) => {
       try {
@@ -61,21 +58,14 @@ export const feature = defineFeature({
   },
 });
 
-// Selector of the grade and filters, shown on the home screen.
-function view(model) {
-  const { isNew, isWarning } = model.filters;
+// Selector of the grade, shown on the home screen.
+function gradeView(model) {
   return html`
-    <div class="group settings">
-      <label class="field">Grade
-        <select id="grade" onChange=${(event) => ({ type: "SelectGrade", id: event.target.value })}>
-          ${model.list.map((grade) => html`<option value=${grade.id} selected=${grade.id === model.id}>${grade.label} (${grade.count} techniques)</option>`)}
-        </select>
-      </label>
-      <div class="filters">
-        <label><input type="checkbox" id="f-new" checked=${isNew} onChange=${(event) => ({ type: "SetFilter", name: "isNew", checked: event.target.checked })} /> 🆕 Nouveautés</label>
-        <label><input type="checkbox" id="f-warning" checked=${isWarning} onChange=${(event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked })} /> ⚠️ Attention</label>
-      </div>
-    </div>`;
+    <label class="field">
+      <select id="grade" onChange=${(event) => ({ type: "SelectGrade", id: event.target.value })}>
+        ${model.list.map((grade) => html`<option value=${grade.id} selected=${grade.id === model.id}>${grade.label} (${grade.count} techniques)</option>`)}
+      </select>
+    </label>`;
 }
 
 // return Msg
@@ -98,11 +88,6 @@ function selectGradeMessage(model, { id }) {
 function gradeLoadedMessage(model, { id }) {
   // Stale response if the user changed grade in the meantime.
   return id !== model.id ? model : [model, [], emit("GradeLoaded")];
-}
-
-// return Msg
-function setFilterMessage(model, { name, checked }) {
-  return { ...model, filters: { ...model.filters, [name]: checked } };
 }
 
 function whenGradeWanted(model, { id }) {

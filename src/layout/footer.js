@@ -4,8 +4,8 @@ import { html } from "../../framework/elmer/index.js";
 
 export const footer = () => html`
   <footer>
+    <p><a href="manual.html">Manuel d'utilisation</a></p>
     <p>© 2026 Aïkido Trainer. Tous droits réservés.</p>
     <p>Développé par amour de l'Aïkido 🙏</p>
-    <p><a href="manual.html">Manuel d'utilisation</a></p>
     <p><a href="https://buymeacoffee.com/darricau" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a></p>
   </footer>`;

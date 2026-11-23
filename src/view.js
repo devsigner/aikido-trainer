@@ -4,7 +4,6 @@
 // The root view picks the screen; the pieces of the page are in src/layout/.
 import { embed, html } from "../framework/elmer/index.js";
 import { feature as catalog } from "./features/catalog.js";
-import { feature as quiz } from "./features/quiz.js";
 import { feature as program } from "./features/program.js";
 import { screenOf } from "./shared/screen.js";
 
@@ -16,7 +15,6 @@ import { title } from "./layout/title.js";
 export function view(model) {
   const header = title();
 
-  // The other screens are stacked vertically, with the footer below the fold.
   if (model.catalog.status !== "ready") {
     return page(model, header, catalog.views.loadingStatus(model.catalog));
   }
@@ -27,9 +25,6 @@ export function view(model) {
     return page(model, embed("program", program.view(model.program, model, header)));
   }
 
-  // The quiz screen's first page fills the viewport height; the footer sits below the fold.
-  if (screen === "quiz") {
-    return page(model, html`<div class="screen full">${header}${embed("quiz", quiz.view(model.quiz, model))}</div>`);
-  }
-  return page(model, header, home(model));
+  // The home screen's first page fills the viewport height; the footer sits below the fold.
+  return page(model, html`<div class="screen full">${header}${home(model)}</div>`);
 }

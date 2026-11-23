@@ -6,7 +6,7 @@ Petite application web pour **s'entraîner et réviser les techniques d'aïkido*
 
 <p>
   <img src="docs/screenshots/1-home.png" alt="Accueil" width="220">
-  <img src="docs/screenshots/2-draw.png" alt="Tirage" width="220">
+  <img src="docs/screenshots/2-waza.png" alt="Choix du waza" width="220">
   <img src="docs/screenshots/5-technique.png" alt="Fiche technique" width="220">
 </p>
 
@@ -14,12 +14,15 @@ Petite application web pour **s'entraîner et réviser les techniques d'aïkido*
 
 ### 1. Accueil
 
-- **Grade** : choisis le grade à réviser (1er, 2ème ou 3ème Kyo). Le nombre de techniques est indiqué. Les grades se cumulent : le 2ème Kyo inclut le 3ème, et le 1er Kyo inclut le 2ème et le 3ème.
-- **Filtres** :
+Le tirage démarre dès l'ouverture : une technique est déjà affichée, tous waza confondus.
+
+- **Grade** : choisis le grade à réviser (1er, 2ème ou 3ème Kyo). Le nombre de techniques est indiqué. Les grades se cumulent : le 2ème Kyo inclut le 3ème, et le 1er Kyo inclut le 2ème et le 3ème. Changer de grade relance une session.
+- **Programme** : bouton juste sous le grade, ouvre le programme (voir plus bas).
+- **Filtres** (changer un filtre relance une session) :
   - 🆕 *Nouveautés* : uniquement les techniques nouvelles du programme ;
   - ⚠️ *Attention* : uniquement les techniques à travailler en priorité ;
-  - les deux cochés : l'un **ou** l'autre ; aucun coché : tout le programme.
-- **Waza** : touche *Tachi waza*, *Hanmi Handachi waza* ou *Suwari waza* pour lancer une session. Un waza grisé n'a aucune technique avec les filtres choisis.
+  - les deux cochés : l'un **ou** l'autre ; aucun coché : tout le programme ;
+  - **Waza** (liste) : « Tous les waza » (par défaut), *Tachi waza*, *Hanmi Handachi waza* ou *Suwari waza*. Le waza et les marqueurs se cumulent (Suwari waza + ⚠️ = les techniques « Attention » de Suwari waza).
 
 ### 2. Tirage
 
@@ -37,21 +40,19 @@ Chaque tirage affiche une carte complète :
 
 Le lien « ▶ Voir la vidéo » demande d'abord une confirmation (la technique filmée peut différer de celle attendue au passage de grade) ; une case permet de ne plus afficher ce message.
 
-Le compteur « 3 / 115 » indique ta progression dans le waza.
+Le compteur « 3 / 115 » indique ta progression dans la session.
 
 - **Technique suivante** : tire la suivante.
-- **Voir le programme** : ouvre le programme complet sans interrompre la session.
-- **Retour à l'accueil** : termine la session (tu peux aussi toucher le titre « 合気道 Aïkido »).
 
 **Règles du tirage**
 
 - Tirage **uniforme** sur toutes les combinaisons *attaque × technique × forme*.
 - Les techniques 🆕 *Nouveau* et ⚠️ *Attention* sortent **un peu plus souvent** (×1,5 chacune, cumulables).
-- **Aucune répétition** pendant une session : quand tout est passé, l'app affiche « Waza terminé 🎉 ».
+- **Aucune répétition** pendant une session : quand tout est passé, l'app affiche « Session terminée 🎉 ». Ouvrir le programme ne change pas la session : à ton retour, tu reprends où tu t'étais arrêté.
 
 ### 3. Programme
 
-Le programme permet de naviguer dans tout le contenu du waza, sur trois niveaux :
+Le programme permet de naviguer dans tout le contenu d'un waza, sur quatre niveaux :
 
 <p>
   <img src="docs/screenshots/3-attacks.png" alt="Liste des attaques" width="220">
@@ -59,16 +60,17 @@ Le programme permet de naviguer dans tout le contenu du waza, sur trois niveaux 
   <img src="docs/screenshots/5-technique.png" alt="Fiche technique" width="220">
 </p>
 
-1. **Attaques** : liste triée du waza.
-2. **Techniques** : celles de l'attaque choisie, avec leurs marqueurs 🆕 ⚠️.
-3. **Fiche technique** : la carte complète, et en bas **Précédente / Suivante** pour passer d'une technique à l'autre de la même attaque (la liste boucle). En défilant, la liste « Même technique, autres attaques » permet de comparer la même technique sur d'autres attaques.
+1. **Waza** : *Tachi waza*, *Hanmi Handachi waza* ou *Suwari waza* (un waza sans attaque est grisé).
+2. **Attaques** : liste triée du waza.
+3. **Techniques** : celles de l'attaque choisie, avec leurs marqueurs 🆕 ⚠️.
+4. **Fiche technique** : la carte complète, et en bas **Précédente / Suivante** pour passer d'une technique à l'autre de la même attaque (la liste boucle). En défilant, la liste « Même technique, autres attaques » permet de comparer la même technique sur d'autres attaques.
 
-Les boutons « ← … » en haut remontent d'un niveau. Les filtres 🆕/⚠️ ne s'appliquent pas au programme.
+Les boutons « ← … » en haut remontent d'un niveau, et « Retour à l'accueil » revient au tirage (tu peux aussi toucher le titre « 合気道 Aïkido »). Les filtres 🆕/⚠️ ne s'appliquent pas au programme.
 
 ### 4. Navigation
 
 - **Boutons précédent / suivant du navigateur** : ils fonctionnent, et la carte glisse dans le sens correspondant.
-- **Chaque écran a sa propre URL** (`#/2eme-kyo/Tachi%20waza/program/Katate%20dori/Sankyo`) : tu peux recharger la page ou partager un lien, l'app revient au même endroit. Un waza dans l'URL relance un tirage.
+- **Chaque écran a sa propre URL** (`#/2eme-kyo/program/Tachi%20waza/Katate%20dori/Sankyo`) : tu peux recharger la page ou partager un lien, l'app revient au même endroit. Le tirage, lui, n'est pas dans l'URL : il redémarre.
 
 ### 5. Installer l'application et l'utiliser hors ligne
 
@@ -113,7 +115,7 @@ flowchart LR
 ```
 
 - **Model** : toutes les données de l'application (écran, grade, filtres, tirage en cours, programme…). Jamais modifié sur place : `update` en renvoie une copie.
-- **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`StartSession`, `Next`, `Rolled`, `Navigate`…). À la racine il est adressé à une feature : `{ feature, msg }` (`to("quiz", msg)`).
+- **Msg** : un objet `{ type, … }` qui décrit *ce qui s'est passé* (`Next`, `Rolled`, `Navigate`…). À la racine il est adressé à une feature : `{ feature, msg }` (`to("quiz", msg)`).
 - **Feature** : un module `src/features/*.js` qui exporte `feature = defineFeature({ name, initialState, messages, on, view, effects… })` et possède sa tranche du modèle (`model.quiz`…). `combine` assemble les features en un `update` racine ; une feature n'écrit jamais la tranche d'une autre : elle **publie des événements** (`ProgramOpened`, `Navigated`, `ViewChanged`…) auxquels les autres s'abonnent dans `on`. Voir [`framework/elmer/README.md`](framework/elmer/README.md).
 - **`update(model, msg) → [model, cmds, events?]`** (par feature, via `messages`) : fonction **pure**. Elle ne touche ni au DOM, ni au réseau, ni à `Math.random`. Elle *décrit* les effets souhaités sous forme de données (les `cmds`).
 - **Cmd** : un effet décrit comme une donnée (`{ type: "Random" }`). Il est exécuté par la table d'effets des features (`framework/elmer/effects.js`), qui renvoie son résultat sous la forme d'un nouveau message.
@@ -179,14 +181,13 @@ stateDiagram-v2
     [*] --> chargement
     chargement --> accueil: GradesLoaded
     chargement --> erreur: Failed
-    accueil --> tirage: StartSession
-    tirage --> tirage: Next / Rolled
-    tirage --> accueil: GoHome → HomeRequested
-    tirage --> programme: OpenProgram → ProgramOpened
-    programme --> tirage: CloseProgram → ProgramClosed
+    accueil --> accueil: Next / Rolled (le tirage)
+    accueil --> programme: OpenProgram
     programme --> accueil: GoHome → HomeRequested
     state programme {
-        [*] --> attaques
+        [*] --> waza
+        waza --> attaques: Navigate
+        attaques --> waza: Navigate (retour)
         attaques --> techniques: Navigate
         techniques --> fiche: Navigate
         fiche --> fiche: Précédente / Suivante
@@ -195,7 +196,7 @@ stateDiagram-v2
     }
 ```
 
-Les trois niveaux du programme sont stockés dans `model.program = { waza, current: { level, attack?, technique? } }` (la tranche n'existe que programme ouvert). Ouvrir le programme termine la session de tirage (la tranche `quiz` est libérée) ; revenir au tirage démarre une nouvelle session du même waza, à 0.
+Les quatre niveaux du programme sont stockés dans `model.program = { current: { level, waza?, attack?, technique? } }` (la tranche n'existe que programme ouvert). La tranche `quiz` existe en permanence : la session démarre au chargement des données et redémarre quand le grade ou un filtre change (événements `GradesLoaded`, `GradeLoaded`, ou ses propres filtres) ; ouvrir le programme n'y touche pas.
 
 #### Principaux messages et effets
 
@@ -203,12 +204,12 @@ Les trois niveaux du programme sont stockés dans `model.program = { waza, curre
 |---------|---------|---------------|-------------------------------------------|
 | `catalog` | `GradesLoaded` / `GradeLoaded` | fin du chargement des JSON | événements `GradesLoaded` / `GradeLoaded` |
 | `catalog` | `SelectGrade` | liste des grades | `LoadGrade`, `Navigated` |
-| `catalog` | `SetFilter` | cases 🆕 / ⚠️ | — |
-| `quiz` | `StartSession` | bouton d'un waza | `Random`, `Navigated`, `ViewChanged` |
+| `quiz` | `SetFilter`, `SelectWaza` | cases 🆕 / ⚠️, liste des waza | `Random` (nouvelle session) |
 | `quiz` | `Next` | « Technique suivante » | `Random` |
+| `quiz` | (événements `GradesLoaded`, `GradeLoaded`) | données changées | `Random` (nouvelle session) |
 | `quiz` | `Rolled` | retour de l'effet `Random` | `ViewChanged` |
-| `program` | `OpenProgram`, `Navigate`, `CloseProgram` | boutons du programme | `ProgramOpened` / `ProgramClosed`, `Navigated`, `ViewChanged` |
-| `navigation` | `GoHome` | « Retour à l'accueil », titre | `HomeRequested` |
+| `program` | `OpenProgram`, `Navigate`, `CloseProgram` | bouton « Programme », boutons du programme | `Navigated`, `ViewChanged` |
+| `navigation` | `GoHome` | « Retour à l'accueil » du programme, titre | `HomeRequested` |
 | `navigation` | `Popped` | précédent/suivant du navigateur | `RouteChanged` (l'URL fait foi) |
 | `navigation` | (événement `Navigated`) | une feature change ce que l'URL montre | `Url` (écrit l'URL) |
 | `video` | `AskVideo`, `SetDontAsk`, `CancelVideo` | modale de confirmation | — |
@@ -232,7 +233,7 @@ Une `key` différente force le remplacement de l'élément : c'est ce qui relanc
 
 ```mermaid
 flowchart LR
-    MOD["Model"] -- "toHash" --> URL["#/2eme-kyo/Tachi waza/program/<br/>Katate dori/Sankyo"]
+    MOD["Model"] -- "toHash" --> URL["#/2eme-kyo/program/Tachi waza/<br/>Katate dori/Sankyo"]
     URL -- "parseHash (chargement, popstate)" --> MOD
 ```
 
