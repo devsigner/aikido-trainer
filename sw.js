@@ -4,7 +4,7 @@
 
 // Hash of all the served files (see CLAUDE.md, `yarn bump`): renews the offline cache as soon as one of them changes.
 // The `?v=` of each file below is the hash of that file only.
-const VERSION = "8bfc9645";
+const VERSION = "3b5e3413";
 const CACHE = `aikido-trainer-${VERSION}`;
 
 const PRECACHE = [
@@ -37,7 +37,7 @@ const PRECACHE = [
   "framework/elmer/feature.js?v=9ff87f04",
   "src/layout/card.js?v=7f6a0be7",
   "src/view.js?v=8526c65d",
-  "src/layout/footer.js?v=07d892b9",
+  "src/layout/footer.js?v=2c6a521b",
   "src/layout/title.js?v=b05b6e23",
   "src/layout/page.js?v=8ae1bb18",
   "src/layout/home.js?v=eaf88272",
