@@ -48,7 +48,7 @@ Le compteur « 3 / 115 » indique ta progression dans la session.
 
 - Tirage **uniforme** sur toutes les combinaisons *attaque × technique × forme*.
 - Les techniques 🆕 *Nouveau* et ⚠️ *Attention* sortent **un peu plus souvent** (×1,5 chacune, cumulables).
-- **Aucune répétition** pendant une session : quand tout est passé, l'app affiche « Session terminée 🎉 ». Ouvrir le programme ne change pas la session : à ton retour, tu reprends où tu t'étais arrêté.
+- **Aucune répétition** pendant une session : quand tout est passé, l'app affiche « Session terminée 🎉 ». Ouvrir le programme ne change pas la session : à ton retour, tu reprends où tu t'étais arrêté. Le bouton **i** en haut à droite de la carte ouvre directement la fiche de la technique dans le programme.
 
 ### 3. Programme
 

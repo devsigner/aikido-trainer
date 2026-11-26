@@ -50,7 +50,7 @@ function view(model, root) {
     <section id="quiz">
       <p id="progress" class="hint">${model.total ? `${played} / ${model.total}` : ""}</p>
       <h3 class="hint">Connais-tu cette technique ?</h3>
-      ${model.total === 0 ? html`<div id="empty" class="card">Aucune technique pour ces filtres.</div>` : model.done ? html`<div id="done">Session terminée 🎉</div>` : card(root, { prefix: "card", ...shown })}
+      ${model.total === 0 ? html`<div id="empty" class="card">Aucune technique pour ces filtres.</div>` : model.done ? html`<div id="done">Session terminée 🎉</div>` : card(root, { prefix: "card", info: true, ...shown })}
       <div class="buttons actions">
         ${model.total > 0 && !model.done && html`<button id="next" onClick=${{ type: "Next" }}>Technique suivante</button>`}
       </div>

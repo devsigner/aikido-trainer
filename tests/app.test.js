@@ -255,6 +255,16 @@ describe("program", () => {
     assert.equal(app.model.quiz, quiz);
   });
 
+  test("the (i) button of the quiz card opens the technique in the program; the session is kept", async () => {
+    const app = await createApp({ random: () => 0 });
+    app.load(DATA);
+    const quiz = app.model.quiz;
+    const { waza, attack, technique } = quiz.current;
+    app.click("card-info");
+    assert.deepEqual(app.model.program.current, { level: 3, waza, attack, technique });
+    assert.equal(app.model.quiz, quiz);
+  });
+
   test("attacks of the waza, sorted", async () => {
     const { app } = await open();
     assert.deepEqual(app.list(), ["Aï hammi katate dori", "Katate dori", "Ryote dori"]);

@@ -59,8 +59,9 @@ function view(model, root, header) {
     </section>`;
 }
 
-function openProgramMessage() {
-  return [{ current: { level: 0 } }, [], [navigatedEvent("push"), viewChangedEvent("forward")]];
+// `to` = where to land (the info button of the quiz card goes straight to a technique); the waza list by default.
+function openProgramMessage(_, { to: target = { level: 0 } }) {
+  return [{ current: target }, [], [navigatedEvent("push"), viewChangedEvent("forward")]];
 }
 
 // Going up a level slides back, unless the message forces the direction.
