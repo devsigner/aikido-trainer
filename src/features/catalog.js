@@ -6,7 +6,7 @@
 // Publishes the events `GradesLoaded` (first load), and `GradeLoaded` (another grade loaded) for the features that depend on the data.
 import { cmd, defineFeature, emit, html } from "../../framework/elmer/index.js";
 import { cacheGrade, clearGrades } from "../shared/grades.js";
-import { countTechniques, mergeGrades } from "../shared/logic.js";
+import { countTechniques, markNew, mergeGrades } from "../shared/logic.js";
 import { feature as navigation, parseHash } from "./navigation.js";
 
 const { navigated: navigatedEvent } = navigation.events;
@@ -102,7 +102,9 @@ function loadingStatusView(model) {
 }
 
 export async function resolveGrade(grade, fetchJson) {
-  const files = [...(grade.includes || []), grade.file];
-  const datas = await Promise.all(files.map((file) => fetchJson(`data/${file}`)));
-  return datas.reduce((merged, data) => mergeGrades(merged, data));
+  const includes = grade.includes || [];
+  const datas = await Promise.all([...includes, grade.file].map((file) => fetchJson(`data/${file}`)));
+  const lower = includes.length ? datas.slice(0, -1).reduce((merged, data) => mergeGrades(merged, data)) : null;
+  // `isNew` is computed: only the techniques absent from the lower grades are new.
+  return markNew(datas.reduce((merged, data) => mergeGrades(merged, data)), lower);
 }

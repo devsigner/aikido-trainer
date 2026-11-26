@@ -14,8 +14,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=eXTgZMILWZw"
           },
@@ -26,8 +24,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=J8MpnscyjtA"
           },
@@ -38,8 +34,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=bRc-UjpA0Jk"
           },
@@ -47,8 +41,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=zgQIIymWg_k"
           },
@@ -56,8 +48,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=oKwQpEJM8pc"
           }
@@ -74,8 +64,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           },
@@ -86,8 +74,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           }
@@ -101,8 +87,6 @@
             "name": "Kokyu hoo (Kokyu dosa)",
             "order": 42,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Y8LghE6Og5A"
           }
@@ -121,8 +105,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           },
@@ -130,8 +112,6 @@
             "name": "Kokyu nage",
             "order": 42,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           },
@@ -142,8 +122,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           }
@@ -157,8 +135,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           }
@@ -177,8 +153,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://youtu.be/HYz1EbR99l4?si=ak8D5_uPXlVYt9AX"
           },
@@ -186,8 +160,6 @@
             "name": "Sokumen irimi nage",
             "order": 6,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": "Naname",
             "video": "https://www.youtube.com/watch?v=OHAi98r0yf8"
           },
@@ -198,8 +170,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=jOCU-sgBVWo"
           },
@@ -210,8 +180,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=BymVlxGd6BM"
           },
@@ -219,8 +187,6 @@
             "name": "Kokyu nage",
             "order": 42,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": "3 formes différentes",
             "video": "https://www.youtube.com/watch?v=rPiRb-2qUDQ"
           },
@@ -231,8 +197,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://youtu.be/fDgG4J-UA0k?si=8huP3J0ruI05mEPC"
           },
@@ -243,8 +207,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://youtu.be/mjQQrSPKjA0?si=qbrGhps9i8Rg-X7l"
           },
@@ -252,8 +214,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=p9a-Iu_q90I"
           },
@@ -261,8 +221,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hRIccRuhbSA"
           },
@@ -273,8 +231,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=5DR2ATA_X9Y"
           },
@@ -285,8 +241,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://youtu.be/dPBZWMAqvCE?si=u812okQD3xUsq8yl"
           }
@@ -300,8 +254,6 @@
             "name": "Sokumen irimi nage",
             "order": 6,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": "Naname",
             "video": "https://www.youtube.com/watch?v=YFNg5-qxmP8"
           },
@@ -312,8 +264,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=RVgNC05JxSQ"
           },
@@ -324,8 +274,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=kg5F_aN5_Ts"
           },
@@ -333,8 +281,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=LhDFNQzYKE8"
           },
@@ -342,8 +288,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=STMpGLm-m1Q"
           },
@@ -354,8 +298,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=kyoz5YAaNXM"
           },
@@ -366,8 +308,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hmhUozNZoYo"
           },
@@ -377,8 +317,6 @@
             "forms": [
               "Omote (forme uchi)"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=nC_EA5Uj1YU"
           }
@@ -392,8 +330,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Km_UCCs5nl0"
           },
@@ -401,8 +337,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=4ZP4PpJVjK4"
           },
@@ -413,8 +347,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=pWyQEmcbRYQ"
           },
@@ -425,8 +357,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=5l5aM_Li1oo"
           },
@@ -437,8 +367,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=UpkQJjEhHhc"
           }
@@ -455,8 +383,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=shSIhWoPm6c"
           },
@@ -464,8 +390,6 @@
             "name": "Kokyu nage",
             "order": 42,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=cf0uD0Ys3BU"
           },
@@ -476,8 +400,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=K6vZ7ok8AKg"
           },
@@ -488,8 +410,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=W3966IKbPlE"
           }
@@ -506,8 +426,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=5puINJeVO_g"
           },
@@ -518,8 +436,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Ork8roqH68A"
           },
@@ -527,8 +443,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hQRDGc3Oc9A"
           },
@@ -538,8 +452,6 @@
             "forms": [
               "Omote"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Ml52h_GKrqw"
           },
@@ -547,8 +459,6 @@
             "name": "Kokyu hoo",
             "order": 42,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": "Naname",
             "video": "https://www.youtube.com/watch?v=7pZ1BMUF_as"
           },
@@ -559,8 +469,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": "En option",
             "video": "https://www.youtube.com/watch?v=vFNRD-_YEYo"
           },
@@ -570,8 +478,6 @@
             "forms": [
               "Omote (forme uchi)"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": "En option",
             "video": "https://www.youtube.com/watch?v=6ET3YYQOBF0"
           },
@@ -579,8 +485,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": "En option",
             "video": "https://www.youtube.com/watch?v=pR8oaFCPXXI"
           }
@@ -597,8 +501,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=TNKal-1HahE"
           },
@@ -609,8 +511,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=K9JXQkg-TTw"
           }
@@ -627,8 +527,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=8_zv1Uk4uXM"
           },
@@ -639,8 +537,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=av3cy-785U0"
           },
@@ -651,8 +547,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=_zCVwunKwxU"
           },
@@ -663,8 +557,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Sqx6kDmkq0A"
           },
@@ -675,8 +567,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=uiaopY89OPY"
           },
@@ -684,8 +574,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=gZvhR_ntxLs"
           },
@@ -693,8 +581,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=nRCBMNb7Go4"
           }
@@ -708,8 +594,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": "2 formes",
             "video": null
           },
@@ -720,8 +604,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=IrHylGtoJJQ"
           },
@@ -732,8 +614,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=t_f54SvJ5IM"
           },
@@ -743,8 +623,6 @@
             "forms": [
               "Omote (forme uchi)"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": null
           },
@@ -752,8 +630,6 @@
             "name": "Kokyu nage",
             "order": 42,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=19X3GZo2GgY"
           },
@@ -764,8 +640,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=MYicGt3foWA"
           },
@@ -776,8 +650,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=-9BBs1F9B1o"
           },
@@ -785,8 +657,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": false,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=iu9-_ZpEWOU"
           }

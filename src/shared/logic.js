@@ -2,7 +2,6 @@
 
 // Shared functions: pure (no dependency on the DOM, the network or randomness), except the localStorage flags at the end.
 export const WEIGHT_NEW = 1.5;
-export const WEIGHT_WARNING = 1.5;
 export const WAZA_ORDER = ["Tachi waza", "Hanmi Handachi waza", "Suwari waza"];
 
 // Merges `over` into `base`: attacks and techniques are matched by name,
@@ -30,16 +29,33 @@ export function mergeGrades(base, over) {
   return merged;
 }
 
+// Marks `isNew` on every technique of `data`: true when the technique (waza, attack, name) is absent from `lower`
+// (the grades below, merged); always false when there is no lower grade. Returns a copy.
+export function markNew(data, lower) {
+  const known = new Set();
+  for (const [waza, attacks] of Object.entries(lower?.waza || {})) {
+    for (const attack of attacks) attack.techniques.forEach((technique) => known.add(JSON.stringify([waza, attack.name, technique.name])));
+  }
+  const waza = {};
+  for (const [wazaName, attacks] of Object.entries(data.waza)) {
+    waza[wazaName] = attacks.map((attack) => ({
+      ...attack,
+      techniques: attack.techniques.map((technique) => ({ ...technique, isNew: !!lower && !known.has(JSON.stringify([wazaName, attack.name, technique.name]))})),
+    }));
+  }
+  return { ...data, waza };
+}
+
 export function countTechniques(data) {
   return Object.values(data.waza).flat().reduce((total, attack) => total + attack.techniques.length, 0);
 }
 
-export function buildPool(data, waza, { isNew = false, isWarning = false } = {}) {
+export function buildPool(data, waza, { isNew = false } = {}) {
   const items = [];
   for (const attack of data.waza[waza] || []) {
     for (const technique of attack.techniques) {
-      if ((isNew || isWarning) && !((isNew && technique.isNew) || (isWarning && technique.isWarning))) continue;
-      const weight = (technique.isNew ? WEIGHT_NEW : 1) * (technique.isWarning ? WEIGHT_WARNING : 1);
+      if (isNew && !technique.isNew) continue;
+      const weight = technique.isNew ? WEIGHT_NEW : 1;
       const forms = technique.forms.length ? technique.forms : [null];
       for (const form of forms) items.push({ waza, attack: attack.name, technique: technique.name, form, weight });
     }
@@ -65,7 +81,7 @@ export function pickIndex(pool, random) {
 
 export const norm = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 export const byOrder = (first, second) => first.order - second.order || first.name.localeCompare(second.name, "fr");
-export const badgesOf = (technique) => [technique.isNew ? "🆕" : "", technique.isWarning ? "⚠️" : ""].join(" ").trim();
+export const badgesOf = (technique) => (technique.isNew ? "🆕" : "");
 
 // Entry of the data for a technique reference (undefined if unknown).
 export const findTechnique = (data, waza, attack, technique) =>

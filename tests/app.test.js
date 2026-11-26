@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { createApp, settle, readJson, resolveGrade, WAZA, keysOf, parentsOf, byId, find, text } from "./helpers.js";
-import { buildPool, buildFullPool, pickIndex, mergeGrades, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/shared/logic.js";
+import { buildPool, buildFullPool, pickIndex, mergeGrades, markNew, listAttacks, listTechniques, findSameTechnique, countTechniques } from "../src/shared/logic.js";
 import { h } from "../framework/elmer/vdom.js";
 import { parseHash, toHash } from "../src/features/navigation.js";
 import { update, init, initialModel, debugHide } from "../src/update.js";
@@ -18,16 +18,16 @@ const DATA = {
   waza: {
     "Tachi waza": [
       { name: "Katate dori", order: 2, techniques: [
-        { name: "Nikkyo", order: 2, forms: ["Omote", "Ura"], isNew: true, isWarning: false, note: "N", video: "https://v" },
+        { name: "Nikkyo", order: 2, forms: ["Omote", "Ura"], isNew: true, note: "N", video: "https://v" },
         { name: "Kote gaeshi", order: 10, forms: [] },
       ] },
-      { name: "Ryote dori", order: 3, techniques: [{ name: "nikkyo", order: 2, forms: [], isWarning: true }, { name: "Sankyo", order: 3, forms: [] }] },
+      { name: "Ryote dori", order: 3, techniques: [{ name: "nikkyo", order: 2, forms: [], isNew: true }, { name: "Sankyo", order: 3, forms: [] }] },
       { name: "Aï hammi katate dori", order: 1, techniques: [{ name: "Sankyo", order: 3, forms: [] }] },
     ],
     "Suwari waza": [],
   },
 };
-const ALL = { isNew: false, isWarning: false };
+const ALL = { isNew: false };
 const walkIds = (node, ids) => {
   if (typeof node === "string") return;
   if (node.props.id) ids.push(node.props.id);
@@ -52,16 +52,15 @@ describe("logic", () => {
   });
 
   test("full pool: only the selected waza", () => {
-    const data = { waza: { ...DATA.waza, "Suwari waza": [{ name: "A", order: 1, techniques: [{ name: "Ikkyo", order: 1, forms: [], isWarning: true }] }] } };
+    const data = { waza: { ...DATA.waza, "Suwari waza": [{ name: "A", order: 1, techniques: [{ name: "Ikkyo", order: 1, forms: [], isNew: true }] }] } };
     assert.deepEqual([...new Set(buildFullPool(data, { ...ALL, waza: ["Suwari waza"] }).map((entry) => entry.waza))], ["Suwari waza"]);
-    assert.equal(buildFullPool(data, { isNew: false, isWarning: true, waza: ["Tachi waza", "Suwari waza"] }).length, 2, "waza AND marker");
+    assert.equal(buildFullPool(data, { isNew: true, waza: ["Tachi waza", "Suwari waza"] }).length, 4, "waza AND marker");
   });
 
-  test("filters: New, Warning, or both (OR)", () => {
+  test("filter: New only, or everything", () => {
     const countFor = (filters) => buildPool(DATA, "Tachi waza", filters).length;
-    assert.equal(countFor({ isNew: true, isWarning: false }), 2);
-    assert.equal(countFor({ isNew: false, isWarning: true }), 1);
-    assert.equal(countFor({ isNew: true, isWarning: true }), 3);
+    assert.equal(countFor({ isNew: true }), 3);
+    assert.equal(countFor({ isNew: false }), 6);
   });
 
   test("pickIndex respects the weights", () => {
@@ -110,11 +109,33 @@ describe("vdom", () => {
   });
 });
 
+describe("isNew is computed", () => {
+  const isNew = (data) => data.waza["Tachi waza"].find((attack) => attack.name === "Katate dori").techniques.find((technique) => technique.name === "Sankyo").isNew;
+
+  test("only the techniques absent from the lower grades are new", () => {
+    const data = { waza: { "Tachi waza": [{ name: "Katate dori", techniques: [{ name: "Sankyo" }, { name: "Nikkyo" }] }] } };
+    const lower = { waza: { "Tachi waza": [{ name: "Katate dori", techniques: [{ name: "Nikkyo" }] }] } };
+    assert.deepEqual(markNew(data, lower).waza["Tachi waza"][0].techniques.map((technique) => technique.isNew), [true, false]);
+    assert.deepEqual(markNew(data, null).waza["Tachi waza"][0].techniques.map((technique) => technique.isNew), [false, false], "lowest grade: nothing is new");
+  });
+
+  test("Sankyo (Tachi, Katate dori) is new in the 2nd Kyo only", () => {
+    assert.equal(isNew(resolveGrade("2eme-kyo")), true);
+    assert.equal(isNew(resolveGrade("1er-kyo")), false);
+    assert.equal(resolveGrade("3eme-kyo").waza["Tachi waza"].flatMap((attack) => attack.techniques).some((technique) => technique.isNew), false);
+  });
+
+  test("the data files carry no isNew key", () => {
+    for (const id of ["1er-kyo", "2eme-kyo", "3eme-kyo"]) assert.doesNotMatch(JSON.stringify(readJson(`data/${id}.json`)), /isNew/);
+  });
+});
+
 describe("resolveGrade", () => {
   test("merges the parents then the grade", async () => {
     const grades = readJson("data/grades.json");
     const data = await resolveGradeFx(grades.find((grade) => grade.id === "2eme-kyo"), async (url) => readJson(url));
     assert.equal(countTechniques(data), 108);
+    assert.equal(data.waza["Tachi waza"].flatMap((attack) => attack.techniques).filter((technique) => technique.isNew).length > 0, true);
   });
 });
 
@@ -142,10 +163,10 @@ describe("application", () => {
     const app = await createApp({ random: () => 0 });
     app.load(DATA);
     assert.equal(app.model.quiz.total, 6);
-    app.setFilter("f-warning", true);
-    assert.equal(app.model.quiz.total, 1);
-    assert.equal(app.card().technique, "nikkyo");
-    app.setFilter("f-warning", false);
+    app.setFilter("f-new", true);
+    assert.equal(app.model.quiz.total, 3);
+    assert.equal(app.card().technique, "Nikkyo");
+    app.setFilter("f-new", false);
     assert.equal(app.model.quiz.total, 6);
     assert.equal(app.model.quiz.total - app.model.quiz.pool.length, 1);
   });
@@ -186,12 +207,11 @@ describe("application", () => {
 
   test("quiz: full card, video, progress", async () => {
     const app = await createApp({ random: () => 0 });
-    app.load({ waza: { "Tachi waza": [{ name: "Katate dori", order: 1, techniques: [{ name: "Nikkyo", order: 2, forms: ["Ura"], isNew: true, isWarning: true, note: "N", video: "https://v" }] }] } });
+    app.load({ waza: { "Tachi waza": [{ name: "Katate dori", order: 1, techniques: [{ name: "Nikkyo", order: 2, forms: ["Ura"], isNew: true, note: "N", video: "https://v" }] }] } });
     const card = app.card();
     assert.deepEqual([card.waza, card.attack, card.technique, card.form, card.note], ["Tachi waza", "Katate dori", "Nikkyo", "Ura", "N"]);
     assert.equal(card.video.props.href, "https://v");
     assert.match(card.badges, /🆕/);
-    assert.match(card.badges, /⚠️/);
     assert.equal(app.text("progress"), "1 / 1");
   });
 

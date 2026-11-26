@@ -2,7 +2,7 @@
 
 // Feature "quiz": the session of random techniques of the home screen, all waza together (pool without repetition).
 // Standalone feature (see framework/elmer/feature.js): its model, update, view and effects are all here.
-// Owns the filters of the draw (waza, 🆕, ⚠️); reads the data of the catalog feature through the root model (read-only).
+// Owns the filters of the draw (waza, 🆕); reads the data of the catalog feature through the root model (read-only).
 // The session starts when the data is loaded and starts again when the grade or the filters change (`GradesLoaded`, `GradeLoaded`, own messages); opening the program does not affect it.
 // Publishes `ViewChanged` (the card slides).
 import { cmd, defineFeature, html } from "../../framework/elmer/index.js";
@@ -21,8 +21,8 @@ export const feature = defineFeature({
   // - `total` = total number of techniques in the pool at the start of the session
   // - `current` = technique currently drawn (null if none) by references (names): { waza, attack, technique, form, weight }
   // - `done` = true if the pool is empty and the user has seen all techniques
-  // - `filters` = { isNew, isWarning, waza }, `waza` = the waza drawn (all, or the one selected)
-  initialState: { session: 0, pool: [], total: 0, current: null, done: false, filters: { isNew: false, isWarning: false, waza: WAZA_ORDER } },
+  // - `filters` = { isNew, waza }, `waza` = the waza drawn (all, or the one selected)
+  initialState: { session: 0, pool: [], total: 0, current: null, done: false, filters: { isNew: false, waza: WAZA_ORDER } },
   messages: {
     Next: nextMessage,
     Rolled: rolledMessage,
@@ -71,7 +71,7 @@ function rolledMessage(model, msg) {
 
 // Filters of the draw, shown on the home screen.
 function filtersView(model) {
-  const { isNew, isWarning, waza } = model.filters;
+  const { isNew, waza } = model.filters;
   const all = waza.length === WAZA_ORDER.length;
   return html`
     <div class="group">
@@ -83,7 +83,6 @@ function filtersView(model) {
       </label>
       <div class="filters">
         <label><input type="checkbox" id="f-new" checked=${isNew} onChange=${(event) => ({ type: "SetFilter", name: "isNew", checked: event.target.checked })} /> 🆕 Nouveautés</label>
-        <label><input type="checkbox" id="f-warning" checked=${isWarning} onChange=${(event) => ({ type: "SetFilter", name: "isWarning", checked: event.target.checked })} /> ⚠️ Attention</label>
       </div>
     </div>`;
 }

@@ -10,8 +10,6 @@
             "name": "Sankyo",
             "order": 3,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=bYtGQgp21gk"
           },
@@ -19,8 +17,6 @@
             "name": "Sumi otoshi",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=ByXUMTLfskA"
           },
@@ -28,8 +24,6 @@
             "name": "Aïki otoshi",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=XOAgW5nzAuY"
           },
@@ -37,8 +31,6 @@
             "name": "Koshi nage",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": true,
             "note": null,
             "video": "https://www.youtube.com/watch?v=YbCHLQt7F9c"
           }
@@ -52,8 +44,6 @@
             "name": "Koshi nage",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=IkG0ue8bXTo"
           }
@@ -67,8 +57,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=8bcHCMOuU-E"
           },
@@ -76,8 +64,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=OqZJfg7SBq0"
           }
@@ -108,7 +94,6 @@
           {
             "name": "Sankyo",
             "order": 3,
-            "isNew": true,
             "note": null
           }
         ]
@@ -121,8 +106,6 @@
             "name": "Sankyo",
             "order": 3,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=XlMJQMbfKo8"
           }
@@ -136,8 +119,6 @@
             "name": "Shiho nage",
             "order": 7,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=Jasm-kuWQ4A"
           },
@@ -145,8 +126,6 @@
             "name": "Soto kaïten nage",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=JQhZczX-mFU"
           },
@@ -154,8 +133,6 @@
             "name": "Uchi kaïten nage",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=tIvmcUfdhYY"
           }
@@ -169,8 +146,6 @@
             "name": "Ikkyo",
             "order": 1,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=IvjkTl_Iy48"
           },
@@ -178,8 +153,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=MErUNbthdHY"
           },
@@ -187,8 +160,6 @@
             "name": "Shiho nage",
             "order": 7,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=jsAifjOPCZI"
           }
@@ -202,8 +173,6 @@
             "name": "Sokumen irimi nage",
             "order": 6,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": "Naname",
             "video": "https://www.youtube.com/watch?v=MCFig0BhqCQ"
           }
@@ -217,8 +186,6 @@
             "name": "Juji garami",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=NZaHRJ0ij4E"
           },
@@ -226,8 +193,6 @@
             "name": "Sokumen irimi nage",
             "order": 6,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": "Naname",
             "video": "https://www.youtube.com/watch?v=YdPfdG3z3h4"
           }
@@ -241,8 +206,6 @@
             "name": "Ikkyo",
             "order": 1,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=1AxrrJbjWYA"
           },
@@ -250,8 +213,6 @@
             "name": "Nikkyo",
             "order": 2,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=ra5PXm-Y9fk"
           },
@@ -259,8 +220,6 @@
             "name": "Sankyo",
             "order": 3,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=aRVemLiiwkc"
           },
@@ -268,8 +227,6 @@
             "name": "Sokumen irimi nage",
             "order": 6,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": "Naname",
             "video": "https://www.youtube.com/watch?v=DLRq1Y-MVrE"
           },
@@ -277,8 +234,6 @@
             "name": "Aïki otoshi",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=kzIE0gJdPiU"
           }
@@ -292,8 +247,6 @@
             "name": "Ikkyo",
             "order": 1,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hT8DVcJCeGM"
           }
@@ -307,8 +260,6 @@
             "name": "Ikkyo",
             "order": 1,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=umE7GipKWU8"
           },
@@ -316,8 +267,6 @@
             "name": "Nikkyo",
             "order": 2,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://youtu.be/bwAnDWppCXk?is=_6bzqB2JSxVCvela"
           },
@@ -325,8 +274,6 @@
             "name": "Sankyo",
             "order": 3,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=fvyCy-IT_zc"
           },
@@ -334,8 +281,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=GEbtVST4urE"
           },
@@ -343,8 +288,6 @@
             "name": "Shiho nage",
             "order": 7,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=-MJhSxH76V4"
           },
@@ -352,8 +295,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://youtu.be/-8Fikgbdnxc?is=ByA7cM_ocJjJkdv7"
           }
@@ -367,8 +308,6 @@
             "name": "Kokyu nage",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": null
           }
@@ -384,8 +323,6 @@
             "name": "Ikkyo",
             "order": 1,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": null
           },
@@ -393,8 +330,6 @@
             "name": "Nikkyo",
             "order": 2,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": null
           }
@@ -411,8 +346,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": null
           },
@@ -423,8 +356,6 @@
               "Omote",
               "Ura"
             ],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": null
           }
@@ -438,8 +369,6 @@
             "name": "Sankyo",
             "order": 3,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://youtu.be/XlMJQMbfKo8?is=4eUSflO-K7JQnKzn"
           }
@@ -453,8 +382,6 @@
             "name": "Ikkyo",
             "order": 1,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=qtMIMFFdAa8"
           },
@@ -462,8 +389,6 @@
             "name": "Nikkyo",
             "order": 2,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=2QhwgJewf3w"
           },
@@ -471,8 +396,6 @@
             "name": "Sankyo",
             "order": 3,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=WVI3ZByGh8o"
           },
@@ -480,8 +403,6 @@
             "name": "Irimi nage",
             "order": 9,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=lyyMewZhorg"
           }
@@ -497,8 +418,6 @@
             "name": "Kote gaeshi",
             "order": 10,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=hTZbsGDiVJ4"
           }
@@ -512,8 +431,6 @@
             "name": "Shiho nage",
             "order": 7,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=JdAFs8xrRHU"
           },
@@ -521,8 +438,6 @@
             "name": "Kokyu nage",
             "order": 42,
             "forms": [],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": "https://www.youtube.com/watch?v=_QaAz5tdAxw"
           }
@@ -539,8 +454,6 @@
               "Uchi",
               "Soto"
             ],
-            "isNew": true,
-            "isWarning": false,
             "note": null,
             "video": null
           }

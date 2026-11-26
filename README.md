@@ -19,10 +19,8 @@ Le tirage démarre dès l'ouverture : une technique est déjà affichée, tous w
 - **Grade** : choisis le grade à réviser (1er, 2ème ou 3ème Kyo). Le nombre de techniques est indiqué. Les grades se cumulent : le 2ème Kyo inclut le 3ème, et le 1er Kyo inclut le 2ème et le 3ème. Changer de grade relance une session.
 - **Programme** : bouton juste sous le grade, ouvre le programme (voir plus bas).
 - **Filtres** (changer un filtre relance une session) :
-  - 🆕 *Nouveautés* : uniquement les techniques nouvelles du programme ;
-  - ⚠️ *Attention* : uniquement les techniques à travailler en priorité ;
-  - les deux cochés : l'un **ou** l'autre ; aucun coché : tout le programme ;
-  - **Waza** (liste) : « Tous les waza » (par défaut), *Tachi waza*, *Hanmi Handachi waza* ou *Suwari waza*. Le waza et les marqueurs se cumulent (Suwari waza + ⚠️ = les techniques « Attention » de Suwari waza).
+  - 🆕 *Nouveautés* : uniquement les techniques nouvelles du grade, c'est-à-dire absentes du grade inférieur (non coché : tout le programme) ;
+  - **Waza** (liste) : « Tous les waza » (par défaut), *Tachi waza*, *Hanmi Handachi waza* ou *Suwari waza*. Le waza et 🆕 se cumulent (Suwari waza + 🆕 = les nouveautés de Suwari waza).
 
 ### 2. Tirage
 
@@ -34,7 +32,7 @@ Chaque tirage affiche une carte complète :
 | Attaque                | Aï hammi katate dori |
 | Technique              | **Nikkyo**           |
 | Forme (si elle existe) | Ura                  |
-| Marqueurs              | 🆕 ⚠️                |
+| Marqueur               | 🆕                   |
 | Note (si elle existe)  | « Naname »           |
 | Vidéo (si elle existe) | ▶ Voir la vidéo      |
 
@@ -47,7 +45,7 @@ Le compteur « 3 / 115 » indique ta progression dans la session.
 **Règles du tirage**
 
 - Tirage **uniforme** sur toutes les combinaisons *attaque × technique × forme*.
-- Les techniques 🆕 *Nouveau* et ⚠️ *Attention* sortent **un peu plus souvent** (×1,5 chacune, cumulables).
+- Les techniques 🆕 *Nouveau* sortent **un peu plus souvent** (×1,5).
 - **Aucune répétition** pendant une session : quand tout est passé, l'app affiche « Session terminée 🎉 ». Ouvrir le programme ne change pas la session : à ton retour, tu reprends où tu t'étais arrêté. Le bouton **i** en haut à droite de la carte ouvre directement la fiche de la technique dans le programme.
 
 ### 3. Programme
@@ -62,10 +60,10 @@ Le programme permet de naviguer dans tout le contenu d'un waza, sur quatre nivea
 
 1. **Waza** : *Tachi waza*, *Hanmi Handachi waza* ou *Suwari waza* (un waza sans attaque est grisé).
 2. **Attaques** : liste triée du waza.
-3. **Techniques** : celles de l'attaque choisie, avec leurs marqueurs 🆕 ⚠️.
+3. **Techniques** : celles de l'attaque choisie, avec leur marqueur 🆕.
 4. **Fiche technique** : la carte complète, et en bas **Précédente / Suivante** pour passer d'une technique à l'autre de la même attaque (la liste boucle). En défilant, la liste « Même technique, autres attaques » permet de comparer la même technique sur d'autres attaques.
 
-Les boutons « ← … » en haut remontent d'un niveau, et « Retour à l'accueil » revient au tirage (tu peux aussi toucher le titre « 合気道 Aïkido »). Les filtres 🆕/⚠️ ne s'appliquent pas au programme.
+Les boutons « ← … » en haut remontent d'un niveau, et « Retour à l'accueil » revient au tirage (tu peux aussi toucher le titre « 合気道 Aïkido »). Les filtres ne s'appliquent pas au programme.
 
 ### 4. Navigation
 
@@ -204,7 +202,7 @@ Les quatre niveaux du programme sont stockés dans `model.program = { current: {
 |---------|---------|---------------|-------------------------------------------|
 | `catalog` | `GradesLoaded` / `GradeLoaded` | fin du chargement des JSON | événements `GradesLoaded` / `GradeLoaded` |
 | `catalog` | `SelectGrade` | liste des grades | `LoadGrade`, `Navigated` |
-| `quiz` | `SetFilter`, `SelectWaza` | cases 🆕 / ⚠️, liste des waza | `Random` (nouvelle session) |
+| `quiz` | `SetFilter`, `SelectWaza` | case 🆕, liste des waza | `Random` (nouvelle session) |
 | `quiz` | `Next` | « Technique suivante » | `Random` |
 | `quiz` | (événements `GradesLoaded`, `GradeLoaded`) | données changées | `Random` (nouvelle session) |
 | `quiz` | `Rolled` | retour de l'effet `Random` | `ViewChanged` |

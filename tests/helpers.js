@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createEffects, createSubscriptions } from "../framework/elmer/effects.js";
 import { to } from "../framework/elmer/feature.js";
 import { cacheGrade } from "../src/shared/grades.js";
-import { mergeGrades } from "../src/shared/logic.js";
+import { markNew, mergeGrades } from "../src/shared/logic.js";
 import { run } from "../framework/elmer/runtime.js";
 import { application, init, update } from "../src/update.js";
 import { view } from "../src/view.js";
@@ -25,8 +25,11 @@ export const chain = (id) => {
   return [...(grade.includes || []), grade.file].map((file) => readJson(`data/${file}`));
 };
 const fold = (list) => list.reduce((merged, data) => (merged ? mergeGrades(merged, data) : data), null);
-export const resolveGrade = (id) => fold(chain(id));
-export const parentsOf = (id) => fold(chain(id).slice(0, -1));
+export const resolveGrade = (id) => markNew(fold(chain(id)), parentsOf(id));
+export function parentsOf(id) {
+  const parents = chain(id).slice(0, -1);
+  return parents.length ? fold(parents) : null;
+}
 
 // ---------- Virtual tree ----------
 export const walk = (node, visit) => {

@@ -63,7 +63,7 @@ Same rules as for techniques: a new attack gets the value of its name if it is i
 
 ## Program
 
-The "Programme" (Program) button (home screen, right under the grade selector) opens the full listing of the selected grade; the draw session is kept (coming back to the home resumes it). The 🆕/⚠️ filters do not apply there.
+The "Programme" (Program) button (home screen, right under the grade selector) opens the full listing of the selected grade; the draw session is kept (coming back to the home resumes it). The filters do not apply there.
 
 0. Choice of the waza (a waza with no attack is disabled).
 1. List of all attacks of the waza (sorted by `order`, then alphabetically).
@@ -183,8 +183,6 @@ One file per grade:
           {
             "name": "Nikkyo",
             "forms": ["Omote", "Ura"],
-            "isNew": false,
-            "isWarning": true,
             "note": null,
             "video": null,
             "order": 2
@@ -198,7 +196,7 @@ One file per grade:
 
 - Waza: `Tachi waza`, `Suwari waza`, `Hanmi Handachi waza`.
 - `forms`: array, empty if there is no form to draw (e.g. "Omote", "Ura").
-- `isNew` (🆕) and `isWarning` (⚠️): markers carried by the whole technique.
+- `isNew` (🆕) is **not in the JSON**: it is computed when a grade is loaded (`markNew` in `src/shared/logic.js`, called by `resolveGrade`): a technique is new when it is absent (same waza, attack and name) from the lower grades; the lowest grade has none. A technique is therefore 🆕 only in the grade that introduces it.
 - `note`: free text displayed under the technique (e.g. "Naname", "3 formes différentes").
 - `video`: URL, the link is only displayed if it exists.
 - Harmonized spelling: Nikkyo, Sankyo, first letter uppercase then lowercase (e.g. "Kote gaeshi").
@@ -210,17 +208,17 @@ Grades inherit in numbering order: 1st Kyo inherits from 2nd, which inherits fro
 
 - `grades.json`: `includes` is the list of files loaded, in order, before the grade's own file. 3rd Kyo: no `includes`; 2nd Kyo: `["3eme-kyo.json"]`; 1st Kyo: `["3eme-kyo.json", "2eme-kyo.json"]`.
 - `mergeGrades` (in `src/shared/logic.js`) merges by name (waza, attack, technique): the last file wins. Each grade adds its new techniques and overrides inherited ones when needed.
-- A grade file therefore only contains its additions and minimal overrides (`name`, `order` and the fields that change, e.g. `isNew`, `isWarning`, `forms`, `note`). Do not copy a parent's data (a test detects needless copies).
+- A grade file therefore only contains its additions and minimal overrides (`name`, `order` and the fields that change, e.g. `forms`, `note`). Do not copy a parent's data (a test detects needless copies).
 - Consequence: any technique added to the 3rd Kyo also appears in the 2nd and 1st Kyo, and any 2nd Kyo technique appears in the 1st.
 - For an intended `null` value (e.g. clearing an inherited note), write it explicitly in the override.
 
 ## Application rules
 
-- **Home**: grade selector (with the number of techniques), 🆕 Nouveautés (New) / ⚠️ Attention (Warning) filters, then the "Programme" button right under the grade selector (before the filters), then the quiz (a technique drawn among the selected waza; `WAZA_ORDER` gives the order of the waza).
-- **Filters**: none checked = everything; only one = techniques with that marker; both = one OR the other. Waza filter (a select: all, or one waza; `filters.waza` = list of the waza drawn, never empty, not persisted): AND with the markers, applied by `buildFullPool`; not applied to the program. Changing a filter (or the grade) starts a new session; with no matching technique the quiz shows a message.
-- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew` and ×1.5 for `isWarning` (cumulative), constants `WEIGHT_NEW` and `WEIGHT_WARNING` at the top of `src/shared/logic.js`.
+- **Home**: grade selector (with the number of techniques), waza select and 🆕 Nouveautés (New) filter, then the "Programme" button right under the grade selector (before the filters), then the quiz (a technique drawn among the selected waza; `WAZA_ORDER` gives the order of the waza).
+- **Filters**: 🆕 unchecked = everything; checked = only the `isNew` techniques. Waza filter (a select: all, or one waza; `filters.waza` = list of the waza drawn, never empty, not persisted): AND with 🆕, applied by `buildFullPool`; not applied to the program. Changing a filter (or the grade) starts a new session; with no matching technique the quiz shows a message.
+- **Draw**: uniform over all `attack × technique × form` combinations, weighted. Weight ×1.5 for `isNew`, constant `WEIGHT_NEW` at the top of `src/shared/logic.js`.
 - **No repetition**: a combination already drawn does not come up again during the session. When all have been drawn, "Session terminée 🎉" (Session finished).
 - **Session**: starts when the data is loaded, restarts when the grade or a filter changes; opening the program keeps it.
-- **Display**: waza, attack, technique, form, 🆕/⚠️ badges, note, video link, progress counter ("n / total", per combination).
+- **Display**: waza, attack, technique, form, 🆕 badge, note, video link, progress counter ("n / total", per combination).
 - **Buttons**: "Technique suivante" (Next technique) and "Programme" on the home screen.
 - The grade selector's counter counts techniques per attack, without multiplying by forms.

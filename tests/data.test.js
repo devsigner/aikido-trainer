@@ -35,9 +35,8 @@ describe("JSON data", () => {
             assert.ok(!techniqueNames.has(technique.name), `duplicate technique: ${attack.name} / ${technique.name}`);
             techniqueNames.add(technique.name);
             if (technique.forms !== undefined) assert.ok(Array.isArray(technique.forms));
-            for (const key of ["isNew", "isWarning"]) {
-              if (technique[key] !== undefined) assert.equal(typeof technique[key], "boolean");
-            }
+            assert.equal(technique.isNew, undefined, "isNew is computed");
+            assert.equal(technique.isWarning, undefined, "isWarning no longer exists");
             if (technique.video) assert.match(technique.video, /^https?:\/\//);
           }
         }
@@ -48,13 +47,6 @@ describe("JSON data", () => {
   test("consistent spelling (Nikkyo, Sankyo)", () => {
     const all = JSON.stringify([readJson("data/1er-kyo.json"), readJson("data/2eme-kyo.json")]);
     assert.doesNotMatch(all, /Nikyo|Sankio/i);
-  });
-
-  test("2nd Kyo: starred Yokomen uchi lines flagged as warning", () => {
-    const yoko = resolveGrade("2eme-kyo").waza["Tachi waza"].find((attack) => attack.name === "Yokomen uchi");
-    for (const name of ["Ikkyo", "Nikkyo", "Sankyo", "Irimi nage", "Kote gaeshi"]) {
-      assert.equal(yoko.techniques.find((technique) => technique.name === name).isWarning, true, name);
-    }
   });
 
   test("2nd Kyo: special forms", () => {
